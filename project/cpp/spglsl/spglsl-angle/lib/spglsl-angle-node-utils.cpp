@@ -1,7 +1,8 @@
 #include "spglsl-angle-node-utils.h"
-#include "../../core/math-utils.h"
 
 #include <angle/src/compiler/translator/Symbol.h>
+
+#include "../../core/math-utils.h"
 
 bool opIsBuiltinUnaryFunction(TOperator op) {
   switch (op) {
@@ -169,8 +170,6 @@ const sh::TFunction * nodeGetAsFunction(sh::TIntermNode * node) {
   }
   return nullptr;
 }
-
-#include <iostream>
 
 const sh::TConstantUnion * _constantUnionIsAllZero(const sh::TType * type,
     const sh::TConstantUnion * pConstUnion,

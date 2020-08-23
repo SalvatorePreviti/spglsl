@@ -3,7 +3,6 @@
 #include <angle/src/compiler/translator/Initialize.h>
 #include <angle/src/compiler/translator/ValidateOutputs.h>
 #include <angle/src/compiler/translator/ValidateVaryingLocations.h>
-
 #include <angle/src/compiler/translator/tree_ops/FoldExpressions.h>
 #include <angle/src/compiler/translator/tree_ops/PruneNoOps.h>
 #include <angle/src/compiler/translator/tree_ops/RecordConstantPrecision.h>
@@ -107,6 +106,12 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
     return false;
   }
 
+  SpglslAngleReservedWordsTraverser reservedWordsTraverser(this->reservedWords, &this->symbolTable);
+  root->traverse(&reservedWordsTraverser);
+
+  SpglslAngleManglerTraverser renamerTraverser(this->reservedWords, &this->symbolTable);
+  root->traverse(&renamerTraverser);
+
   return true;
 }
 
@@ -119,7 +124,8 @@ std::string SpglslAngleCompiler::decompileOutput(bool minify) {
     return "";
   }
   std::ostringstream out;
-  SpglslAngleWebglOutput outputTraverser(out, &this->symbolTable, !minify);
+
+  SpglslAngleWebglOutput outputTraverser(out, &this->symbolTable, !minify, &this->reservedWords);
 
   if (this->compilerOptions.language == EShLangVertex) {
     outputTraverser.defaultIntPrecision = sh::TPrecision::EbpHigh;
@@ -146,5 +152,6 @@ std::string SpglslAngleCompiler::decompileOutput(bool minify) {
 
   outputTraverser.writeHeader(this->metadata.shaderVersion, this->metadata.pragma, this->extensionBehavior);
   this->body->traverse(&outputTraverser);
+
   return out.str();
 }

@@ -1,11 +1,6 @@
 #ifndef _SPGLSL_COMPILER_H_
 #define _SPGLSL_COMPILER_H_
 
-#include "../core/non-copyable.h"
-#include "lib/spglsl-t-compiler.h"
-#include "spglsl-angle-call-dag.h"
-#include "spglsl-module-metadata.h"
-
 #include <angle/include/GLSLANG/ShaderVars.h>
 #include <angle/include/angle_gl.h>
 #include <angle/src/compiler/translator/Compiler.h>
@@ -14,6 +9,11 @@
 #include <emscripten/bind.h>
 
 #include "../core/hash-stream.h"
+#include "../core/non-copyable.h"
+#include "lib/spglsl-t-compiler.h"
+#include "spglsl-angle-call-dag.h"
+#include "spglsl-angle-mangler.h"
+#include "spglsl-module-metadata.h"
 
 class SpglslAngleCompilerHandle;
 class SpglslAngleCompilerBase : NonCopyable {};
@@ -25,6 +25,8 @@ class SpglslAngleCompiler : public SpglslTCompilerHolder {
   sh::TSymbolTable symbolTable;
   sh::TIntermBlock * body;
   SpglslAngleCallDag callDag;
+
+  SpglslAngleReservedWords reservedWords;
 
   explicit SpglslAngleCompiler(sh::GLenum shaderType, const SpglslCompileOptions & compilerOptions);
 

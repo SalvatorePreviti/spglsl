@@ -11,11 +11,18 @@
 #include "../core/string-utils.h"
 #include "lib/spglsl-glsl-writer.h"
 
+class SpglslAngleReservedWords;
+
 class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWriter {
  public:
   std::unordered_set<const sh::TStructure *> declaredStructs;
 
-  SpglslAngleWebglOutput(std::ostream & out, sh::TSymbolTable * symbolTable, bool beautify);
+  SpglslAngleReservedWords * reserved;
+
+  SpglslAngleWebglOutput(std::ostream & out,
+      sh::TSymbolTable * symbolTable,
+      bool beautify,
+      SpglslAngleReservedWords * reserved);
 
   void visitSymbol(sh::TIntermSymbol * node) override;
   void visitConstantUnion(sh::TIntermConstantUnion * node) override;

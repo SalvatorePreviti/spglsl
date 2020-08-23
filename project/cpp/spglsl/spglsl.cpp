@@ -1,6 +1,5 @@
 #include <emscripten/bind.h>
 
-#include <iostream>
 #include <sstream>
 
 #include "spglsl-angle/spglsl-angle-compiler-handle.h"

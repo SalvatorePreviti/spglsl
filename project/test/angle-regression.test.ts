@@ -4,7 +4,7 @@ import chalk = require('chalk')
 
 import { getTestShaders, TestShader } from './shaders/test-shaders'
 
-describe.only('angle-regression', function () {
+describe('angle-regression', function () {
   this.timeout(7000)
 
   before(async () => {
@@ -54,10 +54,6 @@ describe.only('angle-regression', function () {
 
   for (const testShader of getTestShaders()) {
     if (testShader.hasIncludes) {
-      continue
-    }
-
-    if (!testShader.name.includes('my.frag')) {
       continue
     }
 

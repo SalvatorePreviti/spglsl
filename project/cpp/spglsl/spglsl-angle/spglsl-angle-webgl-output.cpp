@@ -7,14 +7,19 @@
 #include "../core/math-utils.h"
 #include "lib/spglsl-angle-node-utils.h"
 #include "lib/spglsl-angle-operator-precedence.h"
+#include "spglsl-angle-mangler.h"
 
-SpglslAngleWebglOutput::SpglslAngleWebglOutput(std::ostream & out, sh::TSymbolTable * symbolTable, bool beautify) :
+SpglslAngleWebglOutput::SpglslAngleWebglOutput(std::ostream & out,
+    sh::TSymbolTable * symbolTable,
+    bool beautify,
+    SpglslAngleReservedWords * reserved) :
     sh::TIntermTraverser(true, true, true, symbolTable),
     SpglslGlslWriter(out, beautify),
     _skipNextBlockBraces(true),
     _lastWrittenVarDecl(nullptr),
     _canForwardVarDecl(false),
-    _isInsideForInit(0) {
+    _isInsideForInit(0),
+    reserved(reserved) {
 }
 
 std::string SpglslAngleWebglOutput::getSymbolName(const sh::TSymbol & symbol) {
@@ -23,6 +28,14 @@ std::string SpglslAngleWebglOutput::getSymbolName(const sh::TSymbol & symbol) {
   }
   if (symbol.isFunction() && static_cast<const sh::TFunction &>(symbol).isMain()) {
     return "main";
+  }
+
+  if (this->reserved) {
+    const auto found = this->reserved->symRemap.find(&symbol);
+    // std::cout << "RENAME " << symbol.name() << std::endl;
+    if (found != this->reserved->symRemap.end()) {
+      return found->second;
+    }
   }
 
   const sh::ImmutableString & n = symbol.name();
@@ -155,7 +168,7 @@ void SpglslAngleWebglOutput::writeVariableType(const sh::TType & type, bool isFu
   }
   auto qualifier = type.getQualifier();
   bool hasQualifier = qualifier != sh::EvqTemporary && qualifier != sh::EvqGlobal;
-  if (hasQualifier) {
+  if (hasQualifier && (!isFunctionArgument || qualifier != sh::TQualifier::EvqIn)) {
     this->write(sh::getQualifierString(qualifier));
   }
   if (hasQualifier || isFunctionArgument) {

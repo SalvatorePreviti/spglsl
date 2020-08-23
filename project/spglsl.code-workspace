@@ -101,7 +101,8 @@
       "*.ipp": "cpp",
       "__functional_base_03": "cpp",
       "filesystem": "cpp",
-      "*.inc": "cpp"
+      "*.inc": "cpp",
+      "__functional_03": "cpp"
     }
   }
 }
