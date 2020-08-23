@@ -1,8 +1,7 @@
 {
   "name": "spglsl",
-  "version": "0.0.1",
-  "private": true,
-  "description": "glsl optimizer and validator",
+  "version": "0.0.1-alpha2",
+  "description": "experimental spglsl",
   "keywords": [
     "glsl",
     "angle",

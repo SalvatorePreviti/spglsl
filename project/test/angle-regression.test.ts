@@ -58,6 +58,10 @@ describe('angle-regression', function () {
       continue
     }
 
+    if (!testShader.name.includes('my.frag')) {
+      continue
+    }
+
     it(`ANGLE regression ./${testShader.name}`, async () => {
       Reflect.defineProperty(doTestShader, 'name', {
         value: `./${testShader.name}`,

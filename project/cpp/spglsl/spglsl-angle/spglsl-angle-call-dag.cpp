@@ -12,8 +12,11 @@ SpglslAngleCallDag::SpglslAngleCallDag() {
 
 void SpglslAngleCallDag::clear() {
   this->metadata.clear();
+  this->indexOfMainFunctions.clear();
   sh::CallDAG::clear();
 }
+
+#include <iostream>
 
 bool SpglslAngleCallDag::init(sh::TIntermNode * root, sh::TDiagnostics * diagnostics) {
   this->clear();
@@ -29,9 +32,9 @@ bool SpglslAngleCallDag::init(sh::TIntermNode * root, sh::TDiagnostics * diagnos
 
   for (size_t i = this->size(); i-- > 0;) {
     auto func = this->getRecordFromIndex(i).node->getFunction();
-    if (func && (func->isMain() || func->name().beginsWith("main"))) {
+    if (func &&
+        (func->isMain() || (func->symbolType() == sh::SymbolType::UserDefined && func->name().beginsWith("main")))) {
       this->indexOfMainFunctions.emplace(i);
-      break;
     }
   }
 
