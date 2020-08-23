@@ -24,10 +24,10 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-out layout(location = 0) mediump vec4 my_FragColor;
+layout(location = 0) out mediump vec4 my_FragColor;
 
 // Workaround for non-compliant WebGL implementations (FIXME)
-out layout(location = 1) mediump vec3 v_normal;
+layout(location = 1) out mediump vec3 v_normal;
 
 void main() {
   my_FragColor = vec4(v_normal / 2.0 + vec3(0.5), 1);

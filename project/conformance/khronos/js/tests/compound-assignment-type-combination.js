@@ -134,6 +134,7 @@ var runTest = function(contextVersion) {
             pushTest(vecType, vecType, vecTypeToScalar, false);
             pushTest(vecType, 'mat' + vecType[3], vecTypeToScalar, true);
         }
+
       }
     }
   }

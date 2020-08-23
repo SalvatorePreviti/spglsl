@@ -70,7 +70,7 @@ void main() {
     my_FragColor = vec4(1, 0, 0, 1);
 }
 </script>
-  <script id="fshaderBlueESSL1" type="x-shader/x-fragment">
+  <script id="fshaderBlueESSL1" type="x-shader/x-fragment">#version 300 es
 precision mediump float;
 out vec4 my_FragColor;
 
@@ -83,7 +83,7 @@ precision mediump float;
 
 out vec4 my_FragColor;
 void main() {
-    my_FragColor = (gl_MaxDrawBuffers == $(numDrawingBuffers)) ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1);
+    my_FragColor = (gl_MaxDrawBuffers >= $(numDrawingBuffers)) ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1);
 }
 </script>
   <script>

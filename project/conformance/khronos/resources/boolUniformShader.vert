@@ -1,3 +1,4 @@
+#version 300 es
 /*
  * Copyright (c) 2009 The Chromium Authors. All rights reserved.
  *
@@ -26,18 +27,15 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 uniform bool bval;
 uniform bvec2 bval2;
 uniform bvec3 bval3;
 uniform bvec4 bval4;
 
-void main()
-{
-    bool allSet = bval
-            && bval2[0] && bval2[1]
-            && bval3[0] && bval3[1] && bval3[2]
-            && bval4[0] && bval4[1] && bval4[2] && bval4[3];
-    gl_Position = vec4((allSet ? 1.0 : -1.0), 0.0, 0.0, 1.0);
+void main() {
+  bool allSet =
+      bval && bval2[0] && bval2[1] && bval3[0] && bval3[1] && bval3[2] && bval4[0] && bval4[1] && bval4[2] && bval4[3];
+  gl_Position = vec4((allSet ? 1.0 : -1.0), 0.0, 0.0, 1.0);
 }

@@ -1,3 +1,4 @@
+#version 300 es
 /*
  * Copyright (c) 2009 The Chromium Authors. All rights reserved.
  *
@@ -26,18 +27,14 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 uniform float fval;
 uniform vec2 fval2;
 uniform vec3 fval3;
 uniform vec4 fval4;
 
-void main()
-{
-    float sum = fval
-            + fval2[0] + fval2[1]
-            + fval3[0] + fval3[1] + fval3[2]
-            + fval4[0] + fval4[1] + fval4[2] + fval4[3];
-    gl_Position = vec4(sum, 0.0, 0.0, 1.0);
+void main() {
+  float sum = fval + fval2[0] + fval2[1] + fval3[0] + fval3[1] + fval3[2] + fval4[0] + fval4[1] + fval4[2] + fval4[3];
+  gl_Position = vec4(sum, 0.0, 0.0, 1.0);
 }

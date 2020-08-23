@@ -107,6 +107,7 @@ var startsWith = function(haystack, needle) {
  * @type {string}
  */
 var simpleTextureVertexShader = [
+  '#version 300 es',
   'in vec4 vPosition;',
   'in vec2 texCoord0;',
   'out vec2 texCoord;',
@@ -120,6 +121,7 @@ var simpleTextureVertexShader = [
  * @type {string}
  */
 var simpleTextureFragmentShader = [
+  '#version 300 es',
   'precision mediump float;',
   'uniform sampler2D tex;',
   'in vec2 texCoord;',
@@ -133,6 +135,7 @@ var simpleTextureFragmentShader = [
  * @type {string}
  */
 var simpleCubeMapTextureFragmentShader = [
+  '#version 300 es',
   'precision mediump float;',
   'uniform samplerCube tex;',
   'uniform highp int face;',
@@ -164,6 +167,7 @@ var simpleCubeMapTextureFragmentShader = [
  * @type {string}
  */
 var noTexCoordTextureVertexShader = [
+  '#version 300 es',
   'in vec4 vPosition;',
   'out vec2 texCoord;',
   'void main() {',
@@ -176,6 +180,7 @@ var noTexCoordTextureVertexShader = [
  * @type {string}
  */
 var simpleVertexShader = [
+  '#version 300 es',
   'in vec4 vPosition;',
   'void main() {',
   '    gl_Position = vPosition;',
@@ -186,6 +191,7 @@ var simpleVertexShader = [
  * @type {string}
  */
 var simpleColorFragmentShader = [
+  '#version 300 es',
   'precision mediump float;',
   'uniform vec4 u_color;',
   'out vec4 fragData0;',
@@ -198,6 +204,7 @@ var simpleColorFragmentShader = [
  * @type {string}
  */
 var simpleVertexColorVertexShader = [
+  '#version 300 es',
   'in vec4 vPosition;',
   'in vec4 a_color;',
   'out vec4 v_color;',
@@ -211,6 +218,7 @@ var simpleVertexColorVertexShader = [
  * @type {string}
  */
 var simpleVertexColorFragmentShader = [
+  '#version 300 es',
   'precision mediump float;',
   'in vec4 v_color;',
   'out vec4 fragData0;',

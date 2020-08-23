@@ -29,7 +29,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-out vec4 my_FragColor;
+out mediump vec4 my_FragColor;
 
 void main() {
   my_FragColor = vec4(0.0, 0.0, 0.0, 1.0);

@@ -25,8 +25,9 @@ emscripten::val spglsl_angle_compile(emscripten::val cinput,
     wresult.set("infoLog", emscripten::val(angleCompiler.getInfoLog()));
     wresult.set("valid", emscripten::val(angleValid));
 
-    std::string decompiledOutput = angleCompiler.decompileOutput();
-    wresult.set("output", decompiledOutput.empty() ? mainSourceCode : decompiledOutput);
+    if (angleValid) {
+      wresult.set("output", angleCompiler.decompileOutput());
+    }
   }
   return wresult;
 }
