@@ -1,13 +1,13 @@
 #ifndef _SPGLSL_WRITER_H_
 #define _SPGLSL_WRITER_H_
 
-#include <sstream>
-#include <string>
-
 #include <angle/src/compiler/translator/BaseTypes.h>
 #include <angle/src/compiler/translator/ImmutableString.h>
 #include <angle/src/compiler/translator/Operator.h>
 #include <angle/src/compiler/translator/Types.h>
+
+#include <sstream>
+#include <string>
 
 #include "../../core/non-copyable.h"
 
@@ -113,6 +113,8 @@ class SpglslGlslWriter : NonCopyable {
   SpglslGlslWriter & writeTOperator(TOperator op);
   SpglslGlslWriter & writeTMemoryQualifier(const sh::TMemoryQualifier & q);
   SpglslGlslWriter & writeTypePrecision(const sh::TType & type);
+
+  bool needsToWriteTTypeLayoutQualifier(const sh::TType & type);
   bool writeTTypeLayoutQualifier(const sh::TType & type);
 
  protected:

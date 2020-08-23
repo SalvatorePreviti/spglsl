@@ -57,7 +57,7 @@ describe.only('angle-regression', function () {
       continue
     }
 
-    if (!testShader.name.includes('cmmvnsd-GLES3_1.frag')) {
+    if (!testShader.name.includes('my.frag')) {
       continue
     }
 

@@ -1,11 +1,11 @@
 #include "spglsl-glsl-writer.h"
 
-#include "../../core/math-utils.h"
-#include "../../core/string-utils.h"
-
 #include <angle/src/compiler/translator/Symbol.h>
 #include <angle/src/compiler/translator/Types.h>
 #include <angle/src/compiler/translator/util.h>
+
+#include "../../core/math-utils.h"
+#include "../../core/string-utils.h"
 
 SpglslAngleLayoutNeeds::SpglslAngleLayoutNeeds(const sh::TType & type) : layoutQualifier(type.getLayoutQualifier()) {
   sh::TQualifier qualifier = type.getQualifier();
@@ -285,11 +285,25 @@ SpglslGlslWriter & SpglslGlslWriter::writeTypePrecision(const sh::TType & type) 
   return this->write(sh::getPrecisionString(precision));
 }
 
+bool SpglslGlslWriter::needsToWriteTTypeLayoutQualifier(const sh::TType & type) {
+  if (type.getBasicType() == sh::EbtInterfaceBlock && type.getInterfaceBlock()) {
+    auto blockStorage = type.getInterfaceBlock()->blockStorage();
+    auto blockBinding = type.getInterfaceBlock()->blockBinding();
+    bool hasBlockStorage = blockStorage != sh::EbsUnspecified && blockStorage != sh::EbsStd140;
+
+    return hasBlockStorage || blockBinding >= 0;
+  }
+
+  SpglslAngleLayoutNeeds needs(type);
+  return needs.needsToWriteLayout;
+}
+
 bool SpglslGlslWriter::writeTTypeLayoutQualifier(const sh::TType & type) {
   if (type.getBasicType() == sh::EbtInterfaceBlock && type.getInterfaceBlock()) {
     auto blockStorage = type.getInterfaceBlock()->blockStorage();
     auto blockBinding = type.getInterfaceBlock()->blockBinding();
     bool hasBlockStorage = blockStorage != sh::EbsUnspecified && blockStorage != sh::EbsStd140;
+
     if (hasBlockStorage || blockBinding >= 0) {
       this->write("layout(");
       if (hasBlockStorage) {

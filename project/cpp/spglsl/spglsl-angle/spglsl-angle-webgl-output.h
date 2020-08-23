@@ -67,9 +67,15 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
 
   std::string getSymbolName(const sh::TSymbol & symbol);
 
-  void writeVariableDeclarationSymbol(sh::TIntermNode & node);
+  void writeVariableDeclaration(sh::TIntermNode & node);
   bool isIntermNodeSingleStatement(sh::TIntermNode * node);
   void writeConstantUnionSingleValue(const sh::TConstantUnion * value, bool needsParentheses, bool needsFloat);
+
+  int _isInsideForInit;
+  const sh::TType * _lastWrittenVarDecl;
+  bool _canForwardVarDecl;
+  void clearLastWrittenVarDecl();
+  bool needsToClearLastWrittenVarDecl();
 };
 
 #endif
