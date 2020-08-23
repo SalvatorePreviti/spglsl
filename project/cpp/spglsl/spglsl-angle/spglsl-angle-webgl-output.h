@@ -4,6 +4,7 @@
 #include <angle/src/compiler/translator/ExtensionBehavior.h>
 #include <angle/src/compiler/translator/Pragma.h>
 #include <angle/src/compiler/translator/tree_util/IntermTraverse.h>
+
 #include <sstream>
 #include <unordered_set>
 
@@ -68,6 +69,7 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
 
   void writeVariableDeclarationSymbol(sh::TIntermNode & node);
   bool isIntermNodeSingleStatement(sh::TIntermNode * node);
+  void writeConstantUnionSingleValue(const sh::TConstantUnion * value, bool needsParentheses, bool needsFloat);
 };
 
 #endif

@@ -1,12 +1,13 @@
 #include "math-utils.h"
 
 #include <angle/src/common/mathutil.h>
+
 #include <algorithm>
 #include <cfloat>
 #include <sstream>
-#include "string-utils.h"
 
 #include "../spglsl-init.h"
+#include "string-utils.h"
 
 static const std::string PositiveInfinity = "(1./0.)";
 static const std::string ParentesizedPositiveInfinity = "(1./0.)";
@@ -44,7 +45,7 @@ bool floatIsInfinity(float value) {
   return std::isinf(value) || gl::isInf(value);
 }
 
-std::string floatToGlsl(float value, bool needsParentheses) {
+std::string floatToGlsl(float value, bool needsParentheses, bool needsFloat) {
   if (floatIsNaN(value)) {
     return needsParentheses ? ParentesizedNaN : NaN;
   }
@@ -59,8 +60,8 @@ std::string floatToGlsl(float value, bool needsParentheses) {
   float absValue = std::abs(value);
 
   if (floatIsNaN(absValue) || absValue < FLT_MIN) {
-    return "0.";
+    return needsFloat ? "0." : "0";
   }
 
-  return SpglslImports::floatToGlsl(value, needsParentheses);
+  return SpglslImports::floatToGlsl(value, needsParentheses, needsFloat);
 }

@@ -82,7 +82,8 @@ export function uint32ToGlsl(value: string | number | boolean | null | undefined
 
 export function floatToGlsl(
   value: string | number | boolean | null | undefined,
-  needsParentheses: boolean = false
+  needsParentheses: boolean = false,
+  needsFloat: boolean = true
 ): string {
   if (typeof value !== 'number') {
     value = glslToFloat(value)
@@ -95,14 +96,14 @@ export function floatToGlsl(
   value = fround(max(-FLOAT_MAX, min(FLOAT_MAX, value)))
   const absValue = value < 0 ? fround(-value) : value
   if (!absValue || absValue < FLOAT_MIN) {
-    return '0.'
+    return needsFloat ? '0.' : '0'
   }
 
   const rounded = fround(round(value))
   if (rounded === value) {
     const s = rounded.toString()
     if (s.indexOf('.') < 0 && s.indexOf('e') < 0) {
-      return `${s}.`
+      return needsFloat ? `${s}.` : s
     }
   }
 
@@ -135,6 +136,9 @@ export function floatToGlsl(
     best = needsParentheses ? `(${fraction})` : fraction
   } else {
     best = value < 0 ? `-${decimal}` : decimal
+    if (!needsFloat && best.endsWith('.')) {
+      best = best.slice(0, best.length - 1)
+    }
   }
 
   return best

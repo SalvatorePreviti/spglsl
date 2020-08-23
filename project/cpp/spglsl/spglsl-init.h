@@ -9,8 +9,8 @@ class SpglslImports : NonCopyable {
  public:
   static emscripten::val imports;
 
-  static inline std::string floatToGlsl(float value, bool needsParentheses) {
-    return SpglslImports::_floatToGlsl(value, needsParentheses).as<std::string>();
+  static inline std::string floatToGlsl(float value, bool needsParentheses, bool needsFloat) {
+    return SpglslImports::_floatToGlsl(value, needsParentheses, needsFloat).as<std::string>();
   }
 
  private:

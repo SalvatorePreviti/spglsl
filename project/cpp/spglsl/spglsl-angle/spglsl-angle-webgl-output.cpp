@@ -53,6 +53,18 @@ std::string SpglslAngleWebglOutput::getTypeName(const sh::TType & type) {
   return type.getBuiltInTypeNameString();
 }
 
+void SpglslAngleWebglOutput::writeConstantUnionSingleValue(const sh::TConstantUnion * value,
+    bool needsParentheses,
+    bool needsFloat) {
+  switch (value->getType()) {
+    case sh::EbtInt: this->write(int32ToGlsl(value->getIConst())); break;
+    case sh::EbtUInt: this->write(uint32ToGlsl(value->getUConst())); break;
+    case sh::EbtBool: this->write(value->getBConst() ? "true" : "false"); break;
+    case sh::EbtYuvCscStandardEXT: out << getYuvCscStandardEXTString(value->getYuvCscStandardEXTConst()); break;
+    default: this->write(floatToGlsl(value->getFConst(), needsParentheses, needsFloat)); break;
+  }
+}
+
 const sh::TConstantUnion * SpglslAngleWebglOutput::writeConstantUnion(const sh::TType * type,
     const sh::TConstantUnion * pConstUnion,
     bool needsParentheses) {
@@ -76,27 +88,56 @@ const sh::TConstantUnion * SpglslAngleWebglOutput::writeConstantUnion(const sh::
   }
 
   size_t size = type->getObjectSize();
-  bool writeType = size > 1;
-  if (writeType) {
-    this->write(this->getTypeName(*type));
-    this->write('(');
+  if (size == 1) {
+    this->writeConstantUnionSingleValue(pConstUnion, needsParentheses, true);
+    return pConstUnion + 1;
   }
+
+  this->write(this->getTypeName(*type));
+  this->write('(');
+
+  if (type->isVector()) {
+    // Check if we have a vector whose input values are all the same, vec4(0,0,0,0) => vec4(0)
+    bool isAllSameValue = true;
+    for (size_t i = 1; i < size; ++i) {
+      if (pConstUnion[0] != pConstUnion[i]) {
+        isAllSameValue = false;
+      }
+    }
+    if (isAllSameValue) {
+      this->writeConstantUnionSingleValue(pConstUnion, needsParentheses, false);
+      this->write(')');
+      return pConstUnion + size;
+    }
+  }
+
+  if (type->isMatrix() && type->getNominalSize() == type->getSecondarySize()) {
+    // If the the matrix is square and is a multiple of the identity matrix we can use a single value.
+    bool isIdentityMultiple = true;
+    for (int i = 0, msize = type->getNominalSize(); i < msize; i++) {
+      for (int j = 0; j < msize; j++) {
+        const sh::TConstantUnion & cell = pConstUnion[i * msize + j];
+        if ((i == j && cell != *pConstUnion) || (i != j && !cell.isZero())) {
+          isIdentityMultiple = false;
+          break;
+        }
+      }
+    }
+    if (isIdentityMultiple) {
+      this->writeConstantUnionSingleValue(pConstUnion, needsParentheses, false);
+      this->write(')');
+      return pConstUnion + size;
+    }
+  }
+
   for (size_t i = 0; i < size; ++i, ++pConstUnion) {
     if (i != 0) {
       this->writeComma();
     }
-    switch (pConstUnion->getType()) {
-      case sh::EbtFloat: this->write(floatToGlsl(pConstUnion->getFConst(), needsParentheses)); break;
-      case sh::EbtInt: this->write(int32ToGlsl(pConstUnion->getIConst())); break;
-      case sh::EbtUInt: this->write(uint32ToGlsl(pConstUnion->getUConst())); break;
-      case sh::EbtBool: this->write(pConstUnion->getBConst() ? "true" : "false"); break;
-      case sh::EbtYuvCscStandardEXT: out << getYuvCscStandardEXTString(pConstUnion->getYuvCscStandardEXTConst()); break;
-      default: break;
-    }
+    this->writeConstantUnionSingleValue(pConstUnion, needsParentheses, false);
   }
-  if (writeType) {
-    this->write(')');
-  }
+
+  this->write(')');
   return pConstUnion;
 }
 

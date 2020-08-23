@@ -4,7 +4,7 @@ import chalk = require('chalk')
 
 import { getTestShaders, TestShader } from './shaders/test-shaders'
 
-describe('angle-regression', function () {
+describe.only('angle-regression', function () {
   this.timeout(7000)
 
   before(async () => {
@@ -57,8 +57,8 @@ describe('angle-regression', function () {
       continue
     }
 
-    if (!testShader.name.includes('unary-optimizations')) {
-      //continue
+    if (!testShader.name.includes('cmmvnsd-GLES3_1.frag')) {
+      continue
     }
 
     it(`ANGLE regression ./${testShader.name}`, async () => {

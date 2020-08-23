@@ -26,6 +26,6 @@ inline std::string uint32ToGlsl(uint32_t value) {
   return result += 'u';
 }
 
-std::string floatToGlsl(float value, bool needsParentheses);
+std::string floatToGlsl(float value, bool needsParentheses, bool needsFloat = true);
 
 #endif
