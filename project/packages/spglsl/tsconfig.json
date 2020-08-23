@@ -1,0 +1,16 @@
+{
+  "extends": "@acuris/eslint-config/tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2019",
+    "isolatedModules": true,
+    "allowJs": true,
+    "noEmit": false,
+    "outDir": "dist",
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": false,
+    "useDefineForClassFields": false,
+    "declaration": true,
+    "declarationDir": "dist"
+  },
+  "include": ["src"]
+}

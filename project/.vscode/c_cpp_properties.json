@@ -1,0 +1,32 @@
+{
+  "configurations": [
+    {
+      "name": "emscripten",
+      "includePath": [
+        "${workspaceFolder}",
+        "${workspaceFolder}/..",
+        "${workspaceFolder}/../emsdk/upstream/emscripten/system",
+        "${workspaceFolder}/../emsdk/upstream/emscripten/system/include",
+        "${workspaceFolder}/../emsdk/upstream/emscripten/system/include/libcxx",
+        "${workspaceFolder}/../emsdk/upstream/emscripten/system/include/libc",
+        "${workspaceFolder}/../emsdk/upstream/emscripten/system/lib/libc/musl/arch/emscripten",
+        "${workspaceFolder}/../emsdk/upstream/emscripten/system/include/compat",
+        "${workspaceFolder}/cpp",
+        "${workspaceFolder}/../angle/src",
+        "${workspaceFolder}/../angle/include",
+        "${workspaceFolder}/../angle/src/common",
+        "${workspaceFolder}/../angle/src/common/third_party/base",
+        "${workspaceFolder}/.vscode"
+      ],
+      "defines": ["EMSCRIPTEN"],
+      "macFrameworkPath": ["${workspaceFolder}/../emsdk/upstream/emscripten/system/include"],
+      "compilerPath": "${workspaceFolder}/../emsdk/upstream/bin/clang",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "clang-x86",
+      "configurationProvider": "ms-vscode.cmake-tools",
+      "forcedInclude": ["${workspaceFolder}/.vscode/intellisense.h"]
+    }
+  ],
+  "version": 4
+}

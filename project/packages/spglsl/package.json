@@ -1,0 +1,21 @@
+{
+  "name": "spglsl",
+  "version": "0.0.1",
+  "private": true,
+  "description": "glsl optimizer and validator",
+  "keywords": [
+    "glsl",
+    "angle",
+    "webgl"
+  ],
+  "license": "MIT",
+  "author": "Salvatore Previti",
+  "engines": {
+    "node": ">=12.12.0"
+  },
+  "main": "dist/index.js",
+  "types": "dist",
+  "dependencies": {
+    "chalk": "^4.1.0"
+  }
+}

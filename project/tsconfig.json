@@ -1,0 +1,15 @@
+{
+  "extends": "@acuris/eslint-config/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "isolatedModules": true,
+    "paths": {
+      "*": ["./packages/*/src", "./packages/*"]
+    },
+    "importsNotUsedAsValues": "error",
+    "strictPropertyInitialization": true
+  },
+  "include": ["packages", "test", "conformance"],
+  "exclude": ["angle", "conformance/khronos", "node_modules"],
+  "typeAcquisition": { "enable": true }
+}
