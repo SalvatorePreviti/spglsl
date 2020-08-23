@@ -12,22 +12,14 @@ enum class SpglslCompileMode { Validate, Compile, Optimize };
 
 enum class SpglslDefaultPrecision { undefined, lowp, mediump, highp };
 
-struct SpglslOptimizationsOptions {
-  bool minify;
-
-  SpglslOptimizationsOptions();
-
-  void loadFromVal(emscripten::val optimizations);
-};
-
 class SpglslCompileOptions : NonCopyable {
  public:
   EShLanguage language;
   SpglslCompileMode compileMode;
   int parseShaderVersion;
   int outputShaderVersion;
-  SpglslOptimizationsOptions optimizations;
   ShBuiltInResources angle;
+  bool minify;
 
   SpglslDefaultPrecision floatPrecision;
   SpglslDefaultPrecision intPrecision;

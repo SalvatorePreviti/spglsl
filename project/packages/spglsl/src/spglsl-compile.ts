@@ -13,6 +13,7 @@ export interface SpglslAngleCompileInput {
   resourceLimits?: Partial<SpglslResourceLimits>
   floatPrecision?: SpglslPrecision
   intPrecision?: SpglslPrecision
+  minify?: boolean
 }
 
 export class SpglslAngleCompileResult {
@@ -26,6 +27,7 @@ export class SpglslAngleCompileResult {
   public infoLog: GlslInfoLogArray
   public floatPrecision: SpglslPrecision
   public intPrecision: SpglslPrecision
+  public minify: boolean
 
   public constructor() {
     this.compileMode = 'Validate'
@@ -38,6 +40,7 @@ export class SpglslAngleCompileResult {
     this.infoLog = new GlslInfoLogArray()
     this.floatPrecision = ''
     this.intPrecision = ''
+    this.minify = false
   }
 }
 
@@ -50,6 +53,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.customData = input.customData
   result.floatPrecision = (StringEnum.has(SpglslPrecision, input.floatPrecision) && input.floatPrecision) || ''
   result.intPrecision = (StringEnum.has(SpglslPrecision, input.intPrecision) && input.intPrecision) || ''
+  result.minify = !!input.minify
   const resourceLimits = { ...SpglslResourceLimits, ...input.resourceLimits }
 
   const mainFilePath = input.mainFilePath || '0'

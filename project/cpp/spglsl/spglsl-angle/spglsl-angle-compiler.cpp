@@ -116,7 +116,7 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
 }
 
 std::string SpglslAngleCompiler::decompileOutput() {
-  return this->decompileOutput(this->compilerOptions.optimizations.minify);
+  return this->decompileOutput(this->compilerOptions.minify);
 }
 
 std::string SpglslAngleCompiler::decompileOutput(bool minify) {

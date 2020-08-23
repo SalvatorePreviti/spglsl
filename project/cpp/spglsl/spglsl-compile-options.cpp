@@ -1,14 +1,5 @@
 #include "spglsl-compile-options.h"
 
-////////////// SpglslOptimizationsOptions //////////////
-
-SpglslOptimizationsOptions::SpglslOptimizationsOptions() : minify(false) {
-}
-
-void SpglslOptimizationsOptions::loadFromVal(emscripten::val opt) {
-  this->minify = opt["minify"].as<bool>();
-}
-
 ////////////// SpglslCompileOptions //////////////
 
 SpglslCompileOptions::SpglslCompileOptions() :
@@ -17,7 +8,8 @@ SpglslCompileOptions::SpglslCompileOptions() :
     parseShaderVersion(460),
     outputShaderVersion(300),
     floatPrecision(SpglslDefaultPrecision::undefined),
-    intPrecision(SpglslDefaultPrecision::undefined) {
+    intPrecision(SpglslDefaultPrecision::undefined),
+    minify(false) {
   sh::InitBuiltInResources(&this->angle);
 }
 
@@ -35,9 +27,7 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
 
   this->outputShaderVersion = input["outputVersion"].as<int>();
 
-  if (!input["optimizations"].isUndefined()) {
-    this->optimizations.loadFromVal(input["optimizations"]);
-  }
+  this->minify = this->compileMode >= SpglslCompileMode::Optimize && input["minify"].as<bool>();
 
   SpglslDefaultPrecision floatPrecision = SpglslDefaultPrecision::undefined;
   emscripten::val floatPrecisionVal = input["floatPrecision"];

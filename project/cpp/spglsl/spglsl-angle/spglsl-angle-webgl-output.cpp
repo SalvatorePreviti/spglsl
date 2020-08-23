@@ -732,9 +732,9 @@ void SpglslAngleWebglOutput::writeHeader(int shaderVersion,
   }
   if (pragma.debug) {
     this->writeDirective("#pragma", "debug(on)");
-  } else if (!this->beautify) {
+  } /*else if (!this->beautify) {
     this->writeDirective("#pragma", "webgl_debug_shader_precision(off)");
-  }
+  }*/
   if (pragma.stdgl.invariantAll) {
     this->writeDirective("#pragma", "STDGL invariant(all)");
   }

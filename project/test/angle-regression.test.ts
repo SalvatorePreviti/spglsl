@@ -16,7 +16,8 @@ describe('angle-regression', function () {
       compileMode: 'Optimize',
       mainFilePath: shader.name,
       mainSourceCode: shader.sourceCode,
-      language: shader.shaderType
+      language: shader.shaderType,
+      minify: true
     })
 
     const info = `${compiled.compileMode} ${compiled.language} ${compiled.outputVersion} ./${
