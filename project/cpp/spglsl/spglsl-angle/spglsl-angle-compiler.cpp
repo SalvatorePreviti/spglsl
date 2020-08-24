@@ -102,15 +102,20 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
     return false;
   }
 
-  if (!RecordConstantPrecision(&this->tCompiler, root, &this->symbolTable)) {
-    return false;
-  }
+  // if (!RecordConstantPrecision(&this->tCompiler, root, &this->symbolTable)) {
+  //  return false;
+  //}
 
-  SpglslAngleReservedWordsTraverser reservedWordsTraverser(this->reservedWords, &this->symbolTable);
-  root->traverse(&reservedWordsTraverser);
+  SpglslAngleReservedWordsTraverser::exec(this->reservedWords, &this->symbolTable, root);
+  SpglslAngleManglerTraverser::exec(this->reservedWords, &this->symbolTable, root);
 
-  SpglslAngleManglerTraverser renamerTraverser(this->reservedWords, &this->symbolTable);
-  root->traverse(&renamerTraverser);
+  this->reservedWords.definitions.clear();
+  this->reservedWords.isSecondPass = true;
+
+  SpglslAngleReservedWordsTraverser::exec(this->reservedWords, &this->symbolTable, root);
+  SpglslAngleManglerTraverser::exec(this->reservedWords, &this->symbolTable, root);
+
+  this->reservedWords.firstPassSymRemap.clear();
 
   return true;
 }

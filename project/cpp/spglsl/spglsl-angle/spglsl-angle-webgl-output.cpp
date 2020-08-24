@@ -32,7 +32,6 @@ std::string SpglslAngleWebglOutput::getSymbolName(const sh::TSymbol & symbol) {
 
   if (this->reserved) {
     const auto found = this->reserved->symRemap.find(&symbol);
-    // std::cout << "RENAME " << symbol.name() << std::endl;
     if (found != this->reserved->symRemap.end()) {
       return found->second;
     }

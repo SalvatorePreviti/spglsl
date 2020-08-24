@@ -19,9 +19,19 @@ bool spglslIsValidIdentifier(const std::string & word);
 class SpglslAngleReservedWords : NonCopyable {
  public:
   std::unordered_set<std::string> definitions;
+  std::unordered_map<const sh::TSymbol *, std::string> firstPassSymRemap;
   std::unordered_map<const sh::TSymbol *, std::string> symRemap;
+  bool isSecondPass;
 
   explicit SpglslAngleReservedWords();
+
+  std::string getTypeName(const sh::TType & type);
+
+  inline std::string getSymbolName(const sh::TSymbol * symbol) {
+    return symbol ? this->getSymbolName(*symbol) : Strings::empty;
+  }
+
+  std::string getSymbolName(const sh::TSymbol & symbol);
 
   bool isReserved(const std::string & name);
 };
@@ -41,18 +51,12 @@ class SpglslAngleReservedWordsTraverser : public sh::TIntermTraverser, NonCopyab
 
   void count();
 
-  std::string getTypeName(const sh::TType & type);
-
-  inline std::string getSymbolName(const sh::TSymbol * symbol) {
-    return symbol ? this->getSymbolName(*symbol) : Strings::empty;
-  }
-
-  std::string getSymbolName(const sh::TSymbol & symbol);
-
   bool visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) override;
   bool visitGlobalQualifierDeclaration(sh::Visit visit, sh::TIntermGlobalQualifierDeclaration * node) override;
   void visitFunctionPrototype(sh::TIntermFunctionPrototype * node) override;
   bool visitAggregate(sh::Visit visit, sh::TIntermAggregate * node) override;
+
+  static void exec(SpglslAngleReservedWords & reserved, sh::TSymbolTable * symbolTable, sh::TIntermNode * root);
 
  protected:
   std::unordered_set<const sh::TStructure *> _declaredStructs;
@@ -96,6 +100,8 @@ class SpglslAngleManglerTraverser : public sh::TIntermTraverser, NonCopyable {
   bool scopePop();
 
   void rename(const sh::TSymbol * symbol, bool isParameter);
+
+  static void exec(SpglslAngleReservedWords & reserved, sh::TSymbolTable * symbolTable, sh::TIntermNode * root);
 };
 
 #endif

@@ -95,21 +95,14 @@ bool spglslIsWordReserved(const std::string & word) {
 
 /////////////// SpglslAngleReservedWords ///////////////
 
-SpglslAngleReservedWords::SpglslAngleReservedWords() {
+SpglslAngleReservedWords::SpglslAngleReservedWords() : isSecondPass(false) {
 }
 
 bool SpglslAngleReservedWords::isReserved(const std::string & name) {
   return this->definitions.count(name) != 0 || spglslIsWordReserved(name);
 }
 
-/////////////// SpglslAngleReservedWordsTraverser ///////////////
-
-SpglslAngleReservedWordsTraverser::SpglslAngleReservedWordsTraverser(SpglslAngleReservedWords & target,
-    sh::TSymbolTable * symbolTable) :
-    sh::TIntermTraverser(true, false, false, symbolTable), target(target) {
-}
-
-std::string SpglslAngleReservedWordsTraverser::getTypeName(const sh::TType & type) {
+std::string SpglslAngleReservedWords::getTypeName(const sh::TType & type) {
   if (type.getBasicType() == sh::EbtStruct && type.getStruct()) {
     return this->getSymbolName(type.getStruct());
   }
@@ -119,15 +112,40 @@ std::string SpglslAngleReservedWordsTraverser::getTypeName(const sh::TType & typ
   return type.getBuiltInTypeNameString();
 }
 
-std::string SpglslAngleReservedWordsTraverser::getSymbolName(const sh::TSymbol & symbol) {
+std::string SpglslAngleReservedWords::getSymbolName(const sh::TSymbol & symbol) {
   if (!symbol.uniqueId().get() || symbol.symbolType() == sh::SymbolType::Empty) {
     return Strings::empty;
   }
   if (symbol.isFunction() && static_cast<const sh::TFunction &>(symbol).isMain()) {
     return "main";
   }
+
+  const auto found = this->symRemap.find(&symbol);
+  if (found != this->symRemap.end()) {
+    return found->second;
+  }
+
+  const auto found1 = this->firstPassSymRemap.find(&symbol);
+  if (found1 != this->firstPassSymRemap.end()) {
+    return found1->second;
+  }
+
   const sh::ImmutableString & n = symbol.name();
   return std::string(n.data(), n.length());
+}
+
+/////////////// SpglslAngleReservedWordsTraverser ///////////////
+
+void SpglslAngleReservedWordsTraverser::exec(SpglslAngleReservedWords & reserved,
+    sh::TSymbolTable * symbolTable,
+    sh::TIntermNode * root) {
+  SpglslAngleReservedWordsTraverser traverser(reserved, symbolTable);
+  root->traverse(&traverser);
+}
+
+SpglslAngleReservedWordsTraverser::SpglslAngleReservedWordsTraverser(SpglslAngleReservedWords & target,
+    sh::TSymbolTable * symbolTable) :
+    sh::TIntermTraverser(true, false, false, symbolTable), target(target) {
 }
 
 bool SpglslAngleReservedWordsTraverser::add(const sh::ImmutableString & name) {
@@ -139,7 +157,7 @@ bool SpglslAngleReservedWordsTraverser::add(const std::string & name) {
 }
 
 void SpglslAngleReservedWordsTraverser::add(const sh::TType & type) {
-  this->add(this->getTypeName(type));
+  this->add(this->target.getTypeName(type));
   if (type.getBasicType() == sh::EbtStruct && type.getStruct() &&
       this->_declaredStructs.emplace(type.getStruct()).second) {
     for (const auto & field : type.getStruct()->fields()) {
@@ -167,7 +185,7 @@ void SpglslAngleReservedWordsTraverser::add(const sh::TType & type) {
 
 void SpglslAngleReservedWordsTraverser::add(const sh::TVariable * variable) {
   if (variable) {
-    this->add(this->getSymbolName(variable));
+    this->add(this->target.getSymbolName(variable));
     this->add(variable->getType());
   }
 }
@@ -212,7 +230,7 @@ bool SpglslAngleReservedWordsTraverser::visitGlobalQualifierDeclaration(sh::Visi
 void SpglslAngleReservedWordsTraverser::visitFunctionPrototype(sh::TIntermFunctionPrototype * node) {
   const sh::TFunction * func = node->getFunction();
   if (func) {
-    this->add(this->getSymbolName(func));
+    this->add(this->target.getSymbolName(func));
     this->add(func->getReturnType());
     for (size_t i = 0, len = func->getParamCount(); i < len; ++i) {
       this->add(func->getParam(i));
@@ -237,7 +255,7 @@ static const int _allCharsLen = (int)strlen(_allChars);
 
 SpglslAngleManglerNameGenerator::SpglslAngleManglerNameGenerator(SpglslAngleReservedWords & reserved,
     SpglslAngleManglerNameGenerator * parent) :
-    nextNameIndex(parent ? parent->nextNameIndex : 0), reserved(reserved), parent(nullptr) {
+    nextNameIndex(parent ? parent->nextNameIndex + 1 : 0), reserved(reserved), parent(nullptr) {
 }
 
 std::string SpglslAngleManglerNameGenerator::generateShortName(int index) {
@@ -253,7 +271,7 @@ std::string SpglslAngleManglerNameGenerator::generateShortName(int index) {
 }
 
 bool SpglslAngleManglerNameGenerator::getShortName(const std::string & input, std::string & out) {
-  if (input.length() <= 1) {
+  if (input.length() <= 1 && this->reserved.isSecondPass) {
     return false;
   }
   const auto found = this->renameMap.find(input);
@@ -267,7 +285,9 @@ bool SpglslAngleManglerNameGenerator::getShortName(const std::string & input, st
       ++this->nextNameIndex;
       continue;
     }
-    if (n.length() >= input.length()) {
+    if (!this->reserved.isSecondPass) {
+      n = "___" + n;
+    } else if (n[0] != '_' && n.length() >= input.length()) {
       return false;  // Too long, no point using this.
     }
     ++this->nextNameIndex;
@@ -300,6 +320,13 @@ SpglslAngleManglerTraverser::SpglslAngleManglerTraverser(SpglslAngleReservedWord
     reserved(reserved),
     namesRoot(new SpglslAngleManglerNameGenerator(reserved, nullptr)) {
   this->_namesStack.push(this->namesRoot);
+}
+
+void SpglslAngleManglerTraverser::exec(SpglslAngleReservedWords & reserved,
+    sh::TSymbolTable * symbolTable,
+    sh::TIntermNode * root) {
+  SpglslAngleManglerTraverser traverser(reserved, symbolTable);
+  root->traverse(&traverser);
 }
 
 SpglslAngleManglerTraverser::~SpglslAngleManglerTraverser() {
@@ -336,11 +363,13 @@ bool SpglslAngleManglerTraverser::visitLoop(sh::Visit visit, sh::TIntermLoop * n
 }
 
 bool SpglslAngleManglerTraverser::visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) {
-  if (visit == sh::PreVisit) {
-    const sh::TFunction * func = node->getFunction();
+  const sh::TFunction * func = node->getFunction();
 
-    this->rename(func, false);
+  sh::TIntermBlock * body = node->getBody();
 
+  this->rename(func, false);
+
+  if (body) {
     this->scopePush();
 
     if (func) {
@@ -349,13 +378,20 @@ bool SpglslAngleManglerTraverser::visitFunctionDefinition(sh::Visit visit, sh::T
       }
     }
 
-  } else if (visit == sh::PostVisit) {
+    if (body) {
+      body->traverse(this);
+    }
+
     this->scopePop();
   }
-  return true;
+
+  return false;
 }
 
 bool SpglslAngleManglerTraverser::visitBlock(sh::Visit visit, sh::TIntermBlock * node) {
+  if (this->getCurrentTraversalDepth() == 0) {
+    return true;
+  }
   if (visit == sh::PreVisit) {
     this->scopePush();
   } else if (visit == sh::PostVisit) {
@@ -397,7 +433,7 @@ void SpglslAngleManglerTraverser::rename(const sh::TSymbol * symbol, bool isPara
     return;
   }
 
-  if (symbol->symbolType() != sh::SymbolType::UserDefined) {
+  if (symbol->symbolType() != sh::SymbolType::UserDefined && symbol->symbolType() != sh::SymbolType::AngleInternal) {
     return;
   }
 
@@ -406,7 +442,7 @@ void SpglslAngleManglerTraverser::rename(const sh::TSymbol * symbol, bool isPara
     if (func->isMain() || func->name().beginsWith("main")) {
       return;
     }
-    if (spglslIsWordReserved(func->name().data())) {
+    if (spglslIsWordReserved(this->reserved.getSymbolName(func))) {
       return;
     }
   } else if (symbol->isVariable()) {
@@ -416,23 +452,34 @@ void SpglslAngleManglerTraverser::rename(const sh::TSymbol * symbol, bool isPara
     }
 
     const sh::TType & type = var->getType();
-    if (!isParameter && type.getQualifier() != sh::EvqTemporary && type.getQualifier() != sh::EvqGlobal) {
+    if (!isParameter && type.getQualifier() != sh::EvqTemporary && type.getQualifier() != sh::EvqGlobal &&
+        type.getQualifier() != sh::EvqConst) {
       return;
     }
 
-    if (spglslIsWordReserved(var->name().data())) {
+    if (spglslIsWordReserved(this->reserved.getSymbolName(var))) {
       return;
     }
   } else {
     return;  // struct and interface blocks still not supported.
   }
 
-  if (this->reserved.symRemap.count(symbol) != 0) {
-    return;
-  }
-
   std::string renamed;
-  if (this->_namesStack.top()->getShortName(symbol->name().data(), renamed)) {
-    this->reserved.symRemap.emplace(symbol, renamed);
+  if (this->reserved.isSecondPass) {
+    if (this->reserved.symRemap.count(symbol) != 0) {
+      return;
+    }
+
+    if (this->_namesStack.top()->getShortName(this->reserved.getSymbolName(symbol), renamed)) {
+      this->reserved.symRemap.emplace(symbol, renamed);
+    }
+  } else {
+    if (this->reserved.firstPassSymRemap.count(symbol) != 0) {
+      return;
+    }
+
+    if (this->_namesStack.top()->getShortName(this->reserved.getSymbolName(symbol), renamed)) {
+      this->reserved.firstPassSymRemap.emplace(symbol, renamed);
+    }
   }
 }
