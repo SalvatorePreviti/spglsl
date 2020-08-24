@@ -28,6 +28,7 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
   this->outputShaderVersion = input["outputVersion"].as<int>();
 
   this->minify = this->compileMode >= SpglslCompileMode::Optimize && input["minify"].as<bool>();
+  this->mangleTwoPasses = this->compileMode >= SpglslCompileMode::Optimize && input["mangleTwoPasses"].as<bool>();
 
   SpglslDefaultPrecision floatPrecision = SpglslDefaultPrecision::undefined;
   emscripten::val floatPrecisionVal = input["floatPrecision"];

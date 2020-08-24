@@ -102,12 +102,10 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
     return false;
   }
 
-  // if (!RecordConstantPrecision(&this->tCompiler, root, &this->symbolTable)) {
-  //  return false;
-  //}
-
-  SpglslAngleReservedWordsTraverser::exec(this->reservedWords, &this->symbolTable, root);
-  SpglslAngleManglerTraverser::exec(this->reservedWords, &this->symbolTable, root);
+  if (this->compilerOptions.mangleTwoPasses) {
+    SpglslAngleReservedWordsTraverser::exec(this->reservedWords, &this->symbolTable, root);
+    SpglslAngleManglerTraverser::exec(this->reservedWords, &this->symbolTable, root);
+  }
 
   this->reservedWords.definitions.clear();
   this->reservedWords.isSecondPass = true;

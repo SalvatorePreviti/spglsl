@@ -14,6 +14,7 @@ export interface SpglslAngleCompileInput {
   floatPrecision?: SpglslPrecision
   intPrecision?: SpglslPrecision
   minify?: boolean
+  mangleTwoPasses?: boolean
 }
 
 export class SpglslAngleCompileResult {
@@ -28,6 +29,7 @@ export class SpglslAngleCompileResult {
   public floatPrecision: SpglslPrecision
   public intPrecision: SpglslPrecision
   public minify: boolean
+  public mangleTwoPasses: boolean
 
   public constructor() {
     this.compileMode = 'Validate'
@@ -41,6 +43,7 @@ export class SpglslAngleCompileResult {
     this.floatPrecision = ''
     this.intPrecision = ''
     this.minify = false
+    this.mangleTwoPasses = false
   }
 }
 
@@ -54,6 +57,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.floatPrecision = (StringEnum.has(SpglslPrecision, input.floatPrecision) && input.floatPrecision) || ''
   result.intPrecision = (StringEnum.has(SpglslPrecision, input.intPrecision) && input.intPrecision) || ''
   result.minify = !!input.minify
+  result.mangleTwoPasses = input.mangleTwoPasses === undefined ? true : !!input.mangleTwoPasses
   const resourceLimits = { ...SpglslResourceLimits, ...input.resourceLimits }
 
   const mainFilePath = input.mainFilePath || '0'
