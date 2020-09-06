@@ -51,6 +51,8 @@ describe('angle-regression', function () {
 
     expect(validated.valid).to.equal(true, info1)
     expect(validated.infoLog.getCounts().errors).to.equal(0, info)
+
+    console.log(chalk.cyanBright(`${(compiled.output || '').length} bytes`))
   }
 
   for (const testShader of getTestShaders()) {
