@@ -61,7 +61,7 @@ describe('angle-regression', function () {
     }
 
     if (!testShader.name.includes('my.frag')) {
-      continue
+      //continue
     }
 
     it(`ANGLE regression ./${testShader.name}`, async () => {
