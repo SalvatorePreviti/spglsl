@@ -3,7 +3,6 @@
 #include <angle/src/compiler/translator/tree_ops/FoldExpressions.h>
 #include <angle/src/compiler/translator/tree_ops/PruneEmptyCases.h>
 #include <angle/src/compiler/translator/tree_ops/PruneNoOps.h>
-#include <angle/src/compiler/translator/tree_ops/RecordConstantPrecision.h>
 #include <angle/src/compiler/translator/tree_ops/RemoveArrayLengthMethod.h>
 #include <angle/src/compiler/translator/tree_ops/RemoveUnreferencedVariables.h>
 #include <angle/src/compiler/translator/tree_util/IntermNodePatternMatcher.h>

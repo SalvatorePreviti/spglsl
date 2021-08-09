@@ -13,67 +13,67 @@ AngleOperatorPrecedenceMap::AngleOperatorPrecedenceMap() {
 
   this->Ternary = AngleOperatorPrecedence(140, AngleOperatorOrder::RTL, false);
 
-  byOp[EOpIndexDirect] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
-  byOp[EOpIndexIndirect] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
-  byOp[EOpIndexDirectStruct] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
-  byOp[EOpIndexDirectInterfaceBlock] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
+  byOp[sh::EOpIndexDirect] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
+  byOp[sh::EOpIndexIndirect] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
+  byOp[sh::EOpIndexDirectStruct] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
+  byOp[sh::EOpIndexDirectInterfaceBlock] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
 
-  byOp[EOpPostIncrement] = AngleOperatorPrecedence(10, AngleOperatorOrder::LTR, false);
-  byOp[EOpPostDecrement] = AngleOperatorPrecedence(10, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpPostIncrement] = AngleOperatorPrecedence(10, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpPostDecrement] = AngleOperatorPrecedence(10, AngleOperatorOrder::LTR, false);
 
-  byOp[EOpNegative] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
-  byOp[EOpPositive] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
-  byOp[EOpLogicalNot] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
-  byOp[EOpBitwiseNot] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
-  byOp[EOpPreIncrement] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
-  byOp[EOpPreDecrement] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
-  byOp[EOpArrayLength] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
+  byOp[sh::EOpNegative] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
+  byOp[sh::EOpPositive] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
+  byOp[sh::EOpLogicalNot] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
+  byOp[sh::EOpBitwiseNot] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
+  byOp[sh::EOpPreIncrement] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
+  byOp[sh::EOpPreDecrement] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
+  byOp[sh::EOpArrayLength] = AngleOperatorPrecedence(20, AngleOperatorOrder::RTL, false);
 
-  byOp[EOpMul] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
-  byOp[EOpDiv] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, false);
-  byOp[EOpIMod] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpMul] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpDiv] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpIMod] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, false);
 
-  byOp[EOpVectorTimesScalar] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
-  byOp[EOpVectorTimesMatrix] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
-  byOp[EOpMatrixTimesVector] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
-  byOp[EOpMatrixTimesScalar] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
-  byOp[EOpMatrixTimesMatrix] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpVectorTimesScalar] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpVectorTimesMatrix] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpMatrixTimesVector] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpMatrixTimesScalar] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpMatrixTimesMatrix] = AngleOperatorPrecedence(30, AngleOperatorOrder::LTR, true);
 
-  byOp[EOpAdd] = AngleOperatorPrecedence(40, AngleOperatorOrder::LTR, true);
-  byOp[EOpSub] = AngleOperatorPrecedence(40, AngleOperatorOrder::LTR, false);
-  byOp[EOpBitShiftLeft] = AngleOperatorPrecedence(50, AngleOperatorOrder::LTR, false);
-  byOp[EOpBitShiftRight] = AngleOperatorPrecedence(50, AngleOperatorOrder::LTR, false);
-  byOp[EOpLessThan] = AngleOperatorPrecedence(60, AngleOperatorOrder::LTR, false);
-  byOp[EOpGreaterThan] = AngleOperatorPrecedence(60, AngleOperatorOrder::LTR, false);
-  byOp[EOpLessThanEqual] = AngleOperatorPrecedence(60, AngleOperatorOrder::LTR, false);
-  byOp[EOpGreaterThanEqual] = AngleOperatorPrecedence(60, AngleOperatorOrder::LTR, false);
-  byOp[EOpEqual] = AngleOperatorPrecedence(70, AngleOperatorOrder::LTR, false);
-  byOp[EOpNotEqual] = AngleOperatorPrecedence(70, AngleOperatorOrder::LTR, false);
-  byOp[EOpBitwiseAnd] = AngleOperatorPrecedence(80, AngleOperatorOrder::LTR, true);
-  byOp[EOpBitwiseXor] = AngleOperatorPrecedence(90, AngleOperatorOrder::LTR, true);
-  byOp[EOpBitwiseOr] = AngleOperatorPrecedence(100, AngleOperatorOrder::LTR, true);
-  byOp[EOpLogicalAnd] = AngleOperatorPrecedence(110, AngleOperatorOrder::LTR, true);
-  byOp[EOpLogicalXor] = AngleOperatorPrecedence(120, AngleOperatorOrder::LTR, true);
-  byOp[EOpLogicalOr] = AngleOperatorPrecedence(130, AngleOperatorOrder::LTR, true);
-  byOp[EOpInitialize] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpAddAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpSubAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpDivAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpIModAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpMulAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpAdd] = AngleOperatorPrecedence(40, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpSub] = AngleOperatorPrecedence(40, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpBitShiftLeft] = AngleOperatorPrecedence(50, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpBitShiftRight] = AngleOperatorPrecedence(50, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpLessThan] = AngleOperatorPrecedence(60, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpGreaterThan] = AngleOperatorPrecedence(60, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpLessThanEqual] = AngleOperatorPrecedence(60, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpGreaterThanEqual] = AngleOperatorPrecedence(60, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpEqual] = AngleOperatorPrecedence(70, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpNotEqual] = AngleOperatorPrecedence(70, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpBitwiseAnd] = AngleOperatorPrecedence(80, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpBitwiseXor] = AngleOperatorPrecedence(90, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpBitwiseOr] = AngleOperatorPrecedence(100, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpLogicalAnd] = AngleOperatorPrecedence(110, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpLogicalXor] = AngleOperatorPrecedence(120, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpLogicalOr] = AngleOperatorPrecedence(130, AngleOperatorOrder::LTR, true);
+  byOp[sh::EOpInitialize] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpAddAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpSubAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpDivAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpIModAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpMulAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
 
-  byOp[EOpVectorTimesMatrixAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpVectorTimesScalarAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpMatrixTimesScalarAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpMatrixTimesMatrixAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpVectorTimesMatrixAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpVectorTimesScalarAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpMatrixTimesScalarAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpMatrixTimesMatrixAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
 
-  byOp[EOpBitShiftLeftAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpBitShiftRightAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpBitwiseAndAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpBitwiseXorAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpBitwiseOrAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
-  byOp[EOpComma] = AngleOperatorPrecedence(200, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpBitShiftLeftAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpBitShiftRightAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpBitwiseAndAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpBitwiseXorAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpBitwiseOrAssign] = AngleOperatorPrecedence(150, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpComma] = AngleOperatorPrecedence(200, AngleOperatorOrder::LTR, false);
 }
 
 AngleOperatorPrecedence::AngleOperatorPrecedence() :

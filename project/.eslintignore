@@ -1,7 +1,10 @@
-# <@acuris/eslint-config>
+build
+wasm
+conformance/khronos
+
+.downloads
 
 # dotfiles
-
 !.*.js
 !.*._js
 !.*.jsx
@@ -22,6 +25,11 @@ node_modules
 bower_components
 jspm_packages
 package-lock.json
+/.pnp
+.pnp.js
+.serverless
+.webpack
+.next/
 
 # Build outputs
 bundle.js
@@ -46,9 +54,3 @@ lib-cov
 coverage
 .nyc_output
 __snapshots__
-
-# </@acuris/eslint-config>
-
-build
-wasm
-conformance/khronos

@@ -1,12 +1,14 @@
 import { StringEnum, StringEnumValue } from './core/string-enums'
-import path = require('path')
+import path from 'path'
 
 export const SpglslPrecision = StringEnum('', 'lowp', 'mediump', 'highp')
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type SpglslPrecision = StringEnumValue<typeof SpglslPrecision>
 
 export const SpglslCompileMode = StringEnum('Validate', 'Compile', 'Optimize')
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type SpglslCompileMode = StringEnumValue<typeof SpglslCompileMode>
 
 export const SpglslLanguage = StringEnum(
@@ -24,6 +26,7 @@ export const SpglslLanguage = StringEnum(
   'Callable'
 )
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type SpglslLanguage = StringEnumValue<typeof SpglslLanguage>
 
 export function spglslLanguageFromString(s: string | null | undefined): SpglslLanguage | '' {

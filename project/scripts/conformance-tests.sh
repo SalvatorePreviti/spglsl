@@ -1,2 +1,2 @@
 #!/bin/bash -e
-ts-node ./conformance/conformance-test-runner.ts
+esrun ./conformance/conformance-test-runner.ts

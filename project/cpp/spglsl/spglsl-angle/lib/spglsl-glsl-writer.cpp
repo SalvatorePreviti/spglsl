@@ -199,18 +199,6 @@ SpglslGlslWriter & SpglslGlslWriter::writeDirective(const char * directive, cons
   return *this;
 }
 
-SpglslGlslWriter & SpglslGlslWriter::writeTOperator(TOperator op) {
-  const char * ops;
-  switch (op) {
-    case EOpKill: ops = "discard"; break;
-    case EOpBreak: ops = "break"; break;
-    case EOpContinue: ops = "continue"; break;
-    case EOpReturn: ops = "return"; break;
-    default: ops = GetOperatorString(op); break;
-  }
-  return this->write(ops);
-}
-
 SpglslGlslWriter & SpglslGlslWriter::writeSwizzle(const sh::TVector<int> & offsets) {
   std::ostringstream tmp;
   for (const int offset : offsets) {

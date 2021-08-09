@@ -129,7 +129,7 @@ bool SpglslGetPrecisionsTraverser::visitFunctionDefinition(sh::Visit visit, sh::
 }
 
 bool SpglslGetPrecisionsTraverser::visitAggregate(sh::Visit visit, sh::TIntermAggregate * node) {
-  if (node->getOp() == EOpConstruct) {
+  if (node->getOp() == sh::EOpConstruct) {
     this->add(node->getType());
   }
   return true;

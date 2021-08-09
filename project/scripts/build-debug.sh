@@ -5,7 +5,7 @@ mkdir -p ../build
 
 echo
 
-export EMSCRIPTEN_CUSTOM_CXX_FLAGS="-O0 -g0 -DNDEBUG -s ASSERTIONS=1 -fno-lto --llvm-opts 0 --ignore-dynamic-linking"
+export EMSCRIPTEN_CUSTOM_CXX_FLAGS="-O0 -g0 -DNDEBUG -s ASSERTIONS=1 -fno-lto --ignore-dynamic-linking"
 cmake \
   -S./ \
   -H./ \

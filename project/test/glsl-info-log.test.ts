@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 
-/*
 import { GlslInfoLogArray } from 'spglsl'
 
 describe('GlslInfoLogArray', () => {
@@ -16,14 +15,9 @@ describe('GlslInfoLogArray', () => {
     "WARNING: 0:4: 'hey' : syntax warning\n" +
     "ERROR: 0:5: 'xxxyz' : syntax error\nxxx"
 
-  const getFilenameReplacer = (fileId: number) => {
-    if (fileId === 0) {
-      return 'hello.frag'
-    }
-    if (fileId === 1) {
-      return 'ciao.frag'
-    }
-    return undefined
+  const filePathLookup = {
+    0: 'hello.frag',
+    1: 'ciao.frag'
   }
 
   describe('static parse', () => {
@@ -39,30 +33,29 @@ describe('GlslInfoLogArray', () => {
       const parsed = GlslInfoLogArray.parse(someErrorsText)
       expect(JSON.parse(JSON.stringify(parsed))).to.deep.equal([
         {
+          filePath: '0',
           type: 'ERROR',
-          fileId: 0,
           line: 4,
           source: '\n',
           message: '#version directive must occur on the first line of the shader'
         },
-        { type: 'ERROR', fileId: 1, line: 5, source: 'xxxyz', message: 'syntax error' },
-        { type: 'ERROR', fileId: 2, line: 5, source: 'xxxyz', message: 'syntax error\nxxx' }
+        { type: 'ERROR', filePath: '1', line: 5, source: 'xxxyz', message: 'syntax error' },
+        { type: 'ERROR', filePath: '2', line: 5, source: 'xxxyz', message: 'syntax error\nxxx' }
       ])
     })
 
     it('parses correctly some errors, replacing filenames with replacer', () => {
-      const parsed = GlslInfoLogArray.parse(someErrorsText, { getFilename: getFilenameReplacer })
+      const parsed = GlslInfoLogArray.parse(someErrorsText, undefined, filePathLookup)
       expect(JSON.parse(JSON.stringify(parsed))).to.deep.equal([
         {
           type: 'ERROR',
-          fileId: 0,
           line: 4,
           source: '\n',
           message: '#version directive must occur on the first line of the shader',
           filePath: 'hello.frag'
         },
-        { type: 'ERROR', fileId: 1, line: 5, source: 'xxxyz', message: 'syntax error', filePath: 'ciao.frag' },
-        { type: 'ERROR', fileId: 2, line: 5, source: 'xxxyz', message: 'syntax error\nxxx' }
+        { type: 'ERROR', line: 5, source: 'xxxyz', message: 'syntax error', filePath: 'ciao.frag' },
+        { type: 'ERROR', line: 5, source: 'xxxyz', message: 'syntax error\nxxx', filePath: '2' }
       ])
     })
   })
@@ -79,7 +72,7 @@ describe('GlslInfoLogArray', () => {
     })
 
     it('returns a valid string with errors, warnings and filenames', () => {
-      const parsed = GlslInfoLogArray.parse(someErrorsText, { getFilename: getFilenameReplacer })
+      const parsed = GlslInfoLogArray.parse(someErrorsText, undefined, filePathLookup)
       expect(parsed.toString()).to.equal(
         '3 errors 0 warnings\n' +
           "  ERROR: hello.frag:4 '': #version directive must occur on the first line of the shader\n" +
@@ -89,4 +82,3 @@ describe('GlslInfoLogArray', () => {
     })
   })
 })
-*/

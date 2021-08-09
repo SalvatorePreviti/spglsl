@@ -44,6 +44,7 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   bool visitBranch(sh::Visit visit, sh::TIntermBranch * node) override;
 
   void writeHeader(int shaderVersion, const TPragma & pragma, const sh::TExtensionBehavior & extensionBehavior);
+  void writeTOperatorNode(sh::TIntermOperator * node);
   void traverseNode(sh::TIntermNode * node);
 
  private:

@@ -128,7 +128,6 @@ export const SpglslResourceLimits = {
   extension_EXT_draw_buffers: true,
   extension_EXT_frag_depth: true,
   extension_EXT_shader_texture_lod: true,
-  extension_WEBGL_debug_shader_precision: true,
   extension_EXT_shader_framebuffer_fetch: true,
   extension_NV_shader_framebuffer_fetch: true,
   extension_NV_shader_noperspective_interpolation: true,
@@ -151,4 +150,5 @@ export const SpglslResourceLimits = {
   extension_EXT_texture_cube_map_array: true
 }
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type SpglslResourceLimits = typeof SpglslResourceLimits

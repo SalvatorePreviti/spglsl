@@ -1,12 +1,14 @@
 {
-  "extends": "@acuris/eslint-config/tsconfig.json",
+  "extends": "@balsamic/eslint-config/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "preserveConstEnums": true,
     "isolatedModules": true,
     "paths": {
       "*": ["./packages/*/src", "./packages/*"]
     },
     "importsNotUsedAsValues": "error",
+    "strictNullChecks": true,
     "strictPropertyInitialization": true
   },
   "include": ["packages", "test", "conformance"],

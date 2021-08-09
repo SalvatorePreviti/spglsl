@@ -29,7 +29,7 @@ void nodeCollectAllNodes(sh::TIntermNode * root, std::vector<sh::TIntermNode *> 
 
 AngleNodeKind nodeGetKind(sh::TIntermNode * node);
 
-bool opIsBuiltinUnaryFunction(TOperator op);
+bool opIsBuiltinUnaryFunction(sh::TOperator op);
 
 bool basicTypeNeedsPrecision(sh::TBasicType basicType);
 
@@ -166,9 +166,9 @@ inline sh::TConstantUnion ConstantUnionFromFloat(float value) {
   return result;
 }
 
-inline TOperator nodeGetOperator(sh::TIntermNode * node) {
+inline sh::TOperator nodeGetOperator(sh::TIntermNode * node) {
   if (!node) {
-    return EOpNull;
+    return sh::EOpNull;
   }
   auto unary = node->getAsUnaryNode();
   if (unary) {
@@ -182,7 +182,7 @@ inline TOperator nodeGetOperator(sh::TIntermNode * node) {
   if (aggr) {
     return aggr->getOp();
   }
-  return EOpNull;
+  return sh::EOpNull;
 }
 
 inline sh::TIntermTyped * nodeGetUnaryOperand(sh::TIntermTyped * node) {

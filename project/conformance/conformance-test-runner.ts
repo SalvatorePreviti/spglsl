@@ -1,11 +1,8 @@
-if (require.main === module) {
-  require('tsconfig-paths').register()
-}
-
 import { conformanceTests } from './conformance-test-list'
 import { serverStarted, startServer, stopServer } from './conformance-test-server'
-import puppeteer = require('puppeteer')
-import chalk = require('chalk')
+import puppeteer from 'puppeteer'
+import chalk from 'chalk'
+import { isMainModule } from '@balsamic/esrun'
 
 const noop = () => undefined
 
@@ -41,7 +38,7 @@ export async function runConformanceTests({ headless = true, testTimeout = 12000
       }
 
       try {
-        const endedPromise = new Promise((resolve, reject) => {
+        const endedPromise = new Promise<void>((resolve, reject) => {
           const timeoutTimer = setTimeout(() => {
             reject(new Error('Test timed out'))
           }, testTimeout || 12000)
@@ -108,7 +105,7 @@ export async function runConformanceTests({ headless = true, testTimeout = 12000
   }
 }
 
-if (require.main === module) {
+if (isMainModule(import.meta)) {
   console.log('Running conformance tests automatically. Run conformance-test-server separately if you need to debug.')
   console.time('conformance-test-runner')
   runConformanceTests({ headless: !process.argv.includes('--show') })

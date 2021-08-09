@@ -4,17 +4,17 @@
 
 #include "../../core/math-utils.h"
 
-bool opIsBuiltinUnaryFunction(TOperator op) {
+bool opIsBuiltinUnaryFunction(sh::TOperator op) {
   switch (op) {
-    case EOpNegative:
-    case EOpPositive:
-    case EOpLogicalNot:
-    case EOpBitwiseNot:
-    case EOpPostIncrement:
-    case EOpPostDecrement:
-    case EOpPreIncrement:
-    case EOpPreDecrement:
-    case EOpArrayLength: return false;
+    case sh::EOpNegative:
+    case sh::EOpPositive:
+    case sh::EOpLogicalNot:
+    case sh::EOpBitwiseNot:
+    case sh::EOpPostIncrement:
+    case sh::EOpPostDecrement:
+    case sh::EOpPreIncrement:
+    case sh::EOpPreDecrement:
+    case sh::EOpArrayLength: return false;
     default: return true;
   }
 }
@@ -131,7 +131,7 @@ bool nodeIsSomeSortOfDeclaration(sh::TIntermNode * node) {
   }
 
   sh::TIntermBinary * binaryNode = node->getAsBinaryNode();
-  if (binaryNode && binaryNode->getOp() == EOpInitialize) {
+  if (binaryNode && binaryNode->getOp() == sh::EOpInitialize) {
     return true;  // TODO: maybe this is not needed.
   }
 

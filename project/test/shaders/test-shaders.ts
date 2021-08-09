@@ -1,6 +1,6 @@
-import fs = require('fs')
-import path = require('path')
-import globby = require('globby')
+import fs from 'fs'
+import path from 'path'
+import { globbySync } from 'globby'
 
 export interface TestShader {
   name: string
@@ -20,7 +20,7 @@ const rootFolder = path.resolve(__dirname, '../..')
 getTestShaders.projectRoot = rootFolder
 
 function _loadTestShaders(): TestShader[] {
-  const allFiles = globby.sync(path.resolve(__dirname, '**/*.(frag|vert)'))
+  const allFiles = globbySync(path.resolve(__dirname, '**/*.(frag|vert)'))
   const result: TestShader[] = []
   for (const fpath of allFiles) {
     const sourceCode = fs.readFileSync(fpath, 'utf8')

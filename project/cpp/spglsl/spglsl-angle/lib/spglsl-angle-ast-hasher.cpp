@@ -343,14 +343,13 @@ bool AngleAstHasher::visitAggregate(sh::Visit visit, sh::TIntermAggregate * node
   if (visit == sh::PreVisit) {
     this->begin(AGGREGATE);
     switch (node->getOp()) {
-      case EOpCallInternalRawFunction:
-      case EOpCallBuiltInFunction:
-      case EOpCallFunctionInAST:
+      case sh::EOpCallInternalRawFunction:
+      case sh::EOpCallFunctionInAST:
         this->write('.');
         this->writeSymbolRef(*node->getFunction());
         break;
 
-      case EOpConstruct: {
+      case sh::EOpConstruct: {
         const auto & type = node->getType();
         this->write('@');
         this->writeTypeRef(type);
@@ -358,7 +357,15 @@ bool AngleAstHasher::visitAggregate(sh::Visit visit, sh::TIntermAggregate * node
         break;
       }
 
-      default: this->write('#').write(node->getOp()); break;
+      default:
+        auto fn = node->getFunction();
+        this->write('#');
+        if (fn) {
+          this->write(node->getFunction()->name().data());
+        } else {
+          this->write(node->getOp());
+        }
+        break;
     }
   } else if (visit == sh::PostVisit) {
     this->end();

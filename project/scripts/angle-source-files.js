@@ -90,13 +90,13 @@ const parsedGni = {
 parseGniFile('./../angle/src/libGLESv2.gni', parsedGni)
 parseGniFile('./../angle/src/compiler.gni', parsedGni)
 
-//console.log(parsed)
+// console.log(parsed)
 
 const glslSourcesSet = new Set([
   ...parsedGni.libangle_common_sources,
   ...parsedGni.angle_translator_sources,
   ...parsedGni.angle_preprocessor_sources,
-  //...parsedGni.angle_translator_essl_sources,
+  // ...parsedGni.angle_translator_essl_sources,
 
   'src/common/system_utils_posix.cpp'
 ])

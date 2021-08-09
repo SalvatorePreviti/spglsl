@@ -1,13 +1,13 @@
 {
-  "extends": "@acuris/eslint-config/tsconfig.json",
+  "extends": "@balsamic/eslint-config/tsconfig.json",
   "compilerOptions": {
     "target": "ES2019",
+    "preserveConstEnums": true,
     "isolatedModules": true,
     "allowJs": true,
     "noEmit": false,
     "outDir": "dist",
     "esModuleInterop": false,
-    "allowSyntheticDefaultImports": false,
     "useDefineForClassFields": false,
     "declaration": true,
     "declarationDir": "dist"

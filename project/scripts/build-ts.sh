@@ -2,4 +2,5 @@
 
 tsc -p ./packages/spglsl/tsconfig.json
 
-acuris-eslint --fix ./packages/spglsl/dist ./packages/spglsl/wasm
+eslint --no-ignore --fix ./packages/spglsl/dist
+prettier --ignore-unknown --write ./packages/spglsl/dist/*.js ./packages/spglsl/dist/*.ts 

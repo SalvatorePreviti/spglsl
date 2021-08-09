@@ -1,17 +1,19 @@
-import _util = require('util')
-import _path = require('path')
-import _chalk = require('chalk')
+import _util from 'util'
+import _path from 'path'
+import _chalk from 'chalk'
 import { StringEnum, StringEnumValue } from './core/string-enums'
 
 export const GlslLogRowType = StringEnum('WARNING', 'ERROR', 'UNKNOWN ERROR')
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type GlslLogRowType = StringEnumValue<typeof GlslLogRowType>
 
 const { relative: pathRelative } = _path.posix
 
 let _chalkDisabled: _chalk.Chalk | undefined
 
-const _glslInfoLineRegex = /^(WARNING|ERROR|UNKNOWN ERROR|TBD functionality|Missing functionality|warning|error|Warning|Warn|warn|Error): (?:(-?(?:[a-zA-Z]:)?[^:]+)?:?(-?\d+))?(?:: +)?(?:'(.*)' : )?(.*)$/s
+const _glslInfoLineRegex =
+  /^(WARNING|ERROR|UNKNOWN ERROR|TBD functionality|Missing functionality|warning|error|Warning|Warn|warn|Error): (?:(-?(?:[a-zA-Z]:)?[^:]+)?:?(-?\d+))?(?:: +)?(?:'(.*)' : )?(.*)$/s
 
 export interface GlslInfoLogFormatOptions {
   colors?: boolean
@@ -123,7 +125,7 @@ export class GlslInfoLogRow implements GlslInfoLogRow {
 
 ;(GlslInfoLogRow.prototype as any)[_util.inspect.custom] = function x(
   _depth?: number,
-  options?: NodeJS.InspectOptions
+  options?: _util.InspectOptions
 ): any {
   return this.toString(options || _util.inspect.defaultOptions)
 }
@@ -137,8 +139,12 @@ export class GlslInfoLogArray extends Array<GlslInfoLogRow> {
     this.length = 0
   }
 
-  public static parse(infolog: string | null | undefined, defaultFilePath?: string): GlslInfoLogArray {
-    return new GlslInfoLogArray().parseAdd(infolog, defaultFilePath)
+  public static parse(
+    infolog: string | null | undefined,
+    defaultFilePath?: string,
+    filePathLookup?: Readonly<Record<string | number, string>>
+  ): GlslInfoLogArray {
+    return new GlslInfoLogArray().parseAdd(infolog, defaultFilePath, filePathLookup)
   }
 
   public parseAdd(
@@ -274,7 +280,7 @@ export class GlslInfoLogArray extends Array<GlslInfoLogRow> {
 
 ;(GlslInfoLogArray.prototype as any)[_util.inspect.custom] = function x(
   _depth?: number,
-  options?: NodeJS.InspectOptions
+  options?: _util.InspectOptions
 ): any {
   return this.toString(options || _util.inspect.defaultOptions)
 }

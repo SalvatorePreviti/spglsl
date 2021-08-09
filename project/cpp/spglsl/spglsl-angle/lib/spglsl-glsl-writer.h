@@ -3,7 +3,7 @@
 
 #include <angle/src/compiler/translator/BaseTypes.h>
 #include <angle/src/compiler/translator/ImmutableString.h>
-#include <angle/src/compiler/translator/Operator.h>
+#include <angle/src/compiler/translator/Operator_autogen.h>
 #include <angle/src/compiler/translator/Types.h>
 
 #include <sstream>
@@ -110,7 +110,6 @@ class SpglslGlslWriter : NonCopyable {
 
   SpglslGlslWriter & writeSwizzle(const sh::TVector<int> & offsets);
   SpglslGlslWriter & writeDirective(sh::PreprocessorDirective directive, const char * command);
-  SpglslGlslWriter & writeTOperator(TOperator op);
   SpglslGlslWriter & writeTMemoryQualifier(const sh::TMemoryQualifier & q);
   SpglslGlslWriter & writeTypePrecision(const sh::TType & type);
 

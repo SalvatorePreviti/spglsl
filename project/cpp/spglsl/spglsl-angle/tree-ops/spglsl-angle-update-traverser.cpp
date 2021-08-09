@@ -45,6 +45,12 @@ void SpglslAngleUpdateTraverser::queueAggregateReplace(sh::TIntermAggregateBase 
   if (!replacement) {
     this->queueAggregateRemove(parent, node);
   } else if (parent && node) {
-    this->mMultiReplacements.push_back(NodeReplaceWithMultipleEntry(parent, node, *replacement));
+    this->mMultiReplacements.push_back(NodeReplaceWithMultipleEntry(parent, node, std::move(*replacement)));
   }
+}
+
+void SpglslAngleUpdateTraverser::queueAggregateReplace(sh::TIntermAggregateBase * parent,
+    sh::TIntermNode * node,
+    sh::TIntermSequence && replacement) {
+  this->mMultiReplacements.push_back(NodeReplaceWithMultipleEntry(parent, node, std::move(replacement)));
 }

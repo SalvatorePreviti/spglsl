@@ -81,7 +81,6 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
   a.EXT_draw_buffers = res["extension_EXT_draw_buffers"].as<bool>();
   a.EXT_frag_depth = res["extension_EXT_frag_depth"].as<bool>();
   a.EXT_shader_texture_lod = res["extension_EXT_shader_texture_lod"].as<bool>();
-  a.WEBGL_debug_shader_precision = res["extension_WEBGL_debug_shader_precision"].as<bool>();
   a.EXT_shader_framebuffer_fetch = res["extension_EXT_shader_framebuffer_fetch"].as<bool>();
   a.NV_shader_framebuffer_fetch = res["extension_NV_shader_framebuffer_fetch"].as<bool>();
   a.NV_shader_noperspective_interpolation = res["extension_NV_shader_noperspective_interpolation"].as<bool>();
@@ -127,10 +126,6 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
   // Set a 64 bit hash function to enable user-defined name hashing.
   // Default is NULL.
   // ShHashFunction64 HashFunction;
-
-  // Selects a strategy to use when implementing array index clamping.
-  // Default is SH_CLAMP_WITH_CLAMP_INTRINSIC.
-  a.ArrayIndexClampingStrategy = SH_CLAMP_WITH_CLAMP_INTRINSIC;
 
   // The maximum complexity an expression can be when SH_LIMIT_EXPRESSION_COMPLEXITY is turned on.
   a.MaxExpressionComplexity = 65535;

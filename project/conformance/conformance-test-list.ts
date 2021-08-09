@@ -1,7 +1,7 @@
-import path = require('path')
-import util = require('util')
-import chalk = require('chalk')
-import globby = require('globby')
+import path from 'path'
+import util from 'util'
+import chalk from 'chalk'
+import { globbySync } from 'globby'
 
 const _conformanceTestLookup = new Map<string, ConformanceTest>()
 
@@ -107,7 +107,7 @@ export class ConformanceTest {
 export const conformanceTests: ConformanceTest[] = _loadConformanceTests()
 
 function _loadConformanceTests(): ConformanceTest[] {
-  const allFiles = new Set(globby.sync(path.resolve(__dirname, 'khronos/conformance2/**/*.html')))
+  const allFiles = new Set(globbySync(path.resolve(__dirname, 'khronos/conformance2/**/*.html')))
 
   for (const toskip of [
     // needs extensions ifdef

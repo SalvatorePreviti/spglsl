@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { spglslPreload, spglslAngleCompile } from 'spglsl'
-import chalk = require('chalk')
+import chalk from 'chalk'
 
 import { getTestShaders, TestShader } from './shaders/test-shaders'
 
@@ -61,7 +61,7 @@ describe('angle-regression', function () {
     }
 
     if (!testShader.name.includes('my.frag')) {
-      //continue
+      // continue
     }
 
     it(`ANGLE regression ./${testShader.name}`, async () => {

@@ -4,14 +4,13 @@ const _symIndices = Symbol('indices')
 
 const { defineProperty, getOwnPropertyNames, getOwnPropertyDescriptor } = Object
 
-export type StringEnumValue<T extends string | StringEnum<any>> = T extends string ? T : keyof T
-
 export type StringEnum<T extends string> = {
   readonly [P in T]: P
-} & {
-  readonly [Symbol.iterator]: () => IterableIterator<T>
 }
 
+export type StringEnumValue<T extends string | StringEnum<any>> = T extends string ? T : keyof T
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export function StringEnum<TArray extends readonly string[]>(...values: TArray): StringEnum<TArray[number]> {
   const array = Array.from(new Set(values)) as any
 
@@ -31,6 +30,9 @@ export function StringEnum<TArray extends readonly string[]>(...values: TArray):
 
   return result
 }
+
+StringEnum.iterate = <T extends string>(stringEnum: StringEnum<T>) =>
+  (stringEnum as unknown as Iterable<T>)[Symbol.iterator]()
 
 StringEnum.keys = Object.keys as <T extends string>(stringEnum: StringEnum<T>) => StringEnumValue<T>[]
 

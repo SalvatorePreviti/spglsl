@@ -1,16 +1,14 @@
-if (require.main === module) {
-  require('tsconfig-paths').register()
-}
-
-import express = require('express')
-import path = require('path')
-import fs = require('fs')
-import util = require('util')
-import cheerio = require('cheerio')
+import express from 'express'
+import path from 'path'
+import fs from 'fs'
+import util from 'util'
+import cheerio from 'cheerio'
 import { conformanceTests, ConformanceTest } from './conformance-test-list'
 import type { IncomingMessage, ServerResponse } from 'http'
 import { spglslAngleCompile } from 'spglsl'
-import chalk = require('chalk')
+import chalk from 'chalk'
+
+import { isMainModule } from '@balsamic/esrun'
 
 export const PORT = 3000
 
@@ -161,8 +159,11 @@ async function _setupServer() {
         mainFilePath: '0',
         mainSourceCode: sourceCode,
         compileMode: 'Optimize',
-        language: shaderType
+        language: shaderType,
+        minify: true
       })
+
+      console.log('\n\n', chalk.green(sourceCode), '\n\n', result.output, '\n\n')
 
       res.json({
         valid: result.valid,
@@ -221,7 +222,7 @@ function _startServer(): Promise<ReturnType<typeof app.listen>> {
           _server?.on('close', () => {
             stopServer().catch(() => {})
           })
-          resolve()
+          resolve(_server!)
         })
         .catch((e: any) => {
           app.off('error', handleError)
@@ -241,7 +242,7 @@ export async function stopServer() {
   const server = _server
   if (server) {
     _server = null
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       server.close((e) => {
         console.log('Server closed.')
         if (e) {
@@ -264,7 +265,7 @@ function nocache(_req: IncomingMessage, res: ServerResponse, next: () => void) {
   next()
 }
 
-if (require.main === module) {
+if (isMainModule(import.meta)) {
   startServer().catch((e) => {
     if (!process.exitCode) {
       process.exitCode = 1

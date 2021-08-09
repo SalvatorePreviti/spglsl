@@ -60,6 +60,73 @@ std::string SpglslAngleWebglOutput::getSymbolName(const sh::TSymbol & symbol) {
   return std::string(n.data(), len);
 }
 
+void SpglslAngleWebglOutput::writeTOperatorNode(sh::TIntermOperator * node) {
+  sh::TOperator op = node->getOp();
+
+  switch (op) {
+    case sh::EOpKill: this->write("discard"); return;
+    case sh::EOpBreak: this->write("break"); return;
+    case sh::EOpContinue: this->write("continue"); return;
+    case sh::EOpReturn: this->write("return"); return;
+    default: break;
+  }
+
+  sh::TIntermUnary * unaryNode = node->getAsUnaryNode();
+  if (unaryNode) {
+    auto fn = unaryNode->getFunction();
+    if (fn) {
+      this->write(this->getSymbolName(*fn));
+      return;
+    }
+  }
+
+  sh::TIntermAggregate * aggregateNode = node->getAsAggregate();
+  if (aggregateNode) {
+    auto fn = aggregateNode->getFunction();
+
+    switch (op) {
+      case sh::EOpCallInternalRawFunction:
+      case sh::EOpCallFunctionInAST: {
+        if (!fn) {
+          break;
+        }
+        this->write(this->getSymbolName(*fn));
+        return;
+      }
+
+      case sh::EOpConstruct: {
+        const auto & type = aggregateNode->getType();
+        this->write(this->getTypeName(type));
+        if (type.isArray()) {
+          this->write(ArrayString(type));
+        }
+        return;
+      }
+
+      default: break;
+    }
+
+    auto fname = aggregateNode->functionName();
+    if (fname && fname[0]) {
+      this->write(fname);
+      return;
+    }
+
+    if (fn) {
+      auto fnName = fn->name();
+      if (!fnName.empty()) {
+        this->write(fnName);
+        return;
+      }
+    }
+
+    this->write(GetOperatorString(node->getOp()));
+    return;
+  }
+
+  this->write(GetOperatorString(node->getOp()));
+}
+
 std::string SpglslAngleWebglOutput::getTypeName(const sh::TType & type) {
   if (type.getBasicType() == sh::EbtStruct && type.getStruct()) {
     return this->getSymbolName(type.getStruct());
@@ -167,7 +234,9 @@ void SpglslAngleWebglOutput::writeVariableType(const sh::TType & type, bool isFu
   }
   auto qualifier = type.getQualifier();
   bool hasQualifier = qualifier != sh::EvqTemporary && qualifier != sh::EvqGlobal;
-  if (hasQualifier && (!isFunctionArgument || qualifier != sh::TQualifier::EvqIn)) {
+  if (hasQualifier &&
+      (!isFunctionArgument ||
+          (qualifier != sh::TQualifier::EvqVertexIn && qualifier != sh::TQualifier::EvqFragmentIn))) {
     this->write(sh::getQualifierString(qualifier));
   }
   if (hasQualifier || isFunctionArgument) {
@@ -316,7 +385,7 @@ void SpglslAngleWebglOutput::visitSymbol(sh::TIntermSymbol * node) {
 
 void SpglslAngleWebglOutput::visitConstantUnion(sh::TIntermConstantUnion * node) {
   sh::TIntermBinary * parentBinary = nodeGetAsBinaryNode(this->getParentNode());
-  bool canSkipParentheses = parentBinary != nullptr && parentBinary->getOp() == EOpAssign;
+  bool canSkipParentheses = parentBinary != nullptr && parentBinary->getOp() == sh::EOpAssign;
   this->writeConstantUnion(&node->getType(), node->getConstantValue(), !canSkipParentheses);
 }
 
@@ -354,15 +423,15 @@ bool SpglslAngleWebglOutput::visitSwizzle(sh::Visit visit, sh::TIntermSwizzle * 
 
 bool SpglslAngleWebglOutput::visitBinary(sh::Visit visit, sh::TIntermBinary * node) {
   switch (node->getOp()) {
-    case EOpIndexDirect:
-    case EOpIndexIndirect:
+    case sh::EOpIndexDirect:
+    case sh::EOpIndexIndirect:
       this->traverseWithParentheses(node, 0);
       this->write('[');
       this->traverseNode(node->getRight());
       this->write(']');
       return false;
 
-    case EOpIndexDirectStruct: {
+    case sh::EOpIndexDirectStruct: {
       if (visit == sh::PreVisit) {
         const sh::TStructure * structure = node->getLeft() ? node->getLeft()->getType().getStruct() : nullptr;
         if (structure) {
@@ -381,7 +450,7 @@ bool SpglslAngleWebglOutput::visitBinary(sh::Visit visit, sh::TIntermBinary * no
       return true;
     }
 
-    case EOpIndexDirectInterfaceBlock: {
+    case sh::EOpIndexDirectInterfaceBlock: {
       if (visit == sh::PreVisit) {
         const sh::TInterfaceBlock * iface = node->getLeft() ? node->getLeft()->getType().getInterfaceBlock() : nullptr;
         if (iface) {
@@ -405,13 +474,13 @@ bool SpglslAngleWebglOutput::visitBinary(sh::Visit visit, sh::TIntermBinary * no
     default: break;
   }
 
-  if (node->getOp() == EOpInitialize) {
+  if (node->getOp() == sh::EOpInitialize) {
     this->writeVariableDeclaration(*node->getLeft());
   } else {
     this->traverseWithParentheses(node, 0);
   }
   this->beautySpace();
-  this->writeTOperator(node->getOp());
+  this->writeTOperatorNode(node);
   this->beautySpace();
   this->traverseWithParentheses(node, 1);
   return false;
@@ -420,17 +489,18 @@ bool SpglslAngleWebglOutput::visitBinary(sh::Visit visit, sh::TIntermBinary * no
 bool SpglslAngleWebglOutput::visitUnary(sh::Visit visit, sh::TIntermUnary * node) {
   auto op = node->getOp();
   if (!opIsBuiltinUnaryFunction(op)) {
-    if (op == EOpPostDecrement || op == EOpPostIncrement || op == EOpArrayLength) {
+    if (op == sh::EOpPostDecrement || op == sh::EOpPostIncrement || op == sh::EOpArrayLength) {
       this->traverseWithParentheses(node, 0);
-      this->writeTOperator(op);
+      this->writeTOperatorNode(node);
     } else {
-      this->writeTOperator(op);
+      this->writeTOperatorNode(node);
       this->traverseWithParentheses(node, 0);
     }
     return false;
   }
   if (visit == sh::PreVisit) {
-    this->writeTOperator(op).write('(');
+    this->writeTOperatorNode(node);
+    this->write('(');
   } else if (visit == sh::InVisit) {
     this->writeComma();
   } else {
@@ -471,22 +541,7 @@ bool SpglslAngleWebglOutput::visitFunctionDefinition(sh::Visit visit, sh::TInter
 
 bool SpglslAngleWebglOutput::visitAggregate(sh::Visit visit, sh::TIntermAggregate * node) {
   if (visit == sh::PreVisit) {
-    switch (node->getOp()) {
-      case EOpCallInternalRawFunction:
-      case EOpCallBuiltInFunction:
-      case EOpCallFunctionInAST: this->write(this->getSymbolName(*node->getFunction())); break;
-
-      case EOpConstruct: {
-        const auto & type = node->getType();
-        this->write(this->getTypeName(type));
-        if (type.isArray()) {
-          this->write(ArrayString(type));
-        }
-        break;
-      }
-
-      default: this->writeTOperator(node->getOp()); break;
-    }
+    this->writeTOperatorNode(node);
     this->write('(');
   } else if (visit == sh::InVisit) {
     this->writeComma();
@@ -652,6 +707,7 @@ bool SpglslAngleWebglOutput::visitLoop(sh::Visit visit, sh::TIntermLoop * node) 
       }
       this->write(')').beautySpace();
       this->traverseCodeBlock(body, true);
+      this->beautyDoubleNewLine();
       return false;
 
     case sh::ELoopWhile: {
@@ -660,6 +716,7 @@ bool SpglslAngleWebglOutput::visitLoop(sh::Visit visit, sh::TIntermLoop * node) 
       this->traverseNode(node->getCondition());
       this->write(')').beautySpace();
       this->traverseCodeBlock(body, true);
+      this->beautyDoubleNewLine();
       return false;
     }
 
@@ -670,6 +727,7 @@ bool SpglslAngleWebglOutput::visitLoop(sh::Visit visit, sh::TIntermLoop * node) 
       this->write("while").beautySpace().write('(');
       this->traverseNode(node->getCondition());
       this->write(')').write(';');
+      this->beautyDoubleNewLine();
       return false;
     }
 
@@ -680,7 +738,16 @@ bool SpglslAngleWebglOutput::visitLoop(sh::Visit visit, sh::TIntermLoop * node) 
 bool SpglslAngleWebglOutput::visitBranch(sh::Visit visit, sh::TIntermBranch * node) {
   if (visit == sh::PreVisit) {
     this->clearLastWrittenVarDecl();
-    this->writeTOperator(node->getFlowOp());
+
+    const char * ops;
+    switch (node->getFlowOp()) {
+      case sh::EOpKill: ops = "discard"; break;
+      case sh::EOpBreak: ops = "break"; break;
+      case sh::EOpContinue: ops = "continue"; break;
+      case sh::EOpReturn: ops = "return"; break;
+      default: ops = GetOperatorString(node->getFlowOp()); break;
+    }
+    this->write(ops);
   }
   return true;
 }

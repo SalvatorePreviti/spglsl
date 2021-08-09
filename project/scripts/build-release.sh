@@ -18,6 +18,4 @@ cmake \
 
 cmake --build ../build --parallel 6
 
-acuris-eslint --fix ./packages/spglsl/dist ./packages/spglsl/wasm
-
 ls -lh ./packages/spglsl/wasm || true

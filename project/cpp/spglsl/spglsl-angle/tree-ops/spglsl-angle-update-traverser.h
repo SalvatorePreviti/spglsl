@@ -35,6 +35,10 @@ class SpglslAngleUpdateTraverser : protected sh::TIntermTraverser, NonCopyable {
       sh::TIntermNode * node,
       sh::TIntermSequence * replacement);
 
+  void queueAggregateReplace(sh::TIntermAggregateBase * parent,
+      sh::TIntermNode * node,
+      sh::TIntermSequence && replacement);
+
  protected:
   /** Traverse the given node */
   void traverseNode(sh::TIntermNode * node);

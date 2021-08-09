@@ -1,7 +1,7 @@
+import { floatToGlsl } from '../core/float-math'
+
 let _wasmSpglsl: any = null
 let _wasmSpglslPromise: Promise<any> | null = null
-
-import { floatToGlsl } from '../core/float-math'
 
 export async function spglslPreload() {
   if (!_wasmSpglsl && !_wasmSpglslPromise) {
@@ -27,7 +27,9 @@ export async function _wasmSpglslGet(): Promise<{ spglsl: any }> {
 async function _spglslInit() {
   let result
   try {
-    result = await require('../../wasm/spglsl.js')()
+    const dynamicImport = '../../wasm/spglsl.js'
+    const imported = await import(dynamicImport)
+    result = await (imported.default || imported)()
     if (
       !result.spglsl_init({
         floatToGlsl

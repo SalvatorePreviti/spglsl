@@ -1,6 +1,8 @@
 #include "spglsl-angle-mangler.h"
 
+#include <ios>
 #include <sstream>
+#include <string>
 
 static std::unordered_set<std::string> spglslReservedWordSet({"main", "and", "or", "xor", "not", "EmitVertex",
     "EndPrimitive", "abs", "acos", "acosh", "active", "all", "angle_BaseInstance", "angle_BaseVertex", "any", "asin",
@@ -239,7 +241,7 @@ void SpglslAngleReservedWordsTraverser::visitFunctionPrototype(sh::TIntermFuncti
 }
 
 bool SpglslAngleReservedWordsTraverser::visitAggregate(sh::Visit visit, sh::TIntermAggregate * node) {
-  if (node->getOp() == EOpConstruct) {
+  if (node->getOp() == sh::EOpConstruct) {
     this->add(node->getType());
   }
   return true;

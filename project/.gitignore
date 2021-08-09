@@ -1,5 +1,3 @@
-# <@acuris/eslint-config>
-
 # You can disable patterns by prepending # without any space. For example #.npmrc
 
 # excluded files for security
@@ -101,8 +99,6 @@ $RECYCLE.BIN
 
 # some projects still requires yarn-packages-cache to be published
 !**/yarn-packages-cache/*.tgz
-
-# </@acuris/eslint-config>
 
 .ninja_deps
 .ninja_log
