@@ -12,6 +12,14 @@
   "engines": {
     "node": ">=14.17.4"
   },
+  "homepage": "https://github.com/SalvatorePreviti/spglsl#readme",
+  "bugs": {
+    "url": "https://github.com/SalvatorePreviti/spglsl/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SalvatorePreviti/spglsl.git"
+  },
   "main": "dist/index.js",
   "types": "dist",
   "dependencies": {

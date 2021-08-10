@@ -1,5 +1,9 @@
 # spglsl - a webgl glsl minifier for NodeJS based on Google Angle
 
+The project is mostly C++, compiled to WASM with Emscripten and runnable in NodeJS.
+
+Package is precompiled at https://www.npmjs.com/package/spglsl
+
 ## Installation
 
 ```sh
@@ -33,3 +37,7 @@ MIT license
 Salvatore Previti Copyright 2020-2021
 
 Angle Copyright 2018 The ANGLE Project Authors.
+
+## Development
+
+Look at project/scripts folder on how to install dependencies and build.
