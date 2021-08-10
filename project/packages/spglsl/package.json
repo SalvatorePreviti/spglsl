@@ -1,6 +1,6 @@
 {
   "name": "spglsl",
-  "version": "0.0.1-alpha3",
+  "version": "0.0.2",
   "description": "experimental spglsl",
   "keywords": [
     "glsl",
@@ -10,7 +10,7 @@
   "license": "MIT",
   "author": "Salvatore Previti",
   "engines": {
-    "node": ">=12.12.0"
+    "node": ">=14.17.4"
   },
   "main": "dist/index.js",
   "types": "dist",
