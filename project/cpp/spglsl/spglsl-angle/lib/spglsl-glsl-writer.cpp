@@ -199,7 +199,30 @@ SpglslGlslWriter & SpglslGlslWriter::writeDirective(const char * directive, cons
   return *this;
 }
 
-SpglslGlslWriter & SpglslGlslWriter::writeSwizzle(const sh::TVector<int> & offsets) {
+SpglslGlslWriter & SpglslGlslWriter::writeSwizzle(sh::TIntermSwizzle * node) {
+  if (!node) {
+    return *this;
+  }
+
+  const auto & offsets = node->getSwizzleOffsets();
+
+  sh::TIntermTyped * operand = node->getOperand();
+  if (operand && (operand->getType().isVector() || operand->getType().isScalar())) {
+    if (operand->getNominalSize() == offsets.size()) {
+      bool isNoop = true;
+      for (size_t i = 0; i != offsets.size(); ++i) {
+        if (offsets[i] != i) {
+          isNoop = false;
+          break;
+        }
+      }
+      if (isNoop) {
+        // We can remove this swizzle, has no effects.
+        return *this;
+      }
+    }
+  }
+
   std::ostringstream tmp;
   for (const int offset : offsets) {
     switch (offset) {
@@ -210,6 +233,7 @@ SpglslGlslWriter & SpglslGlslWriter::writeSwizzle(const sh::TVector<int> & offse
       default: break;
     }
   }
+  this->write('.');
   this->write(tmp.str());
   return *this;
 }

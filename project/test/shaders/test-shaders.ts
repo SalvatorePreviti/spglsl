@@ -1,13 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { globbySync } from 'globby'
-
-export interface TestShader {
-  name: string
-  shaderType: 'vert' | 'frag'
-  sourceCode: string
-  hasIncludes: boolean
-}
+import type { TestShader } from '../lib/test-shader'
 
 let _testShaders: readonly TestShader[] | null
 

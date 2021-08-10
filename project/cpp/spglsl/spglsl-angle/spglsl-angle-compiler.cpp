@@ -10,6 +10,7 @@
 #include <angle/src/compiler/translator/tree_ops/RemoveArrayLengthMethod.h>
 #include <angle/src/compiler/translator/tree_ops/SeparateDeclarations.h>
 #include <angle/src/compiler/translator/tree_ops/SplitSequenceOperator.h>
+#include <angle/src/compiler/translator/tree_ops/gl/RecordConstantPrecision.h>
 #include <angle/src/compiler/translator/tree_util/IntermNodePatternMatcher.h>
 
 #include "spglsl-angle-compiler-handle.h"
@@ -84,6 +85,12 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
   if (this->metadata.shaderVersion >= 300 && this->metadata.shaderType == GL_FRAGMENT_SHADER &&
       !ValidateOutputs(root, this->extensionBehavior, this->compilerOptions.angle.MaxDrawBuffers, &this->diagnostics)) {
     return false;
+  }
+
+  if (this->compilerOptions.recordConstantPrecision) {
+    if (!sh::RecordConstantPrecision(&this->tCompiler, root, &this->symbolTable)) {
+      return false;
+    }
   }
 
   if (!SeparateDeclarations(&this->tCompiler, root)) {

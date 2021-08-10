@@ -9,6 +9,7 @@ SpglslCompileOptions::SpglslCompileOptions() :
     outputShaderVersion(300),
     floatPrecision(SpglslDefaultPrecision::undefined),
     intPrecision(SpglslDefaultPrecision::undefined),
+    recordConstantPrecision(false),
     minify(false) {
   sh::InitBuiltInResources(&this->angle);
 }
@@ -29,6 +30,7 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
 
   this->minify = this->compileMode >= SpglslCompileMode::Optimize && input["minify"].as<bool>();
   this->mangleTwoPasses = this->compileMode >= SpglslCompileMode::Optimize && input["mangleTwoPasses"].as<bool>();
+  this->recordConstantPrecision = input["recordConstantPrecision"].as<bool>();
 
   SpglslDefaultPrecision floatPrecision = SpglslDefaultPrecision::undefined;
   emscripten::val floatPrecisionVal = input["floatPrecision"];

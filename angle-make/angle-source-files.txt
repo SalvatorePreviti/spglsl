@@ -114,3 +114,4 @@
 ../angle/src/compiler/preprocessor/Token.cpp
 ../angle/src/compiler/preprocessor/preprocessor_lex_autogen.cpp
 ../angle/src/compiler/preprocessor/preprocessor_tab_autogen.cpp
+../angle/src/compiler/translator/tree_ops/gl/RecordConstantPrecision.cpp

@@ -4,10 +4,10 @@ import { SpglslLanguage, spglslLanguageFromString, SpglslCompileMode, SpglslPrec
 import { StringEnum } from './core/string-enums'
 import { SpglslResourceLimits } from './spglsl-resource-limits'
 
-export interface SpglslAngleCompileInput {
-  compileMode: SpglslCompileMode
-  mainFilePath?: string
-  mainSourceCode?: string | null
+const DEFAULT_RECORD_CONSTANT_PRECISION = false
+
+export interface SpglslAngleCompileOptions {
+  compileMode?: SpglslCompileMode
   language?: string
   customData?: any
   resourceLimits?: Partial<SpglslResourceLimits>
@@ -15,6 +15,12 @@ export interface SpglslAngleCompileInput {
   intPrecision?: SpglslPrecision
   minify?: boolean
   mangleTwoPasses?: boolean
+  recordConstantPrecision?: boolean
+}
+
+export interface SpglslAngleCompileInput extends SpglslAngleCompileOptions {
+  mainFilePath?: string
+  mainSourceCode?: string | null
 }
 
 export class SpglslAngleCompileResult {
@@ -30,6 +36,7 @@ export class SpglslAngleCompileResult {
   public intPrecision: SpglslPrecision
   public minify: boolean
   public mangleTwoPasses: boolean
+  public recordConstantPrecision: boolean
 
   public constructor() {
     this.compileMode = 'Validate'
@@ -44,20 +51,22 @@ export class SpglslAngleCompileResult {
     this.intPrecision = ''
     this.minify = false
     this.mangleTwoPasses = false
+    this.recordConstantPrecision = DEFAULT_RECORD_CONSTANT_PRECISION
   }
 }
 
 export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput>): Promise<SpglslAngleCompileResult> {
   const result = new SpglslAngleCompileResult()
+  result.compileMode = input.compileMode || SpglslCompileMode.Optimize
   if (!StringEnum.has(SpglslCompileMode, input.compileMode)) {
     throw new TypeError(`Invalid compile mode "${input.compileMode}"`)
   }
-  result.compileMode = input.compileMode
   result.customData = input.customData
   result.floatPrecision = (StringEnum.has(SpglslPrecision, input.floatPrecision) && input.floatPrecision) || ''
   result.intPrecision = (StringEnum.has(SpglslPrecision, input.intPrecision) && input.intPrecision) || ''
   result.minify = !!input.minify
   result.mangleTwoPasses = input.mangleTwoPasses === undefined ? true : !!input.mangleTwoPasses
+  result.recordConstantPrecision = input.recordConstantPrecision || DEFAULT_RECORD_CONSTANT_PRECISION
   const resourceLimits = { ...SpglslResourceLimits, ...input.resourceLimits }
 
   const mainFilePath = input.mainFilePath || '0'

@@ -1,8 +1,7 @@
-import { expect } from 'chai'
-import { spglslPreload, spglslAngleCompile } from 'spglsl'
-import chalk from 'chalk'
+import { spglslPreload } from 'spglsl'
+import { makeTestShader } from './lib/test-shader'
 
-import { getTestShaders, TestShader } from './shaders/test-shaders'
+import { getTestShaders } from './shaders/test-shaders'
 
 describe('angle-regression', function () {
   this.timeout(7000)
@@ -11,67 +10,13 @@ describe('angle-regression', function () {
     await spglslPreload()
   })
 
-  const doTestShader = async (shader: TestShader) => {
-    const compiled = await spglslAngleCompile({
-      compileMode: 'Optimize',
-      mainFilePath: shader.name,
-      mainSourceCode: shader.sourceCode,
-      language: shader.shaderType,
-      minify: true
-    })
-
-    const info = `${compiled.compileMode} ${compiled.language} ${compiled.outputVersion} ./${
-      shader.name
-    }\n${compiled.infoLog.toString({
-      colors: true
-    })}`
-
-    expect(compiled.valid).to.equal(true, info)
-    expect(compiled.infoLog.getCounts().errors).to.equal(0, info)
-
-    console.log(chalk.magentaBright(`----- ${shader.name} -----`))
-    console.log(shader.sourceCode)
-    console.log(chalk.magentaBright('---------'))
-    console.log(chalk.greenBright(compiled.output !== null ? compiled.output : null))
-    console.log(chalk.magentaBright('---------'))
-
-    const validated = await spglslAngleCompile({
-      compileMode: 'Validate',
-      mainFilePath: compiled.mainFilePath,
-      mainSourceCode: compiled.output,
-      customData: compiled.customData,
-      language: compiled.language
-    })
-
-    const info1 = `${validated.compileMode} ${validated.language} ${validated.outputVersion} ./${
-      shader.name
-    }\n${validated.infoLog.toString({
-      colors: true
-    })} ${compiled.output}`
-
-    expect(validated.valid).to.equal(true, info1)
-    expect(validated.infoLog.getCounts().errors).to.equal(0, info)
-
-    console.log(chalk.cyanBright(`${(compiled.output || '').length} bytes`))
-  }
-
   for (const testShader of getTestShaders()) {
     if (testShader.hasIncludes) {
       continue
     }
 
-    if (!testShader.name.includes('my.frag')) {
-      // continue
-    }
-
     it(`ANGLE regression ./${testShader.name}`, async () => {
-      Reflect.defineProperty(doTestShader, 'name', {
-        value: `./${testShader.name}`,
-        configurable: true,
-        enumerable: false,
-        writable: true
-      })
-      return doTestShader(testShader)
+      return makeTestShader(testShader)()
     })
   }
 })

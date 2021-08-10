@@ -96,7 +96,7 @@ const glslSourcesSet = new Set([
   ...parsedGni.libangle_common_sources,
   ...parsedGni.angle_translator_sources,
   ...parsedGni.angle_preprocessor_sources,
-  // ...parsedGni.angle_translator_essl_sources,
+  ...parsedGni.angle_translator_essl_sources.filter((source) => source.includes('RecordConstantPrecision')),
 
   'src/common/system_utils_posix.cpp'
 ])

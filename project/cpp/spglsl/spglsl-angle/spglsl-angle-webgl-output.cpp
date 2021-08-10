@@ -416,7 +416,7 @@ void SpglslAngleWebglOutput::visitPreprocessorDirective(sh::TIntermPreprocessorD
 
 bool SpglslAngleWebglOutput::visitSwizzle(sh::Visit visit, sh::TIntermSwizzle * node) {
   if (visit == sh::PostVisit) {
-    this->write('.').writeSwizzle(node->getSwizzleOffsets());
+    this->writeSwizzle(node);
   }
   return true;
 }

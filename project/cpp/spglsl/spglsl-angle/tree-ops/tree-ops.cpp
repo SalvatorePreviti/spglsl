@@ -5,6 +5,8 @@
 #include <angle/src/compiler/translator/tree_ops/PruneNoOps.h>
 #include <angle/src/compiler/translator/tree_ops/RemoveArrayLengthMethod.h>
 #include <angle/src/compiler/translator/tree_ops/RemoveUnreferencedVariables.h>
+#include <angle/src/compiler/translator/tree_ops/SeparateDeclarations.h>
+#include <angle/src/compiler/translator/tree_ops/SplitSequenceOperator.h>
 #include <angle/src/compiler/translator/tree_util/IntermNodePatternMatcher.h>
 
 #include "../lib/spglsl-angle-ast-hasher.h"
@@ -19,10 +21,6 @@ bool SpglslOptimizeAngleAst(SpglslAngleCompiler & compiler, sh::TIntermBlock * r
   do {
     ++repeat;
 
-    /*if (!sh::RecordConstantPrecision(&compiler.tCompiler, root, &compiler.symbolTable)) {
-      return false;
-    }*/
-
     if (!sh::RemoveUnreferencedVariables(&compiler.tCompiler, root, &compiler.symbolTable)) {
       return false;
     }
@@ -33,6 +31,13 @@ bool SpglslOptimizeAngleAst(SpglslAngleCompiler & compiler, sh::TIntermBlock * r
       return false;
     }
     if (!sh::FoldExpressions(&compiler.tCompiler, root, &compiler.diagnostics)) {
+      return false;
+    }
+    if (!SplitSequenceOperator(
+            &compiler.tCompiler, root, sh::IntermNodePatternMatcher::kArrayLengthMethod, &compiler.symbolTable)) {
+      return false;
+    }
+    if (!RemoveArrayLengthMethod(&compiler.tCompiler, root)) {
       return false;
     }
 

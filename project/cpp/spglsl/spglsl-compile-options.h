@@ -21,6 +21,7 @@ class SpglslCompileOptions : NonCopyable {
   ShBuiltInResources angle;
   bool minify;
   bool mangleTwoPasses;
+  bool recordConstantPrecision;
 
   SpglslDefaultPrecision floatPrecision;
   SpglslDefaultPrecision intPrecision;
