@@ -16,8 +16,6 @@ void SpglslAngleCallDag::clear() {
   sh::CallDAG::clear();
 }
 
-#include <iostream>
-
 bool SpglslAngleCallDag::init(sh::TIntermNode * root, sh::TDiagnostics * diagnostics) {
   this->clear();
 
