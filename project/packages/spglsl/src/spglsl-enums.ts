@@ -1,5 +1,5 @@
 import { StringEnum, StringEnumValue } from './core/string-enums'
-import path from 'path'
+import { extname as pathExtname, basename as pathBasename } from 'path'
 
 export const SpglslPrecision = StringEnum('', 'lowp', 'mediump', 'highp')
 
@@ -40,12 +40,12 @@ export function spglslLanguageFromString(s: string | null | undefined): SpglslLa
 
   let basename: string | null = null
   if (s.indexOf('/') >= 0 || s.indexOf('\\') >= 0) {
-    s = path.extname(s) || s
-    if (s.startsWith('.')) {
-      basename = path.basename(s, s)
+    s = pathExtname(s) || s
+    if (s && s.startsWith('.')) {
+      basename = pathBasename(s, s)
       s = s.slice(1)
     }
-    s = s.toLowerCase()
+    s = (s && s.toLowerCase()) || ''
   }
 
   if (s.startsWith('gl_')) {

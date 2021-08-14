@@ -2,13 +2,14 @@
   "extends": "@balsamic/eslint-config/tsconfig.json",
   "compilerOptions": {
     "module": "CommonJS",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "target": "ES2019",
     "preserveConstEnums": true,
     "isolatedModules": true,
     "allowJs": true,
     "noEmit": false,
     "outDir": "dist",
-    "esModuleInterop": false,
     "useDefineForClassFields": false,
     "declaration": true,
     "declarationDir": "dist"

@@ -1,6 +1,6 @@
-import _util from 'util'
-import _path from 'path'
-import _chalk from 'chalk'
+import { InspectOptions, inspect } from 'util'
+import { posix as pathPosix } from 'path'
+import chalk from 'chalk'
 import { StringEnum, StringEnumValue } from './core/string-enums'
 
 export const GlslLogRowType = StringEnum('WARNING', 'ERROR', 'UNKNOWN ERROR')
@@ -8,9 +8,9 @@ export const GlslLogRowType = StringEnum('WARNING', 'ERROR', 'UNKNOWN ERROR')
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type GlslLogRowType = StringEnumValue<typeof GlslLogRowType>
 
-const { relative: pathRelative } = _path.posix
+const { relative: pathRelative } = pathPosix
 
-let _chalkDisabled: _chalk.Chalk | undefined
+let _chalkDisabled: chalk.Chalk | undefined
 
 const _glslInfoLineRegex =
   /^(WARNING|ERROR|UNKNOWN ERROR|TBD functionality|Missing functionality|warning|error|Warning|Warn|warn|Error): (?:(-?(?:[a-zA-Z]:)?[^:]+)?:?(-?\d+))?(?:: +)?(?:'(.*)' : )?(.*)$/s
@@ -123,11 +123,8 @@ export class GlslInfoLogRow implements GlslInfoLogRow {
   }
 }
 
-;(GlslInfoLogRow.prototype as any)[_util.inspect.custom] = function x(
-  _depth?: number,
-  options?: _util.InspectOptions
-): any {
-  return this.toString(options || _util.inspect.defaultOptions)
+;(GlslInfoLogRow.prototype as any)[inspect.custom] = function x(_depth?: number, options?: InspectOptions): any {
+  return this.toString(options || inspect.defaultOptions)
 }
 
 export class GlslInfoLogArray extends Array<GlslInfoLogRow> {
@@ -227,29 +224,29 @@ export class GlslInfoLogArray extends Array<GlslInfoLogRow> {
   }
 
   public inspect(): string {
-    return _util.inspect(this, { colors: true })
+    return inspect(this, { colors: true })
   }
 
   public toString(options?: GlslInfoLogFormatOptions): string {
-    const chalk =
-      options && options.colors ? _chalk : _chalkDisabled || (_chalkDisabled = new _chalk.Instance({ level: 0 }))
+    const cchalk =
+      options && options.colors ? chalk : _chalkDisabled || (_chalkDisabled = new chalk.Instance({ level: 0 }))
 
     const { errors, warnings } = this.getCounts()
     if (errors === 0 && warnings === 0) {
-      return chalk.green('no glsl errors')
+      return cchalk.green('no glsl errors')
     }
 
     let r = ''
     if (errors > 0) {
-      r += `${chalk.redBright(`${errors} error${errors === 1 ? '' : 's'} `)}`
+      r += `${cchalk.redBright(`${errors} error${errors === 1 ? '' : 's'} `)}`
     } else {
-      r += `${chalk.gray(`${errors} errors`)} `
+      r += `${cchalk.gray(`${errors} errors`)} `
     }
 
     if (warnings > 0) {
-      r += `${chalk.yellowBright(`${warnings} warning${warnings === 1 ? '' : 's'}`)}`
+      r += `${cchalk.yellowBright(`${warnings} warning${warnings === 1 ? '' : 's'}`)}`
     } else {
-      r += `${chalk.gray(`${warnings} warnings`)}`
+      r += `${cchalk.gray(`${warnings} warnings`)}`
     }
     r += '\n'
 
@@ -278,11 +275,8 @@ export class GlslInfoLogArray extends Array<GlslInfoLogRow> {
   }
 }
 
-;(GlslInfoLogArray.prototype as any)[_util.inspect.custom] = function x(
-  _depth?: number,
-  options?: _util.InspectOptions
-): any {
-  return this.toString(options || _util.inspect.defaultOptions)
+;(GlslInfoLogArray.prototype as any)[inspect.custom] = function x(_depth?: number, options?: InspectOptions): any {
+  return this.toString(options || inspect.defaultOptions)
 }
 
 function _formatOriginalInfoLogRow(row: Readonly<Partial<GlslInfoLogRow>> | null | undefined) {
@@ -313,29 +307,29 @@ function _formatGlslInfoLogRow(
     return ''
   }
 
-  const chalk =
-    options && options.colors ? _chalk : _chalkDisabled || (_chalkDisabled = new _chalk.Instance({ level: 0 }))
+  const cchalk =
+    options && options.colors ? chalk : _chalkDisabled || (_chalkDisabled = new chalk.Instance({ level: 0 }))
   let r = ''
 
   const isError = row.type !== 'WARNING'
 
   if (isError) {
-    r += chalk.redBright(row.type || 'ERROR')
+    r += cchalk.redBright(row.type || 'ERROR')
   } else {
-    r += chalk.yellowBright(row.type)
+    r += cchalk.yellowBright(row.type)
   }
   r += ': '
 
-  r += chalk.cyan(_relativizeFilename(row.filePath) || row.filePath)
+  r += cchalk.cyan(_relativizeFilename(row.filePath) || row.filePath)
   r += ':'
 
-  r += chalk.yellow(row.line || 1)
-  r += ` ${chalk.gray("'")}${_escapeErrorStr(row.source, chalk.gray('\\n'))}${chalk.gray("'")}: `
+  r += cchalk.yellow(row.line || 1)
+  r += ` ${cchalk.gray("'")}${_escapeErrorStr(row.source, cchalk.gray('\\n'))}${cchalk.gray("'")}: `
 
   if (isError) {
-    r += chalk.redBright(_escapeErrorStr(row.message, ' '))
+    r += cchalk.redBright(_escapeErrorStr(row.message, ' '))
   } else {
-    r += chalk.yellowBright(_escapeErrorStr(row.message, ' '))
+    r += cchalk.yellowBright(_escapeErrorStr(row.message, ' '))
   }
 
   return r

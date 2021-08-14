@@ -2,6 +2,8 @@
   "extends": "@balsamic/eslint-config/tsconfig.json",
   "compilerOptions": {
     "module": "CommonJS",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "baseUrl": ".",
     "preserveConstEnums": true,
     "isolatedModules": true,
