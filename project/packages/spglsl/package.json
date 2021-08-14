@@ -1,7 +1,8 @@
 {
   "name": "spglsl",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "experimental spglsl",
+  "type": "commonjs",
   "keywords": [
     "glsl",
     "angle",
