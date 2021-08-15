@@ -1,14 +1,12 @@
 import { InspectOptions, inspect } from 'util'
-import { posix as pathPosix } from 'path'
 import chalk from 'chalk'
 import { StringEnum, StringEnumValue } from './core/string-enums'
+import { makePathRelative } from './lib/utils'
 
 export const GlslLogRowType = StringEnum('WARNING', 'ERROR', 'UNKNOWN ERROR')
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type GlslLogRowType = StringEnumValue<typeof GlslLogRowType>
-
-const { relative: pathRelative } = pathPosix
 
 let _chalkDisabled: chalk.Chalk | undefined
 
@@ -25,21 +23,36 @@ export class GlslInfoLogRow implements GlslInfoLogRow {
   public line: number
   public source: string
   public message: string
+  public cwd?: string
 
-  public constructor(type?: GlslLogRowType, filePath?: string, line?: number, source?: string, message?: string) {
+  public constructor(
+    type?: GlslLogRowType,
+    filePath?: string,
+    line?: number,
+    source?: string,
+    message?: string,
+    cwd?: string
+  ) {
     this.type = type || 'ERROR'
     this.filePath = filePath || '0'
     this.line = line || 0
     this.source = source || ''
     this.message = message || 'glsl error'
+    if (cwd) {
+      Reflect.defineProperty(this, 'cwd', { value: cwd, configurable: true, enumerable: false, writable: true })
+    }
   }
 
   public static parse(
     infolog: string | GlslInfoLogRow | Error | null | undefined,
     defaultFilePath?: string,
-    filePathLookup?: Readonly<Record<string | number, string>>
+    filePathLookup?: Readonly<Record<string | number, string>>,
+    cwd?: string
   ): GlslInfoLogRow {
     const result = new GlslInfoLogRow()
+    if (cwd) {
+      Reflect.defineProperty(result, 'cwd', { value: cwd, configurable: true, enumerable: false, writable: true })
+    }
 
     if (!infolog) {
       return result
@@ -139,15 +152,17 @@ export class GlslInfoLogArray extends Array<GlslInfoLogRow> {
   public static parse(
     infolog: string | null | undefined,
     defaultFilePath?: string,
-    filePathLookup?: Readonly<Record<string | number, string>>
+    filePathLookup?: Readonly<Record<string | number, string>>,
+    cwd?: string
   ): GlslInfoLogArray {
-    return new GlslInfoLogArray().parseAdd(infolog, defaultFilePath, filePathLookup)
+    return new GlslInfoLogArray().parseAdd(infolog, defaultFilePath, filePathLookup, cwd)
   }
 
   public parseAdd(
     infolog: GlslInfoLogArray | string | null | undefined,
     defaultFilePath?: string,
-    filePathLookup?: Readonly<Record<string | number, string>>
+    filePathLookup?: Readonly<Record<string | number, string>>,
+    cwd?: string
   ): GlslInfoLogArray {
     if (!infolog) {
       return this
@@ -159,7 +174,7 @@ export class GlslInfoLogArray extends Array<GlslInfoLogRow> {
     const splitted = _splitGlslInfoLog(infolog)
     for (let i = 0, len = splitted.length; i < len; ++i) {
       const row = splitted[i]
-      const newItem = GlslInfoLogRow.parse(row, defaultFilePath, filePathLookup)
+      const newItem = GlslInfoLogRow.parse(row, defaultFilePath, filePathLookup, cwd)
 
       // Skip a warning about forced default version
       if (
@@ -330,7 +345,7 @@ function _formatGlslInfoLogRow(
   }
   r += ': '
 
-  r += cchalk.cyan(_relativizeFilename(row.filePath) || row.filePath)
+  r += cchalk.cyan((row.filePath && makePathRelative(row.filePath, row.cwd)) || row.filePath || '0')
   r += ':'
 
   r += cchalk.yellow(row.line || 1)
@@ -369,13 +384,6 @@ function _splitGlslInfoLog(infolog: string | null | undefined) {
     }
   }
   return result
-}
-
-function _relativizeFilename(s: any) {
-  if (typeof s === 'string' && s.startsWith('/')) {
-    return pathRelative(process.cwd(), s)
-  }
-  return s
 }
 
 function _escapeErrorStr(s: any, newLineReplacement: string) {

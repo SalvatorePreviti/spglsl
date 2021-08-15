@@ -4,6 +4,7 @@ import { _wasmSpglslGet } from './lib/_wasm'
 import { SpglslLanguage, spglslLanguageFromString, SpglslCompileMode, SpglslPrecision } from './spglsl-enums'
 import { StringEnum } from './core/string-enums'
 import { SpglslResourceLimits } from './spglsl-resource-limits'
+import { makePathRelative, prettyGlslFileSize } from './lib/utils'
 
 const DEFAULT_RECORD_CONSTANT_PRECISION = false
 
@@ -22,6 +23,7 @@ export interface SpglslAngleCompileOptions {
 export interface SpglslAngleCompileInput extends SpglslAngleCompileOptions {
   mainFilePath?: string
   mainSourceCode: string
+  cwd?: string
 }
 
 export class SpglslAngleCompileResult {
@@ -45,6 +47,7 @@ export class SpglslAngleCompileResult {
   public minify: boolean
   public mangleTwoPasses: boolean
   public recordConstantPrecision: boolean
+  public cwd: string | undefined
 
   public constructor() {
     this.mainSourceCode = ''
@@ -62,36 +65,41 @@ export class SpglslAngleCompileResult {
     this.mangleTwoPasses = false
     this.recordConstantPrecision = DEFAULT_RECORD_CONSTANT_PRECISION
     this.duration = 0
+    this.cwd = undefined
   }
 }
 
 export function inspectSpglslAngleCompileResult(result: SpglslAngleCompileResult): string {
   const infologCounts = result.infoLog.getCounts()
+  const filePath =
+    (result.mainFilePath && makePathRelative(result.mainFilePath, result.cwd)) || result.mainFilePath || 'glsl'
 
   let text: string
   if (!result.valid) {
-    text = chalk.redBright(`- ${result.mainFilePath} not ok.`)
+    text = chalk.redBright(`- ${filePath} errors `)
   } else {
-    text = chalk.blueBright(`- ${result.mainFilePath} `)
+    text = chalk.blueBright(`- ${filePath} `)
 
     if (infologCounts.warnings) {
-      text += chalk.yellow('warnings.')
+      text += chalk.yellow('warnings')
     } else {
-      text += chalk.greenBright('ok.')
+      text += chalk.greenBright('ok')
     }
 
-    if (result.mainSourceCode) {
-      const sizeOriginal = prettyGlslFileSize(result.mainSourceCode)
+    const sizeOriginal = prettyGlslFileSize(result.mainSourceCode || '')
+    if (sizeOriginal) {
       text += chalk.cyan(sizeOriginal)
 
-      const sizeAfter = prettyGlslFileSize(result.output || result.mainSourceCode)
-      if (sizeAfter !== sizeOriginal) {
-        text += ` -> ${chalk.cyanBright(sizeOriginal)}`
+      if (typeof result.output === 'string') {
+        const sizeAfter = prettyGlslFileSize(result.output)
+        if (sizeAfter !== sizeOriginal) {
+          text += ` ${chalk.blueBright('->')} ${chalk.cyanBright(sizeOriginal)}`
+        }
       }
     }
   }
 
-  text += chalk.gray(` ${result.duration} ms`)
+  text += chalk.gray(`  ${result.duration} ms`)
 
   if (infologCounts.errors || infologCounts.warnings) {
     text += `\n${result.infoLog.inspect()}`
@@ -114,6 +122,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.minify = !!input.minify
   result.mangleTwoPasses = input.mangleTwoPasses === undefined ? true : !!input.mangleTwoPasses
   result.recordConstantPrecision = input.recordConstantPrecision || DEFAULT_RECORD_CONSTANT_PRECISION
+  result.cwd = input.cwd
   const resourceLimits = { ...SpglslResourceLimits, ...input.resourceLimits }
 
   const mainFilePath = input.mainFilePath || '0'
@@ -136,7 +145,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   const wasm = await _wasmSpglslGet()
   const wresult = wasm.spglsl.spglsl_angle_compile(result, resourceLimits, input.mainSourceCode || '') || {}
 
-  result.infoLog.parseAdd(wresult.infoLog, mainFilePath)
+  result.infoLog.parseAdd(wresult.infoLog, mainFilePath, undefined, result.cwd)
 
   let valid = !!wresult.valid
   if (valid && result.compileMode !== 'Validate' && (wresult.output === null || wresult.output === undefined)) {
@@ -147,7 +156,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.duration = Math.ceil((timeDiffiff[0] * 1e9 + timeDiffiff[1]) * 1e-6)
 
   if (!valid && !result.infoLog.hasErrors()) {
-    result.infoLog.push(new GlslInfoLogRow('ERROR', mainFilePath, 0, '', 'compilation errors.'))
+    result.infoLog.push(new GlslInfoLogRow('ERROR', mainFilePath, 0, '', 'compilation errors.', result.cwd))
     return result
   }
 
@@ -195,15 +204,4 @@ export class SpglslAngleCompileError extends Error {
       writable: true
     })
   }
-}
-
-function humanReadableSizeInBytes(bytes: number): string {
-  const i = bytes && (Math.min(Math.floor(Math.log(Math.abs(bytes) / Math.log(1024))), 6) || 0)
-  return `${+(bytes / 1024 ** i).toFixed(2)} ${i ? ' kMGTPE'[i] : ''}B`
-}
-
-function prettyGlslFileSize(glsl: string) {
-  const n = Buffer.byteLength(glsl, 'utf8')
-  const s = humanReadableSizeInBytes(n)
-  return s + (n >= 1024 && n < 1e12 ? `, ${n} bytes` : s.endsWith(' B') ? 'ytes' : '')
 }
