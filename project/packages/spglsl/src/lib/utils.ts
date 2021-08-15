@@ -4,8 +4,8 @@ export function makePathRelative(filePath: string, cwd: string = process.cwd()) 
   if (filePath.indexOf('\\') >= 0) {
     return filePath // avoid doing this on windows
   }
-  const relativePath = posix.relative(cwd, filePath)
-  return relativePath && relativePath.length > filePath.length ? relativePath : filePath
+  const relativePath = posix.normalize(posix.relative(filePath, posix.normalize(cwd)))
+  return relativePath && relativePath.length < filePath.length ? relativePath : filePath
 }
 
 export function prettyGlslFileSize(glsl: string) {

@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import path from 'path'
+import chalk from 'chalk'
 import {
   inspectSpglslAngleCompileResult,
   spglslAngleCompile,
@@ -97,10 +98,10 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
       if (spglslResult.throwOnError) {
         throw new SpglslAngleCompileError(spglslResult)
       } else if (options.logging) {
-        console.error(inspectSpglslAngleCompileResult(spglslResult))
+        console.error(`\n${chalk.blue('spglsl')} ${inspectSpglslAngleCompileResult(spglslResult)}`)
       }
     } else if (options.logging) {
-      console.info(inspectSpglslAngleCompileResult(spglslResult))
+      console.info(`\n${chalk.blue('spglsl')} ${inspectSpglslAngleCompileResult(spglslResult)}`)
     }
 
     return `export default ${JSON.stringify(spglslResult.output)}`
