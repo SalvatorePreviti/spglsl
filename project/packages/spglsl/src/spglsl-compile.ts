@@ -30,6 +30,7 @@ export class SpglslAngleCompileResult {
   public outputVersion: number
   public valid: boolean
   public customData: any | undefined
+  public mainSourceCode?: string
 
   /** The time it took to compile, in milliseconds */
   public duration: number
@@ -91,6 +92,9 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
     }
   }
   result.language = language
+  if (input.mainSourceCode !== null && input.mainSourceCode !== undefined) {
+    result.mainSourceCode = input.mainSourceCode
+  }
 
   const wasm = await _wasmSpglslGet()
   const wresult = wasm.spglsl.spglsl_angle_compile(result, resourceLimits, input.mainSourceCode || '') || {}
