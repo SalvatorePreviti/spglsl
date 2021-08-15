@@ -19,7 +19,7 @@
     "test": "esrun --mocha \"test/**/*.test.ts\" --recursive",
     "conformance-test-server": "esrun ./conformance/conformance-test-server.ts",
     "conformance-tests": "esrun ./conformance/conformance-test-runner.ts",
-    "precommit": "lint-staged && pretty-quick --staged"
+    "precommit": "lint-staged && pretty-quick --staged && ./scripts/build-ts.sh"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
