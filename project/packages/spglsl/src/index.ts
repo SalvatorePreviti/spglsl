@@ -2,6 +2,8 @@ export * from './core/string-enums'
 
 export * from './core/float-math'
 
+export * from './core/utils'
+
 export * from './glsl-info-log'
 
 export * from './spglsl-compile'

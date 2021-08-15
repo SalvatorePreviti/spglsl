@@ -1,7 +1,7 @@
 import { InspectOptions, inspect } from 'util'
 import chalk from 'chalk'
 import { StringEnum, StringEnumValue } from './core/string-enums'
-import { makePathRelative } from './lib/utils'
+import { makePathRelative } from './core/utils'
 
 export const GlslLogRowType = StringEnum('WARNING', 'ERROR', 'UNKNOWN ERROR')
 
