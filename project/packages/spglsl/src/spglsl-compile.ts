@@ -66,11 +66,20 @@ export class SpglslAngleCompileResult {
 }
 
 export function inspectSpglslAngleCompileResult(result: SpglslAngleCompileResult): string {
+  const infologCounts = result.infoLog.getCounts()
+
   let text: string
-  if (result.valid) {
+  if (!result.valid) {
     text = chalk.redBright(`- ${result.mainFilePath} not ok.`)
   } else {
     text = chalk.blueBright(`- ${result.mainFilePath} `)
+
+    if (infologCounts.warnings) {
+      text += chalk.yellow('warnings.')
+    } else {
+      text += chalk.greenBright('ok.')
+    }
+
     if (result.mainSourceCode) {
       const sizeOriginal = prettyGlslFileSize(result.mainSourceCode)
       text += chalk.cyan(sizeOriginal)
@@ -84,9 +93,8 @@ export function inspectSpglslAngleCompileResult(result: SpglslAngleCompileResult
 
   text += chalk.gray(` ${result.duration} ms`)
 
-  const infologText = result.infoLog.inspect()
-  if (infologText) {
-    text += `\n${infologText}`
+  if (infologCounts.errors || infologCounts.warnings) {
+    text += `\n${result.infoLog.inspect()}`
   }
 
   return text

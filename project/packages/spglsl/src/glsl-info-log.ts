@@ -196,6 +196,16 @@ export class GlslInfoLogArray extends Array<GlslInfoLogRow> {
     return false
   }
 
+  public hasWarnings(): boolean {
+    for (let i = 0, len = this.length; i < len; ++i) {
+      const item = this[i]
+      if (item && item.type === 'WARNING') {
+        return true
+      }
+    }
+    return false
+  }
+
   public getCounts(): { errors: number; warnings: number } {
     let errors = 0
     let warnings = 0
