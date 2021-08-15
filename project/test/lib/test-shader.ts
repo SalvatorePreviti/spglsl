@@ -38,7 +38,7 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
     const validated = await spglslAngleCompile({
       compileMode: 'Validate',
       mainFilePath: compiled.mainFilePath,
-      mainSourceCode: compiled.output,
+      mainSourceCode: compiled.output || compiled.mainSourceCode,
       customData: compiled.customData,
       language: compiled.language
     })

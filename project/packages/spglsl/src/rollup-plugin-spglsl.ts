@@ -1,5 +1,7 @@
+/* eslint-disable no-console */
 import path from 'path'
 import {
+  inspectSpglslAngleCompileResult,
   spglslAngleCompile,
   SpglslAngleCompileError,
   SpglslAngleCompileOptions,
@@ -7,42 +9,65 @@ import {
 } from './spglsl-compile'
 
 export interface RollupPluginSpglslOptions extends SpglslAngleCompileOptions {
+  isServer?: boolean
   isProduction?: boolean
   extensions?: string[]
+  throwOnError?: boolean
+  logging?: boolean
+  cwd?: string
 
   onSpglslDone?: (spglslResult: SpglslAngleCompileResult) => void | string | Promise<void> | Promise<string>
+}
+
+export interface RollupPluginSpglslResult extends SpglslAngleCompileResult {
+  isServer: boolean
+  isProduction: boolean
+  throwOnError: boolean
 }
 
 /**
  * A plugin for rollup and vite
  */
 export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
-  const finalOptions = { ...options }
-  if (finalOptions.minify === undefined && options.compileMode === 'Optimize') {
-    finalOptions.minify = true
+  options = { ...options }
+
+  if (options.minify === undefined && options.compileMode === 'Optimize') {
+    options.minify = true
   }
 
-  const extensionsSet = new Set(finalOptions.extensions || rollupPluginSpglsl.defaultExtensions)
+  const extensionsSet = new Set(options.extensions || rollupPluginSpglsl.defaultExtensions)
 
   function finalizeSettings(isProduction: boolean) {
-    finalOptions.isProduction = !!isProduction
-    if (finalOptions.compileMode === undefined) {
-      finalOptions.compileMode = isProduction ? 'Optimize' : 'Validate'
+    options.isProduction = !!isProduction
+    if (!options.cwd) {
+      options.cwd = process.cwd()
     }
-    if (finalOptions.minify === undefined) {
-      finalOptions.minify = isProduction && finalOptions.compileMode === 'Optimize'
+    if (options.compileMode === undefined) {
+      options.compileMode = isProduction ? 'Optimize' : 'Validate'
+    }
+    if (options.minify === undefined) {
+      options.minify = isProduction && options.compileMode === 'Optimize'
     }
   }
 
   // This hook get called with the final resolved vite config.
-  const configResolved = ({ isProduction }: { isProduction?: boolean }) => {
-    if (isProduction !== undefined && finalOptions.isProduction === undefined) {
+  const configResolved = ({ isProduction, command }: { isProduction?: boolean; command?: string }) => {
+    if (options.isServer === undefined) {
+      options.isServer = command === 'serve'
+    }
+    if (options.throwOnError === undefined) {
+      options.throwOnError = !options.isServer
+    }
+    if (isProduction !== undefined && options.isProduction === undefined) {
       finalizeSettings(isProduction)
+    }
+    if (options.logging === undefined) {
+      options.logging = true
     }
   }
 
   async function spglslTransform(this: any, code: string, id: string) {
-    if (finalOptions.isProduction === undefined) {
+    if (options.isProduction === undefined) {
       finalizeSettings(process.env.NODE_ENV === 'production')
     }
 
@@ -50,22 +75,35 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
       return undefined
     }
 
-    const spglslResult = await spglslAngleCompile({
-      ...finalOptions,
+    const spglslResult = (await spglslAngleCompile({
+      ...options,
       mainFilePath: id,
       mainSourceCode: code
-    })
+    })) as RollupPluginSpglslResult
+
+    spglslResult.isServer = !!options.isServer
+    spglslResult.isProduction = !!options.isProduction
+    spglslResult.throwOnError = !!options.throwOnError
+
+    if (!spglslResult.output) {
+      spglslResult.output = code
+    }
+
+    if (options.onSpglslDone) {
+      options.onSpglslDone(spglslResult)
+    }
 
     if (!spglslResult.valid) {
-      throw new SpglslAngleCompileError(spglslResult)
+      if (spglslResult.throwOnError) {
+        throw new SpglslAngleCompileError(spglslResult)
+      } else if (options.logging) {
+        console.error(inspectSpglslAngleCompileResult(spglslResult))
+      }
+    } else if (options.logging) {
+      console.info(inspectSpglslAngleCompileResult(spglslResult))
     }
 
-    code = spglslResult.output || code
-    if (finalOptions.onSpglslDone) {
-      code = (await finalOptions.onSpglslDone(spglslResult)) || code
-    }
-
-    return `export default ${JSON.stringify(code)}`
+    return `export default ${JSON.stringify(spglslResult.output)}`
   }
 
   return {
