@@ -31,6 +31,14 @@ async function compileFile() {
 }
 ```
 
+There is also an handy rollup and vite plugin:
+
+```js
+import { rollupPluginSpglsl } from 'spglsl'
+
+const pluginToPassToRollupOrVite = rollupPluginSpglsl({ ...options })
+```
+
 ## License
 
 MIT license
@@ -41,3 +49,7 @@ Angle Copyright 2018 The ANGLE Project Authors.
 ## Development
 
 Look at project/scripts folder on how to install dependencies and build.
+
+```
+
+```

@@ -10,4 +10,6 @@ export * from './spglsl-enums'
 
 export * from './spglsl-resource-limits'
 
+export * from './rollup-plugin-spglsl'
+
 export { spglslPreload, spglslUnload } from './lib/_wasm'

@@ -7,10 +7,10 @@
 #include <angle/src/compiler/translator/ValidateVaryingLocations.h>
 #include <angle/src/compiler/translator/tree_ops/FoldExpressions.h>
 #include <angle/src/compiler/translator/tree_ops/PruneNoOps.h>
+#include <angle/src/compiler/translator/tree_ops/RecordConstantPrecision.h>
 #include <angle/src/compiler/translator/tree_ops/RemoveArrayLengthMethod.h>
 #include <angle/src/compiler/translator/tree_ops/SeparateDeclarations.h>
 #include <angle/src/compiler/translator/tree_ops/SplitSequenceOperator.h>
-#include <angle/src/compiler/translator/tree_ops/gl/RecordConstantPrecision.h>
 #include <angle/src/compiler/translator/tree_util/IntermNodePatternMatcher.h>
 
 #include "spglsl-angle-compiler-handle.h"

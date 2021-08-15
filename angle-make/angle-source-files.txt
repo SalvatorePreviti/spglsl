@@ -67,6 +67,7 @@
 ../angle/src/compiler/translator/tree_ops/NameNamelessUniformBuffers.cpp
 ../angle/src/compiler/translator/tree_ops/PruneEmptyCases.cpp
 ../angle/src/compiler/translator/tree_ops/PruneNoOps.cpp
+../angle/src/compiler/translator/tree_ops/RecordConstantPrecision.cpp
 ../angle/src/compiler/translator/tree_ops/RemoveArrayLengthMethod.cpp
 ../angle/src/compiler/translator/tree_ops/RemoveAtomicCounterBuiltins.cpp
 ../angle/src/compiler/translator/tree_ops/RemoveDynamicIndexing.cpp
@@ -114,4 +115,3 @@
 ../angle/src/compiler/preprocessor/Token.cpp
 ../angle/src/compiler/preprocessor/preprocessor_lex_autogen.cpp
 ../angle/src/compiler/preprocessor/preprocessor_tab_autogen.cpp
-../angle/src/compiler/translator/tree_ops/gl/RecordConstantPrecision.cpp

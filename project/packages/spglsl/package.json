@@ -1,7 +1,7 @@
 {
   "name": "spglsl",
-  "version": "0.0.5",
-  "description": "experimental spglsl",
+  "version": "0.0.6",
+  "description": "spglsl compiler",
   "type": "commonjs",
   "keywords": [
     "glsl",

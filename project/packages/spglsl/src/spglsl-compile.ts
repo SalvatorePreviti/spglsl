@@ -30,7 +30,13 @@ export class SpglslAngleCompileResult {
   public outputVersion: number
   public valid: boolean
   public customData: any | undefined
+
+  /** The time it took to compile, in milliseconds */
+  public duration: number
+
+  /** The output or null if there is no output */
   public output: string | null
+
   public infoLog: GlslInfoLogArray
   public floatPrecision: SpglslPrecision
   public intPrecision: SpglslPrecision
@@ -52,10 +58,13 @@ export class SpglslAngleCompileResult {
     this.minify = false
     this.mangleTwoPasses = false
     this.recordConstantPrecision = DEFAULT_RECORD_CONSTANT_PRECISION
+    this.duration = 0
   }
 }
 
 export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput>): Promise<SpglslAngleCompileResult> {
+  const startTime = process.hrtime()
+
   const result = new SpglslAngleCompileResult()
   result.compileMode = input.compileMode || SpglslCompileMode.Optimize
   if (!StringEnum.has(SpglslCompileMode, input.compileMode)) {
@@ -93,6 +102,9 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
     valid = false
   }
 
+  const timeDiffiff = process.hrtime(startTime)
+  result.duration = Math.ceil((timeDiffiff[0] * 1e9 + timeDiffiff[1]) * 1e-6)
+
   if (!valid && !result.infoLog.hasErrors()) {
     result.infoLog.push(new GlslInfoLogRow('ERROR', mainFilePath, 0, '', 'compilation errors.'))
     return result
@@ -104,4 +116,37 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.output = typeof wresult.output === 'string' ? wresult.output : null
 
   return result
+}
+
+export class SpglslAngleCompileError extends Error {
+  public code: 'SPGLSL_ERR'
+
+  public spglslResult: SpglslAngleCompileResult
+
+  public filePath: string
+
+  public durationMs: number
+
+  public get infoLog(): GlslInfoLogArray {
+    return this.spglslResult.infoLog
+  }
+
+  public constructor(spglslResult: SpglslAngleCompileResult, message?: string, caller?: Function) {
+    super(message || `spglsls  ${spglslResult.compileMode || 'compilation'} failed`)
+    this.code = 'SPGLSL_ERR'
+    if (spglslResult.mainFilePath) {
+      this.filePath = spglslResult.mainFilePath
+    }
+    this.durationMs = spglslResult.duration
+    if (spglslResult.infoLog.hasErrors()) {
+      Reflect.defineProperty(this, 'stack', {
+        value: spglslResult.infoLog.inspect(),
+        configurable: true,
+        enumerable: true,
+        writable: true
+      })
+    } else if (caller) {
+      Error.captureStackTrace(this, caller)
+    }
+  }
 }
