@@ -47,17 +47,18 @@ export function prettySize(bytes: PrettySizeInput, options?: PrettySizeOptions):
   if (bytes === null || bytes === undefined) {
     bytes = 0
   }
+  const appendBytes = !options || options.appendBytes === undefined || options.appendBytes
   if (typeof bytes === 'object' || typeof bytes === 'string') {
     bytes = utf8ByteLength(bytes)
   }
   bytes = bytes < 0 ? Math.floor(bytes) : Math.ceil(bytes)
   let s: string
   if (!isFinite(bytes) || bytes < 1024) {
-    s = `${bytes} Bytes`
+    s = `${bytes} ${appendBytes ? 'Bytes' : 'B'}`
   } else {
     const i = Math.min(Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024)), 6)
     s = `${+(bytes / 1024 ** i).toFixed(2)} ${i ? ' kMGTPE'[i] : ''}`
-    if (!options || options.appendBytes === undefined || options.appendBytes) {
+    if (appendBytes) {
       s += `, ${bytes} Bytes`
     }
   }
