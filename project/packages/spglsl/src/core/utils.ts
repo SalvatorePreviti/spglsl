@@ -25,37 +25,44 @@ export function utf8ByteLength(b: Uint8Array | Buffer | string | number | null |
   return typeof b === 'string' ? Buffer.byteLength(b, 'utf8') : b.length
 }
 
-export type PrettyFileSizeInput = number | string | Buffer | Uint8Array | null | undefined
+export type PrettySizeInput = number | string | Buffer | Uint8Array | null | undefined
 
-export function prettyFileSize(sizeInBytes: PrettyFileSizeInput, fileType?: string) {
-  if (sizeInBytes === null || sizeInBytes === undefined) {
-    sizeInBytes = 0
+export function bufferToUtf8(b: Uint8Array | Buffer | string) {
+  if (typeof b === 'string') {
+    return b
   }
-  if (typeof sizeInBytes === 'object' || typeof sizeInBytes === 'string') {
-    sizeInBytes = utf8ByteLength(sizeInBytes)
+  if (Buffer.isBuffer(b)) {
+    return b.toString('utf8')
   }
-  sizeInBytes = roundFromZero(sizeInBytes)
-  if (sizeInBytes === 0) {
-    return '0 Bytes'
-  }
-  const bytes = roundFromZero(sizeInBytes)
-  const i = bytes && (Math.min(Math.floor(Math.log(Math.abs(bytes) / Math.log(1024))), 6) || 0)
-  let s = `${+(bytes / 1024 ** i).toFixed(2)} ${i ? `${' kMGTPE'[i]}B` : 'Bytes'}`
-  if (i > 0) {
-    s += `${' kMGTPE'[i]}B, ${sizeInBytes} bytes`
-  } else {
-    s += 'Bytes'
-  }
-  return fileType ? `${fileType} ${s}` : s
+  return Buffer.from(b).toString('utf8')
 }
 
-function roundFromZero(value: number) {
-  return value < 0 ? Math.floor(value) : Math.ceil(value)
+export interface PrettySizeOptions {
+  appendBytes?: boolean
+  fileType?: string
 }
 
 /** Gets a size in bytes in an human readable form. */
-export const humanReadableFileSize = /* @__PURE__ */ (bytes: number): string => {
-  bytes = roundFromZero(bytes)
-  const i = bytes && (Math.min(Math.floor(Math.log(Math.abs(bytes) / Math.log(1024))), 6) || 0)
-  return `${+(bytes / 1024 ** i).toFixed(2)} ${i ? ' kMGTPE'[i] : ''}B`
+export function prettySize(bytes: PrettySizeInput, options?: PrettySizeOptions): string {
+  if (bytes === null || bytes === undefined) {
+    bytes = 0
+  }
+  if (typeof bytes === 'object' || typeof bytes === 'string') {
+    bytes = utf8ByteLength(bytes)
+  }
+  bytes = bytes < 0 ? Math.floor(bytes) : Math.ceil(bytes)
+  let s: string
+  if (!isFinite(bytes) || bytes < 1024) {
+    s = `${bytes} Bytes`
+  } else {
+    const i = Math.min(Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024)), 6)
+    s = `${+(bytes / 1024 ** i).toFixed(2)} ${i ? ' kMGTPE'[i] : ''}`
+    if (!options || options.appendBytes === undefined || options.appendBytes) {
+      s += `, ${bytes} Bytes`
+    }
+  }
+  if (options && options.fileType) {
+    s = `${options.fileType} ${s}`
+  }
+  return s
 }

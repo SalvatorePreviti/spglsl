@@ -4,7 +4,7 @@ import { _wasmSpglslGet } from './lib/_wasm'
 import { SpglslLanguage, spglslLanguageFromString, SpglslCompileMode, SpglslPrecision } from './spglsl-enums'
 import { StringEnum } from './core/string-enums'
 import { SpglslResourceLimits } from './spglsl-resource-limits'
-import { makePathRelative, prettyFileSize } from './core/utils'
+import { makePathRelative, prettySize } from './core/utils'
 
 const DEFAULT_RECORD_CONSTANT_PRECISION = false
 
@@ -33,10 +33,12 @@ export class SpglslAngleCompileResult {
   public outputVersion: number
   public valid: boolean
   public customData: any | undefined
-  public mainSourceCode: string
 
   /** The time it took to compile, in milliseconds */
   public duration: number
+
+  /** The source code input */
+  public source: string
 
   /** The output or null if there is no output */
   public output: string | null
@@ -50,7 +52,7 @@ export class SpglslAngleCompileResult {
   public cwd: string | undefined
 
   public constructor() {
-    this.mainSourceCode = ''
+    this.source = ''
     this.compileMode = 'Validate'
     this.language = 'Fragment'
     this.mainFilePath = ''
@@ -100,7 +102,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   }
   result.language = language
   if (input.mainSourceCode !== null && input.mainSourceCode !== undefined) {
-    result.mainSourceCode = input.mainSourceCode
+    result.source = input.mainSourceCode
   }
 
   const wasm = await _wasmSpglslGet()
@@ -184,14 +186,14 @@ export function inspectSpglslAngleCompileResult(result: SpglslAngleCompileResult
       text += chalk.greenBright('ok')
     }
 
-    const sizeOriginal = prettyFileSize(result.mainSourceCode)
+    const sizeOriginal = prettySize(result.source)
     if (sizeOriginal) {
       text += ` ${chalk.cyan(sizeOriginal)}`
 
       if (typeof result.output === 'string') {
-        const sizeAfter = prettyFileSize(result.output)
+        const sizeAfter = prettySize(result.output)
         if (sizeAfter !== sizeOriginal) {
-          text += ` ${chalk.blueBright('->')} ${chalk.cyanBright(sizeOriginal)}`
+          text += ` ${chalk.blueBright('->')} ${chalk.cyanBright(sizeAfter)}`
         }
       }
     }
