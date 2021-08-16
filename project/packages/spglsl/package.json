@@ -1,6 +1,6 @@
 {
   "name": "spglsl",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "spglsl compiler",
   "type": "commonjs",
   "keywords": [

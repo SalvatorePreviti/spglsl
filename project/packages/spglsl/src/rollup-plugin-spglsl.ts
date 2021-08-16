@@ -98,13 +98,17 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
       if (spglslResult.throwOnError) {
         throw new SpglslAngleCompileError(spglslResult)
       } else if (options.logging) {
-        console.error(`\n${chalk.blue('spglsl')} ${inspectSpglslAngleCompileResult(spglslResult)}`)
+        console.error(
+          `\n${chalk.blue(`spglsl:${spglslResult.compileMode}`)} ${inspectSpglslAngleCompileResult(spglslResult)}`
+        )
       }
     } else if (options.logging) {
       console.info(`\n${chalk.blue('spglsl')} ${inspectSpglslAngleCompileResult(spglslResult)}`)
     }
 
-    return `export default ${JSON.stringify(spglslResult.output)}`
+    return `export default ${JSON.stringify(
+      spglslResult.compileMode === 'Validate' ? spglslResult.source : spglslResult.output
+    )}`
   }
 
   return {

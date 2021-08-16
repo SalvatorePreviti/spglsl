@@ -190,7 +190,7 @@ export function inspectSpglslAngleCompileResult(result: SpglslAngleCompileResult
     if (sizeOriginal) {
       text += ` ${chalk.cyan(sizeOriginal)}`
 
-      if (typeof result.output === 'string') {
+      if (result.compileMode !== 'Validate' && typeof result.output === 'string') {
         const sizeAfter = prettySize(result.output)
         if (sizeAfter !== sizeOriginal) {
           text += ` ${chalk.blueBright('->')} ${chalk.cyanBright(sizeAfter)}`
