@@ -103,7 +103,9 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
         )
       }
     } else if (options.logging) {
-      console.info(`\n${chalk.blue('spglsl')} ${inspectSpglslAngleCompileResult(spglslResult)}`)
+      console.info(
+        `\n${chalk.blue(`spglsl:${spglslResult.compileMode}`)} ${inspectSpglslAngleCompileResult(spglslResult)}`
+      )
     }
 
     return `export default ${JSON.stringify(
