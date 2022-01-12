@@ -2,7 +2,6 @@ import { conformanceTests } from './conformance-test-list'
 import { serverStarted, startServer, stopServer } from './conformance-test-server'
 import puppeteer from 'puppeteer'
 import chalk from 'chalk'
-import { isMainModule } from '@balsamic/esrun'
 
 const noop = () => undefined
 
@@ -105,20 +104,18 @@ export async function runConformanceTests({ headless = true, testTimeout = 12000
   }
 }
 
-if (isMainModule(import.meta)) {
-  console.log('Running conformance tests automatically. Run conformance-test-server separately if you need to debug.')
-  console.time('conformance-test-runner')
-  runConformanceTests({ headless: !process.argv.includes('--show') })
-    .then((ok) => {
-      if (!ok && !process.exitCode) {
-        process.exitCode = 1
-      }
-      console.timeEnd('conformance-test-runner')
-    })
-    .catch((e) => {
-      if (!process.exitCode) {
-        process.exitCode = 2
-      }
-      console.error(e)
-    })
-}
+console.log('Running conformance tests automatically. Run conformance-test-server separately if you need to debug.')
+console.time('conformance-test-runner')
+runConformanceTests({ headless: !process.argv.includes('--show') })
+  .then((ok) => {
+    if (!ok && !process.exitCode) {
+      process.exitCode = 1
+    }
+    console.timeEnd('conformance-test-runner')
+  })
+  .catch((e) => {
+    if (!process.exitCode) {
+      process.exitCode = 2
+    }
+    console.error(e)
+  })

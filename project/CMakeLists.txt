@@ -16,6 +16,7 @@ IF(EMSCRIPTEN)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --no-entry \
     --std=c++17 \
     -fno-rtti \
+    -flto \
     -Wno-unused-command-line-argument \
     -ffast-math \
     -s STRICT=1 \

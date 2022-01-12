@@ -8,8 +8,6 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import { spglslAngleCompile } from 'spglsl'
 import chalk from 'chalk'
 
-import { isMainModule } from '@balsamic/esrun'
-
 export const PORT = 3000
 
 const LOG_REQUESTS = false
@@ -265,11 +263,9 @@ function nocache(_req: IncomingMessage, res: ServerResponse, next: () => void) {
   next()
 }
 
-if (isMainModule(import.meta)) {
-  startServer().catch((e) => {
-    if (!process.exitCode) {
-      process.exitCode = 1
-    }
-    console.error(e)
-  })
-}
+startServer().catch((e) => {
+  if (!process.exitCode) {
+    process.exitCode = 1
+  }
+  console.error(e)
+})

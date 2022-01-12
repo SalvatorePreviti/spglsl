@@ -1,2 +1,2 @@
 #!/bin/bash -e
-esrun ./conformance/conformance-test-server.ts
+node -r @swc-node/register ./conformance/run-conformance-test-server-start.ts

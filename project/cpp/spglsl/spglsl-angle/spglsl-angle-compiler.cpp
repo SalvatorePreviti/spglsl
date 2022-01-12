@@ -93,7 +93,7 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
     }
   }
 
-  if (!SeparateDeclarations(&this->tCompiler, root)) {
+  if (!SeparateDeclarations(&this->tCompiler, root, &this->symbolTable)) {
     return false;
   }
 

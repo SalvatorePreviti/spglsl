@@ -41,7 +41,7 @@ async function _spglslInit() {
     return result
   } catch (cause) {
     _wasmSpglslPromise = null
-    const error = cause instanceof Error ? cause : new Error(cause)
+    const error = cause instanceof Error ? cause : new Error(cause as any)
     throw error
   }
 }

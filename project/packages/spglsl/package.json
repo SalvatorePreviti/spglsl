@@ -1,8 +1,7 @@
 {
   "name": "spglsl",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "spglsl compiler",
-  "type": "commonjs",
   "keywords": [
     "glsl",
     "angle",

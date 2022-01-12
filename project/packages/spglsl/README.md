@@ -2,6 +2,8 @@
 
 The project is mostly C++, compiled to WASM with Emscripten and runnable in NodeJS.
 
+It removes spaces, does constant folding, mangle non exported names.
+
 Package is precompiled at https://www.npmjs.com/package/spglsl
 
 ## Installation
