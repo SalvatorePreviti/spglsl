@@ -1,2 +1,2 @@
 #!/bin/bash -e
-mocha test/*.test.ts test/**/*.test.ts
+npx mocha --recursive --require @swc-node/register test/*.test.ts test/**/*.test.ts
