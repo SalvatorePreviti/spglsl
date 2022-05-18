@@ -1,3 +1,5 @@
+dist
+
 *.frag
 build
 wasm
