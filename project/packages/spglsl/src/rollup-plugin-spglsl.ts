@@ -12,6 +12,8 @@ export interface RollupPluginSpglslOptions extends SpglslAngleCompileOptions {
   logging?: boolean;
   cwd?: string;
 
+  export?: "default" | "named" | "default-and-named";
+
   onSpglslDone?: (spglslResult: SpglslAngleCompileResult) => void | string | Promise<void> | Promise<string>;
 }
 
@@ -103,9 +105,17 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
       );
     }
 
-    return `export default ${JSON.stringify(
-      spglslResult.compileMode === "Validate" ? spglslResult.source : spglslResult.output,
-    )}`;
+    const r = JSON.stringify(spglslResult.compileMode === "Validate" ? spglslResult.source : spglslResult.output);
+
+    if (!options.export || options.export === "default") {
+      return `export default ${r}`;
+    }
+
+    let js = `export let code=${r};\nexport let setCode=(v)=>{code=v;};\n`;
+    if (options.export === "default-and-named") {
+      js += "export default code;\n";
+    }
+    return js;
   }
 
   return {
