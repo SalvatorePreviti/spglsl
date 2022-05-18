@@ -4,6 +4,10 @@
     {
       "files": ["conformance/**/*", "test/**/*"],
       "rules": { "no-console": 0, "@typescript-eslint/no-explicit-any": 0 }
+    },
+    {
+      "files": ["**/*.d.ts"],
+      "rules": { "@typescript-eslint/no-duplicate-imports": 0 }
     }
   ]
 }
