@@ -25,6 +25,7 @@ IF(EMSCRIPTEN)
     -s EVAL_CTORS=1 \
     -s FILESYSTEM=0 \
     -s EXIT_RUNTIME=0 \
+    -s NO_EXIT_RUNTIME=1 \
     -s SUPPORT_ERRNO=0 \
     -s SAFE_HEAP_LOG=0 \
     -s ABORTING_MALLOC=0 \

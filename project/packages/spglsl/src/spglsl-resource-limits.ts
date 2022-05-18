@@ -147,8 +147,8 @@ export const SpglslResourceLimits = {
   extension_WEBGL_video_texture: true,
   extension_APPLE_clip_distance: true,
   extension_OES_texture_cube_map_array: true,
-  extension_EXT_texture_cube_map_array: true
-}
+  extension_EXT_texture_cube_map_array: true,
+};
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type SpglslResourceLimits = typeof SpglslResourceLimits
+export type SpglslResourceLimits = typeof SpglslResourceLimits;

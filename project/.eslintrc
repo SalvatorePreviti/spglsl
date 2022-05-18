@@ -3,7 +3,7 @@
   "overrides": [
     {
       "files": ["conformance/**/*", "test/**/*"],
-      "rules": { "no-console": 0 }
+      "rules": { "no-console": 0, "@typescript-eslint/no-explicit-any": 0 }
     }
   ]
 }

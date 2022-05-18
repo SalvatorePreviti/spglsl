@@ -11,6 +11,7 @@
 ../angle/src/common/tls.cpp
 ../angle/src/common/uniform_type_info_autogen.cpp
 ../angle/src/common/utilities.cpp
+../angle/src/compiler/translator/BaseTypes.cpp
 ../angle/src/compiler/translator/BuiltInFunctionEmulator.cpp
 ../angle/src/compiler/translator/CallDAG.cpp
 ../angle/src/compiler/translator/CollectVariables.cpp
@@ -56,6 +57,7 @@
 ../angle/src/compiler/translator/glslang_tab_autogen.cpp
 ../angle/src/compiler/translator/tree_ops/ClampIndirectIndices.cpp
 ../angle/src/compiler/translator/tree_ops/ClampPointSize.cpp
+../angle/src/compiler/translator/tree_ops/ConvertUnsupportedConstructorsToFunctionCalls.cpp
 ../angle/src/compiler/translator/tree_ops/DeclareAndInitBuiltinsForInstancedMultiview.cpp
 ../angle/src/compiler/translator/tree_ops/DeferGlobalInitializers.cpp
 ../angle/src/compiler/translator/tree_ops/EmulateGLFragColorBroadcast.cpp
@@ -92,6 +94,7 @@
 ../angle/src/compiler/translator/tree_util/FindSymbolNode.cpp
 ../angle/src/compiler/translator/tree_util/IntermNodePatternMatcher.cpp
 ../angle/src/compiler/translator/tree_util/IntermNode_util.cpp
+../angle/src/compiler/translator/tree_util/IntermRebuild.cpp
 ../angle/src/compiler/translator/tree_util/IntermTraverse.cpp
 ../angle/src/compiler/translator/tree_util/ReplaceArrayOfMatrixVarying.cpp
 ../angle/src/compiler/translator/tree_util/ReplaceClipCullDistanceVariable.cpp
@@ -102,8 +105,6 @@
 ../angle/src/compiler/translator/tree_util/RunAtTheEndOfShader.cpp
 ../angle/src/compiler/translator/tree_util/SpecializationConstant.cpp
 ../angle/src/compiler/translator/util.cpp
-../angle/src/compiler/translator/ImmutableString_autogen.cpp
-../angle/src/compiler/translator/SymbolTable_autogen.cpp
 ../angle/src/compiler/preprocessor/DiagnosticsBase.cpp
 ../angle/src/compiler/preprocessor/DirectiveHandlerBase.cpp
 ../angle/src/compiler/preprocessor/DirectiveParser.cpp
@@ -115,3 +116,7 @@
 ../angle/src/compiler/preprocessor/Token.cpp
 ../angle/src/compiler/preprocessor/preprocessor_lex_autogen.cpp
 ../angle/src/compiler/preprocessor/preprocessor_tab_autogen.cpp
+../angle/src/compiler/translator/ImmutableString_autogen.cpp
+../angle/src/compiler/translator/SymbolTable_autogen.cpp
+../angle/src/compiler/translator/ImmutableString_ESSL_autogen.cpp
+../angle/src/compiler/translator/SymbolTable_ESSL_autogen.cpp

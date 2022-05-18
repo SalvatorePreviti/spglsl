@@ -14,7 +14,6 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true
   },
-  "include": ["packages", "test", "conformance"],
   "exclude": ["angle", "conformance/khronos", "node_modules"],
   "typeAcquisition": { "enable": true }
 }
