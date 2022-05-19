@@ -302,6 +302,8 @@ void SpglslAngleWebglOutput::clearLastWrittenVarDecl() {
   }
 }
 
+#include <iostream>
+
 void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
   sh::TIntermSymbol * childSym = child.getAsSymbolNode();
   if (!childSym) {
@@ -312,34 +314,14 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
   const sh::TType & type = variable.getType();
 
   bool needsToWriteType = true;
-  bool canForwardType = false;
 
   if (this->_isInsideForInit) {
-    canForwardType = true;
     needsToWriteType = this->_lastWrittenVarDecl == nullptr;
   } else {
-    auto q = type.getQualifier();
-
-    switch (q) {
-      case sh::EvqTemporary:  // For temporaries (within a function), read/write
-      case sh::EvqGlobal:  // For globals read/write
-      case sh::EvqConst:  // User defined constants
-      case sh::EvqAttribute:  // Readonly
-      case sh::EvqVaryingIn:  // readonly, fragment shaders only
-      case sh::EvqVaryingOut:  // vertex shaders only  read/write
-      case sh::EvqUniform:  // Readonly, vertex and fragment
-      case sh::EvqBuffer:  // read/write, vertex, fragment and compute shader
-      case sh::EvqPatch:  // EXT_tessellation_shader storage qualifier
-        if (this->_canForwardVarDecl && this->_lastWrittenVarDecl && type == *this->_lastWrittenVarDecl &&
-            !this->needsToClearLastWrittenVarDecl()) {
-          needsToWriteType = false;
-        }
-        canForwardType = true;
-        break;
-
-      default: break;
+    if (this->_canForwardVarDecl && this->_lastWrittenVarDecl && type == *this->_lastWrittenVarDecl &&
+        type.getQualifier() == this->_lastWrittenVarDecl->getQualifier() && !this->needsToClearLastWrittenVarDecl()) {
+      needsToWriteType = false;
     }
-
     if (!needsToWriteType && type.getBasicType() == sh::EbtStruct && type.getStruct() &&
         this->declaredStructs.count(type.getStruct()) == 0 && this->getSymbolName(type.getStruct()).length() != 0) {
       needsToWriteType = true;
@@ -363,7 +345,7 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
   this->write(this->getSymbolName(&variable)).write(sh::ArrayString(type));
 
   this->_lastWrittenVarDecl = &type;
-  this->_canForwardVarDecl = canForwardType;
+  this->_canForwardVarDecl = true;
 }
 
 void SpglslAngleWebglOutput::visitSymbol(sh::TIntermSymbol * node) {

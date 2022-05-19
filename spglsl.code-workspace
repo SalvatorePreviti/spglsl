@@ -105,7 +105,8 @@
       "codecvt": "cpp",
       "format": "cpp",
       "shared_mutex": "cpp",
-      "strstream": "cpp"
+      "strstream": "cpp",
+      "__functional_base_03": "cpp"
     }
   }
 }
