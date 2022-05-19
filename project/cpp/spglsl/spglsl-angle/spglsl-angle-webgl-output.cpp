@@ -360,31 +360,6 @@ void SpglslAngleWebglOutput::visitConstantUnion(sh::TIntermConstantUnion * node)
   this->writeConstantUnion(&node->getType(), node->getConstantValue(), !canSkipParentheses);
 }
 
-void SpglslAngleWebglOutput::visitFunctionPrototype(sh::TIntermFunctionPrototype * node) {
-  ++this->_visitedProtoCount;
-  this->clearLastWrittenVarDecl();
-  const sh::TType & type = node->getType();
-  this->writeVariableType(type, false);
-  this->write(sh::ArrayString(type));
-  const auto * proto = node->getFunction();
-  this->write(this->getSymbolName(proto)).write('(');
-  this->onScopeBegin(node);
-  size_t paramCount = proto->getParamCount();
-  for (size_t i = 0; i < paramCount; ++i) {
-    const sh::TVariable * param = proto->getParam(i);
-    const sh::TType & paramType = param->getType();
-    if (i != 0) {
-      this->writeComma();
-    }
-    this->writeVariableType(paramType, true);
-    this->write(this->getSymbolName(param)).write(sh::ArrayString(paramType));
-  }
-  this->write(')');
-  if (this->_visitingFunctionDefProto == 0) {
-    this->onScopeEnd(node);
-  }
-}
-
 void SpglslAngleWebglOutput::visitPreprocessorDirective(sh::TIntermPreprocessorDirective * node) {
   this->clearLastWrittenVarDecl();
   this->writeDirective(node->getDirective(), node->getCommand().data());
@@ -509,18 +484,52 @@ bool SpglslAngleWebglOutput::visitIfElse(sh::Visit visit, sh::TIntermIfElse * no
 }
 
 bool SpglslAngleWebglOutput::visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) {
-  this->beautyDoubleNewLine();
-  ++this->_visitingFunctionDefProto;
-  int oldVisitedProtoCount = this->_visitedProtoCount;
   auto * proto = node->getFunctionPrototype();
-  this->traverseNode(proto);
-  --this->_visitingFunctionDefProto;
-  this->traverseNode(node->getBody());
-  while (oldVisitedProtoCount < this->_visitedProtoCount) {
-    this->onScopeEnd(proto);
-    ++oldVisitedProtoCount;
+  if (!proto) {
+    return true;
   }
+
+  this->beautyDoubleNewLine();
+
+  auto * body = node->getBody();
+
+  this->_fnDefinitionStack.push(node);
+  this->traverseNode(proto);
+  this->traverseNode(body);
+  this->_fnDefinitionStack.pop();
+
   return false;
+}
+
+void SpglslAngleWebglOutput::visitFunctionPrototype(sh::TIntermFunctionPrototype * node) {
+  this->clearLastWrittenVarDecl();
+
+  auto * currentFunctionDefinition = this->getCurrentFunctionDefinition();
+  bool isCurrentFunctionDefinitionPrototype =
+      currentFunctionDefinition != nullptr && currentFunctionDefinition->getFunctionPrototype() == node;
+
+  const sh::TType & type = node->getType();
+  this->writeVariableType(type, false);
+  this->write(sh::ArrayString(type));
+  const auto * proto = node->getFunction();
+  this->write(this->getSymbolName(proto)).write('(');
+  if (isCurrentFunctionDefinitionPrototype) {
+    this->onScopeBegin(currentFunctionDefinition);
+  }
+  size_t paramCount = proto->getParamCount();
+  for (size_t i = 0; i < paramCount; ++i) {
+    const sh::TVariable * param = proto->getParam(i);
+    const sh::TType & paramType = param->getType();
+    if (i != 0) {
+      this->writeComma();
+    }
+    this->writeVariableType(paramType, true);
+    if (isCurrentFunctionDefinitionPrototype) {
+      this->write(this->getSymbolName(param));
+    }
+    this->write(sh::ArrayString(paramType));
+  }
+  this->write(')');
 }
 
 bool SpglslAngleWebglOutput::visitAggregate(sh::Visit visit, sh::TIntermAggregate * node) {
@@ -776,7 +785,7 @@ void SpglslAngleWebglOutput::writeHeader(int shaderVersion,
     this->beautyDoubleNewLine();
   }
 
-  for (sh::TExtensionBehavior::const_iterator iter = extBehavior.begin(); iter != extBehavior.end(); ++iter) {
+  for (auto iter = extBehavior.begin(); iter != extBehavior.end(); ++iter) {
     if (iter->first != sh::TExtension::ARB_texture_rectangle && iter->second != sh::EBhUndefined) {
       std::string s = GetExtensionNameString(iter->first);
       s += (this->beautify ? " : " : ":");

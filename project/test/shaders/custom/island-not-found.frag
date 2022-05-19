@@ -54,6 +54,12 @@ uniform vec4 iX;
 uniform mat3 iM;
 uniform lowp int iF;
 
+int main_xx(int[3], int, float);
+
+int main_xx(int a[3], int b, float c) {
+  return a[0] + b;
+}
+
 ///// I/O /////
 
 // Screen position, in pixels. Bottom left is (0, 0), top right is (iResolution.x-1, iResolution.y-1).

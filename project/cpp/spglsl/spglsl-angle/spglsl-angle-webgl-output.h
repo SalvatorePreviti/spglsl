@@ -51,6 +51,11 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   std::string getFunctionName(sh::TIntermAggregate * aggregateNode);
 
  protected:
+  /** The function currently being defined */
+  inline sh::TIntermFunctionDefinition * getCurrentFunctionDefinition() {
+    return this->_fnDefinitionStack.empty() ? nullptr : this->_fnDefinitionStack.top();
+  }
+
   virtual std::string getBuiltinTypeName(const sh::TType * type);
 
   /** Called when a new variable scope begins */
@@ -80,11 +85,10 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   bool needsToClearLastWrittenVarDecl();
 
   int _isInsideForInit = 0;
-  int _visitingFunctionDefProto = 0;
-  int _visitedProtoCount = 0;
-  const sh::TType * _lastWrittenVarDecl = nullptr;
   bool _canForwardVarDecl = false;
   bool _skipNextBlockBraces = true;
+  const sh::TType * _lastWrittenVarDecl = nullptr;
+  std::stack<sh::TIntermFunctionDefinition *> _fnDefinitionStack;
 };
 
 #endif
