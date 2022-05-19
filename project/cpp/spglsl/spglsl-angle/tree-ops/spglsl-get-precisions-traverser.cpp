@@ -85,7 +85,7 @@ void SpglslGetPrecisionsTraverser::add(const sh::TVariable * variable) {
 bool SpglslGetPrecisionsTraverser::visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) {
   size_t childCount = node->getChildCount();
   for (size_t i = 0; i < childCount; ++i) {
-    auto child = node->getChildNode(i);
+    auto * child = node->getChildNode(i);
     if (child) {
       sh::TIntermSymbol * symbolNode = child->getAsSymbolNode();
       if (symbolNode) {

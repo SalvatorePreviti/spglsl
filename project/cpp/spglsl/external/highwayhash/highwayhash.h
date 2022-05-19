@@ -22,7 +22,7 @@ namespace highwayhash {
   /* Takes a packet of 32 bytes */
   void HighwayHashUpdatePacket(const uint8_t * packet, HighwayHashState * state);
   /* Adds the final 1..31 bytes, do not use if 0 remain */
-  void HighwayHashUpdateRemainder(const uint8_t * bytes, const size_t size_mod32, HighwayHashState * state);
+  void HighwayHashUpdateRemainder(const uint8_t * bytes, size_t size_mod32, HighwayHashState * state);
   /* Compute final hash value. Makes state invalid. */
   static uint64_t HighwayHashFinalize64(HighwayHashState * state);
   static void HighwayHashFinalize128(HighwayHashState * state, uint64_t hash[2]);

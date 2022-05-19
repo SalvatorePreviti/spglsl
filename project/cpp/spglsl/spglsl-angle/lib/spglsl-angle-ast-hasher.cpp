@@ -208,7 +208,7 @@ void AngleAstHasher::visitConstantUnion(sh::TIntermConstantUnion * node) {
 void AngleAstHasher::visitFunctionPrototype(sh::TIntermFunctionPrototype * node) {
   this->begin(FUNCTION_PROTOTYPE);
   const sh::TType & type = node->getType();
-  auto proto = node->getFunction();
+  const auto * proto = node->getFunction();
   this->writeVariableType(type, false).writeArraySizes(type).writeSymbolRef(*proto);
   size_t paramCount = proto->getParamCount();
   for (size_t i = 0; i < paramCount; ++i) {
@@ -358,7 +358,7 @@ bool AngleAstHasher::visitAggregate(sh::Visit visit, sh::TIntermAggregate * node
       }
 
       default:
-        auto fn = node->getFunction();
+        const auto * fn = node->getFunction();
         this->write('#');
         if (fn) {
           this->write(node->getFunction()->name().data());
@@ -426,7 +426,7 @@ bool AngleAstHasher::visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * 
   size_t childCount = node->getChildCount();
   this->write(childCount);
   for (size_t i = 0; i < childCount; ++i) {
-    auto child = node->getChildNode(i);
+    auto * child = node->getChildNode(i);
     if (child) {
       this->write('#');
       if (child->getAsSymbolNode()) {

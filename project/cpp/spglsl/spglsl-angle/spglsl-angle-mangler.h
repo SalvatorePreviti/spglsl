@@ -9,12 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "../core/non-copyable.h"
-#include "../core/string-utils.h"
-
-bool spglslIsWordReserved(const std::string & word);
-
-bool spglslIsValidIdentifier(const std::string & word);
+#include "./symbols/spglsl-symbol-info.h"
 
 class SpglslAngleReservedWords : NonCopyable {
  public:
@@ -33,7 +28,7 @@ class SpglslAngleReservedWords : NonCopyable {
 
   std::string getSymbolName(const sh::TSymbol & symbol);
 
-  bool isReserved(const std::string & name);
+  bool isReserved(const std::string & name) const;
 };
 
 class SpglslAngleReservedWordsTraverser : public sh::TIntermTraverser, NonCopyable {
@@ -87,8 +82,8 @@ class SpglslAngleManglerTraverser : public sh::TIntermTraverser, NonCopyable {
 
   SpglslAngleManglerNameGenerator * namesRoot;
 
-  explicit SpglslAngleManglerTraverser(SpglslAngleReservedWords & target, sh::TSymbolTable * symbolTable);
-  ~SpglslAngleManglerTraverser();
+  explicit SpglslAngleManglerTraverser(SpglslAngleReservedWords & reserved, sh::TSymbolTable * symbolTable);
+  ~SpglslAngleManglerTraverser() override;
 
   bool visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) override;
   bool visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) override;

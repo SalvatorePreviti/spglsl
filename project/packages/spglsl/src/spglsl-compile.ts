@@ -16,7 +16,7 @@ export interface SpglslAngleCompileOptions {
   floatPrecision?: SpglslPrecision;
   intPrecision?: SpglslPrecision;
   minify?: boolean;
-  mangleTwoPasses?: boolean;
+  mangle?: boolean;
   recordConstantPrecision?: boolean;
 }
 
@@ -47,7 +47,7 @@ export class SpglslAngleCompileResult {
   public floatPrecision: SpglslPrecision;
   public intPrecision: SpglslPrecision;
   public minify: boolean;
-  public mangleTwoPasses: boolean;
+  public mangle: boolean;
   public recordConstantPrecision: boolean;
   public cwd: string | undefined;
 
@@ -64,7 +64,7 @@ export class SpglslAngleCompileResult {
     this.floatPrecision = "";
     this.intPrecision = "";
     this.minify = false;
-    this.mangleTwoPasses = false;
+    this.mangle = false;
     this.recordConstantPrecision = DEFAULT_RECORD_CONSTANT_PRECISION;
     this.duration = 0;
     this.cwd = undefined;
@@ -83,7 +83,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.floatPrecision = (StringEnum.has(SpglslPrecision, input.floatPrecision) && input.floatPrecision) || "";
   result.intPrecision = (StringEnum.has(SpglslPrecision, input.intPrecision) && input.intPrecision) || "";
   result.minify = !!input.minify;
-  result.mangleTwoPasses = input.mangleTwoPasses === undefined ? true : !!input.mangleTwoPasses;
+  result.mangle = input.mangle === undefined ? result.minify : !!input.mangle;
   result.recordConstantPrecision = input.recordConstantPrecision || DEFAULT_RECORD_CONSTANT_PRECISION;
   result.cwd = input.cwd;
   const resourceLimits = { ...SpglslResourceLimits, ...input.resourceLimits };

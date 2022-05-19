@@ -3,12 +3,12 @@
 
 class NonCopyable {
  protected:
-  constexpr NonCopyable() throw() = default;
-  ~NonCopyable() throw() = default;
+  constexpr NonCopyable() noexcept = default;
+  ~NonCopyable() noexcept = default;
 
- private:
-  NonCopyable(const NonCopyable &) throw() = delete;
-  void operator=(const NonCopyable &) throw() = delete;
+ public:
+  NonCopyable(const NonCopyable &) noexcept = delete;
+  void operator=(const NonCopyable &) noexcept = delete;
 };
 
 #endif

@@ -10,19 +10,17 @@
 
 #include "../core/string-utils.h"
 #include "lib/spglsl-glsl-writer.h"
-
-class SpglslAngleReservedWords;
+#include "symbols/spglsl-symbol-info.h"
 
 class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWriter {
  public:
+  SpglslSymbols & symbols;
   std::unordered_set<const sh::TStructure *> declaredStructs;
 
-  SpglslAngleReservedWords * reserved;
-
   SpglslAngleWebglOutput(std::ostream & out,
-      sh::TSymbolTable * symbolTable,
-      bool beautify,
-      SpglslAngleReservedWords * reserved);
+      SpglslSymbols & symbols,
+      const SpglslGlslPrecisions & precisions,
+      bool beautify);
 
   void visitSymbol(sh::TIntermSymbol * node) override;
   void visitConstantUnion(sh::TIntermConstantUnion * node) override;
@@ -47,19 +45,20 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   void writeTOperatorNode(sh::TIntermOperator * node);
   void traverseNode(sh::TIntermNode * node);
 
+  virtual const std::string & getSymbolName(const sh::TSymbol * symbol);
+  virtual std::string getTypeName(const sh::TType * type);
+  virtual std::string getFieldName(const sh::TField * field);
+  std::string getFunctionName(sh::TIntermAggregate * aggregateNode);
+
+ protected:
+  virtual std::string getBuiltinTypeName(const sh::TType * type);
+
  private:
   bool _skipNextBlockBraces;
 
   void traverseCodeBlock(sh::TIntermBlock * node);
   void traverseWithParentheses(sh::TIntermNode * node, int operandIndex);
   void traverseCodeBlock(sh::TIntermBlock * body, bool allowIf);
-
-  inline std::string getTypeName(const sh::TType * type) {
-    return type ? this->getTypeName(*type) : Strings::empty;
-  }
-
-  std::string getTypeName(const sh::TType & type);
-  std::string getFieldName(const sh::TField * field);
 
   const sh::TConstantUnion * writeConstantUnion(const sh::TType * type,
       const sh::TConstantUnion * pConstUnion,
@@ -69,13 +68,7 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   void declareStruct(const sh::TStructure & structure);
   void declareInterfaceBlock(const sh::TInterfaceBlock & interfaceBlock);
 
-  inline std::string getSymbolName(const sh::TSymbol * symbol) {
-    return symbol ? this->getSymbolName(*symbol) : Strings::empty;
-  }
-
-  std::string getSymbolName(const sh::TSymbol & symbol);
-
-  void writeVariableDeclaration(sh::TIntermNode & node);
+  void writeVariableDeclaration(sh::TIntermNode & child);
   bool isIntermNodeSingleStatement(sh::TIntermNode * node);
   void writeConstantUnionSingleValue(const sh::TConstantUnion * value, bool needsParentheses, bool needsFloat);
 

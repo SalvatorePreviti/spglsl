@@ -17,7 +17,7 @@ SpglslAngleLayoutNeeds::SpglslAngleLayoutNeeds(const sh::TType & type) : layoutQ
 
   this->needsToWriteIndex = qualifier == sh::EvqFragmentOut && layoutQualifier.index >= 0;
 
-  this->needsToWriteYuv = qualifier == sh::EvqFragmentOut && layoutQualifier.yuv == true;
+  this->needsToWriteYuv = qualifier == sh::EvqFragmentOut && layoutQualifier.yuv;
 
   this->needsToWriteBinding = layoutQualifier.binding >= 0 && IsOpaqueType(type.getBasicType());
 
@@ -37,17 +37,8 @@ SpglslAngleLayoutNeeds::SpglslAngleLayoutNeeds(const sh::TType & type) : layoutQ
 
 ///////////// SpglslGlslWriter /////////////
 
-SpglslGlslWriter::SpglslGlslWriter(std::ostream & out, bool beautify) :
-    out(out),
-    beautify(beautify),
-    _indentLevel(0),
-    _lastCh('\n'),
-    _lastLastCh('\n'),
-    _size(0),
-    floatPrecision(sh::EbpUndefined),
-    intPrecision(sh::EbpUndefined),
-    defaultFloatPrecision(sh::EbpUndefined),
-    defaultIntPrecision(sh::EbpUndefined) {
+SpglslGlslWriter::SpglslGlslWriter(std::ostream & out, const SpglslGlslPrecisions & precisions, bool beautify) :
+    out(out), beautify(beautify), _indentLevel(0), _lastCh('\n'), _lastLastCh('\n'), _size(0), precisions(precisions) {
   this->_tmpChar[1] = '\0';
   out.imbue(std::locale::classic());
 }
@@ -273,21 +264,21 @@ SpglslGlslWriter & SpglslGlslWriter::writeTypePrecision(const sh::TType & type) 
 
     case sh::EbtInt:
     case sh::EbtUInt:
-      if (this->intPrecision != sh::EbpUndefined) {
-        if (precision == this->intPrecision) {
+      if (this->precisions.intPrecision != sh::EbpUndefined) {
+        if (precision == this->precisions.intPrecision) {
           return *this;
         }
-      } else if (precision == this->defaultIntPrecision) {
+      } else if (precision == this->precisions.defaultIntPrecision) {
         return *this;
       }
       break;
 
     case sh::EbtFloat:
-      if (this->intPrecision != sh::EbpUndefined) {
-        if (precision == this->floatPrecision) {
+      if (this->precisions.intPrecision != sh::EbpUndefined) {
+        if (precision == this->precisions.floatPrecision) {
           return *this;
         }
-      } else if (precision == this->defaultFloatPrecision) {
+      } else if (precision == this->precisions.defaultFloatPrecision) {
         return *this;
       }
       break;

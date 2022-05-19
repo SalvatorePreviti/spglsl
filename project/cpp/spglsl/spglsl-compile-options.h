@@ -20,7 +20,7 @@ class SpglslCompileOptions : NonCopyable {
   int outputShaderVersion;
   ShBuiltInResources angle;
   bool minify;
-  bool mangleTwoPasses;
+  bool mangle;
   bool recordConstantPrecision;
 
   SpglslDefaultPrecision floatPrecision;

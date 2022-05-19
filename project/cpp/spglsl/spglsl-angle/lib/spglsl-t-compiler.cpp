@@ -26,7 +26,7 @@ TScopedSymbolTableLevel::TScopedSymbolTableLevel(sh::TSymbolTable * symbolTable)
 }
 
 TScopedSymbolTableLevel::~TScopedSymbolTableLevel() {
-  auto table = this->symbolTable;
+  auto * table = this->symbolTable;
   if (table) {
     while (!table->isEmpty())
       table->pop();

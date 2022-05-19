@@ -1,22 +1,22 @@
-import { spglslPreload } from 'spglsl'
-import { makeTestShader } from './lib/test-shader'
+import { spglslPreload } from "spglsl";
+import { makeTestShader } from "./lib/test-shader";
 
-import { getTestShaders } from './shaders/test-shaders'
+import { getTestShaders } from "./shaders/test-shaders";
 
-describe('angle-regression', function () {
-  this.timeout(7000)
+describe("angle-regression", function () {
+  this.timeout(7000);
 
   before(async () => {
-    await spglslPreload()
-  })
+    await spglslPreload();
+  });
 
   for (const testShader of getTestShaders()) {
     if (testShader.hasIncludes) {
-      continue
+      continue;
     }
 
-    it(`ANGLE regression ./${testShader.name}`, async () => {
-      return makeTestShader(testShader)()
-    })
+    it.only(`ANGLE regression ./${testShader.name}`, async () => {
+      return makeTestShader(testShader)();
+    });
   }
-})
+});

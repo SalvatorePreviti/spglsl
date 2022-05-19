@@ -15,16 +15,20 @@
 
 #include "spglsl-angle-compiler-handle.h"
 #include "spglsl-angle-webgl-output.h"
+#include "symbols/spglsl-symbol-usage.h"
 #include "tree-ops/tree-ops.h"
 
 SpglslAngleCompiler::SpglslAngleCompiler(sh::GLenum shaderType, const SpglslCompileOptions & compilerOptions) :
     SpglslTCompilerHolder(shaderType, compilerOptions.outputShaderVersion),
     compilerOptions(compilerOptions),
-    body(nullptr) {
+    body(nullptr),
+    symbols(&this->symbolTable) {
   this->metadata.shaderSpec = this->tCompiler.getShaderSpec();
   this->metadata.shaderType = shaderType;
   this->metadata.shaderVersion = compilerOptions.outputShaderVersion;
 }
+
+#include <iostream>
 
 bool SpglslAngleCompiler::compile(const char * sourceCode) {
   SetGlobalPoolAllocator(&this->getAllocator());
@@ -110,24 +114,62 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
     return false;
   }
 
-  if (this->compilerOptions.mangleTwoPasses) {
-    SpglslAngleReservedWordsTraverser::exec(this->reservedWords, &this->symbolTable, root);
-    SpglslAngleManglerTraverser::exec(this->reservedWords, &this->symbolTable, root);
+  this->loadPrecisions(true);
+
+  if (this->compilerOptions.minify || this->compilerOptions.compileMode == SpglslCompileMode::Optimize) {
+    this->_mangle(root);
   }
-
-  this->reservedWords.definitions.clear();
-  this->reservedWords.isSecondPass = true;
-
-  SpglslAngleReservedWordsTraverser::exec(this->reservedWords, &this->symbolTable, root);
-  SpglslAngleManglerTraverser::exec(this->reservedWords, &this->symbolTable, root);
-
-  this->reservedWords.firstPassSymRemap.clear();
 
   return true;
 }
 
+void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
+  this->symbols.genMangleIds(root);
+
+  SpglslSymbolUsage usage(this->symbols);
+  SpglslSymbolGenerator symgen(usage);
+  usage.load(root, this->precisions, &symgen);
+
+  for (const auto & entry : usage.sorted) {
+    if (entry->entry->mangleId >= 0) {
+      entry->entry->renamed = symgen.getOrCreateMangledName(entry->entry->mangleId);
+      std::cout << entry->entry->symbolName << "=" << entry->entry->renamed << " ";
+    } else {
+      std::cout << entry->entry->mangleId << "!";
+    }
+  }
+}
+
 std::string SpglslAngleCompiler::decompileOutput() {
   return this->decompileOutput(this->compilerOptions.minify);
+}
+
+void SpglslAngleCompiler::loadPrecisions(bool reload) {
+  if (reload) {
+    this->precisions = SpglslGlslPrecisions();
+  }
+  if (this->compilerOptions.language == EShLangVertex) {
+    this->precisions.defaultIntPrecision = sh::TPrecision::EbpHigh;
+    this->precisions.defaultFloatPrecision = sh::TPrecision::EbpHigh;
+  } else {
+    this->precisions.defaultIntPrecision = sh::TPrecision::EbpMedium;
+  }
+
+  this->precisions.floatPrecision = (sh::TPrecision)this->compilerOptions.floatPrecision;
+  this->precisions.intPrecision = (sh::TPrecision)this->compilerOptions.intPrecision;
+
+  if (this->precisions.floatPrecision == sh::TPrecision::EbpUndefined ||
+      this->precisions.intPrecision == sh::TPrecision::EbpUndefined) {
+    SpglslGetPrecisionsTraverser precisionsTraverser;
+    precisionsTraverser.traverseNode(this->body);
+    precisionsTraverser.count();
+    if (this->precisions.floatPrecision == sh::TPrecision::EbpUndefined) {
+      this->precisions.floatPrecision = precisionsTraverser.floatPrecision;
+    }
+    if (this->precisions.intPrecision == sh::TPrecision::EbpUndefined) {
+      this->precisions.intPrecision = precisionsTraverser.intPrecision;
+    }
+  }
 }
 
 std::string SpglslAngleCompiler::decompileOutput(bool minify) {
@@ -136,30 +178,7 @@ std::string SpglslAngleCompiler::decompileOutput(bool minify) {
   }
   std::ostringstream out;
 
-  SpglslAngleWebglOutput outputTraverser(out, &this->symbolTable, !minify, &this->reservedWords);
-
-  if (this->compilerOptions.language == EShLangVertex) {
-    outputTraverser.defaultIntPrecision = sh::TPrecision::EbpHigh;
-    outputTraverser.defaultFloatPrecision = sh::TPrecision::EbpHigh;
-  } else {
-    outputTraverser.defaultIntPrecision = sh::TPrecision::EbpMedium;
-  }
-
-  outputTraverser.floatPrecision = (sh::TPrecision)this->compilerOptions.floatPrecision;
-  outputTraverser.intPrecision = (sh::TPrecision)this->compilerOptions.intPrecision;
-
-  if (outputTraverser.floatPrecision == sh::TPrecision::EbpUndefined ||
-      outputTraverser.intPrecision == sh::TPrecision::EbpUndefined) {
-    SpglslGetPrecisionsTraverser precisionsTraverser;
-    precisionsTraverser.traverseNode(this->body);
-    precisionsTraverser.count();
-    if (outputTraverser.floatPrecision == sh::TPrecision::EbpUndefined) {
-      outputTraverser.floatPrecision = precisionsTraverser.floatPrecision;
-    }
-    if (outputTraverser.intPrecision == sh::TPrecision::EbpUndefined) {
-      outputTraverser.intPrecision = precisionsTraverser.intPrecision;
-    }
-  }
+  SpglslAngleWebglOutput outputTraverser(out, this->symbols, this->precisions, !minify);
 
   outputTraverser.writeHeader(this->metadata.shaderVersion, this->metadata.pragma, this->extensionBehavior);
   this->body->traverse(&outputTraverser);

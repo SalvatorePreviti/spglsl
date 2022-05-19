@@ -29,14 +29,14 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
   this->outputShaderVersion = input["outputVersion"].as<int>();
 
   this->minify = this->compileMode >= SpglslCompileMode::Optimize && input["minify"].as<bool>();
-  this->mangleTwoPasses = this->compileMode >= SpglslCompileMode::Optimize && input["mangleTwoPasses"].as<bool>();
+  this->mangle = this->compileMode >= SpglslCompileMode::Optimize && input["mangle"].as<bool>();
   this->recordConstantPrecision = input["recordConstantPrecision"].as<bool>();
 
   SpglslDefaultPrecision floatPrecision = SpglslDefaultPrecision::undefined;
   emscripten::val floatPrecisionVal = input["floatPrecision"];
   if (floatPrecisionVal.isString()) {
     std::string precision = floatPrecisionVal.as<std::string>();
-    if (precision.size()) {
+    if (!precision.empty()) {
       if (precision == "lowp") {
         floatPrecision = SpglslDefaultPrecision::lowp;
       } else if (precision == "mediump") {
@@ -50,7 +50,7 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
   emscripten::val intPrecisionVal = input["intPrecision"];
   if (intPrecisionVal.isString()) {
     std::string precision = intPrecisionVal.as<std::string>();
-    if (precision.size()) {
+    if (!precision.empty()) {
       if (precision == "lowp") {
         intPrecision = SpglslDefaultPrecision::lowp;
       } else if (precision == "mediump") {

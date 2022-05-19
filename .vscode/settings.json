@@ -1,3 +1,7 @@
 {
-    "cmake.sourceDirectory": "${workspaceFolder}/spglsl"
+  "cmake.sourceDirectory": "${workspaceFolder}/spglsl",
+  "files.associations": {
+    "queue": "cpp",
+    "stack": "cpp"
+  }
 }

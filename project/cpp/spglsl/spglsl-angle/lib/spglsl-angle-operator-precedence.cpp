@@ -135,12 +135,12 @@ bool nodesAreSameOpPriority(sh::TIntermNode & a, sh::TIntermNode & b) {
 }
 
 bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, size_t operandIndex) {
-  auto & nodePrec = AngleOperatorPrecedence::get(node);
+  const auto & nodePrec = AngleOperatorPrecedence::get(node);
   if (!nodePrec.exists) {
     return false;
   }
 
-  auto & childPrec = AngleOperatorPrecedence::get(child);
+  const auto & childPrec = AngleOperatorPrecedence::get(child);
 
   int precedenceDiff = childPrec.precedence - nodePrec.precedence;
 

@@ -6,7 +6,7 @@
 
 class AngleAstHasher : public sh::TIntermTraverser, public SpglslHasher {
  public:
-  AngleAstHasher(sh::TSymbolTable * symbolTable = nullptr);
+  explicit AngleAstHasher(sh::TSymbolTable * symbolTable = nullptr);
 
   AngleAstHasher & traverseNode(sh::TIntermNode * node);
 
@@ -29,8 +29,8 @@ class AngleAstHasher : public sh::TIntermTraverser, public SpglslHasher {
   bool visitBranch(sh::Visit visit, sh::TIntermBranch * node) override;
   void visitPreprocessorDirective(sh::TIntermPreprocessorDirective * node) override;
 
-  SpglslHashValue computeNodeHash(sh::TIntermNode * node);
-  SpglslHashValue & computeNodeHash(sh::TIntermNode * node, SpglslHashValue & output);
+  SpglslHashValue computeNodeHash(sh::TIntermNode * root);
+  SpglslHashValue & computeNodeHash(sh::TIntermNode * root, SpglslHashValue & output);
   bool computeNodeHashChanged(sh::TIntermNode * root, SpglslHashValue & hashValue);
   bool nodesAreTheSame(sh::TIntermNode * a, sh::TIntermNode * b);
 

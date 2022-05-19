@@ -1,8 +1,6 @@
 #ifndef _SPGLSL_HASH_STREAM_H_
 #define _SPGLSL_HASH_STREAM_H_
 
-#include <ostream>
-
 #include "../external/highwayhash/highwayhash.h"
 
 struct SpglslHashValue {
@@ -55,7 +53,7 @@ class SpglslHasher {
   }
 
   inline SpglslHasher & write(const char * value) {
-    if (value) {
+    if (value != nullptr) {
       highwayhash::HighwayHashCatAppend((const uint8_t *)&value, strlen(value) + 1, &this->state);
     }
     return *this;
@@ -170,39 +168,6 @@ class SpglslHasher {
       return true;
     }
     return false;
-  }
-};
-
-class SpglslHashStreamBuf : public std::streambuf, public SpglslHasher {
- public:
- protected:
-  std::streamsize xsputn(const char_type * s, std::streamsize n) override;
-  int_type overflow(int_type c) override;
-};
-
-class SpglslHashStream : public std::ostream {
- public:
-  SpglslHashStreamBuf streambuf;
-
-  SpglslHashStream() : std::ostream(&this->streambuf) {
-  }
-
-  inline SpglslHashStream & resetHash() {
-    this->clear();
-    this->streambuf.resetHash();
-    return *this;
-  }
-
-  inline SpglslHashValue digest() const {
-    return this->streambuf.digest();
-  }
-
-  inline SpglslHashValue & digest(SpglslHashValue & result) const {
-    return this->streambuf.digest(result);
-  }
-
-  inline bool digestChanged(SpglslHashValue & hashValue) const {
-    return this->streambuf.digestChanged(hashValue);
   }
 };
 

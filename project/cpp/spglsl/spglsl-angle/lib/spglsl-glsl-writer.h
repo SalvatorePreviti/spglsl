@@ -1,16 +1,10 @@
 #ifndef _SPGLSL_WRITER_H_
 #define _SPGLSL_WRITER_H_
 
-#include <angle/src/compiler/translator/BaseTypes.h>
-#include <angle/src/compiler/translator/ImmutableString.h>
-#include <angle/src/compiler/translator/IntermNode.h>
-#include <angle/src/compiler/translator/Operator_autogen.h>
-#include <angle/src/compiler/translator/Types.h>
-
 #include <sstream>
 #include <string>
-
 #include "../../core/non-copyable.h"
+#include "spglsl-glsl-precisions.h"
 
 namespace sh {
   enum class PreprocessorDirective;
@@ -20,7 +14,7 @@ class SpglslAngleLayoutNeeds {
  public:
   sh::TLayoutQualifier layoutQualifier;
 
-  SpglslAngleLayoutNeeds(const sh::TType & type);
+  explicit SpglslAngleLayoutNeeds(const sh::TType & type);
 
   bool needsToWriteLocation;
   bool needsToWriteIndex;
@@ -37,13 +31,9 @@ class SpglslGlslWriter : NonCopyable {
   std::ostream & out;
   bool beautify;
 
-  sh::TPrecision floatPrecision;
-  sh::TPrecision intPrecision;
+  const SpglslGlslPrecisions precisions;
 
-  sh::TPrecision defaultFloatPrecision;
-  sh::TPrecision defaultIntPrecision;
-
-  explicit SpglslGlslWriter(std::ostream & out, bool beautify);
+  explicit SpglslGlslWriter(std::ostream & out, const SpglslGlslPrecisions & precisions, bool beautify);
 
   SpglslGlslWriter & reset();
 
@@ -84,7 +74,7 @@ class SpglslGlslWriter : NonCopyable {
 
   SpglslGlslWriter & write(const char * text, size_t length);
 
-  SpglslGlslWriter & write(const char character);
+  SpglslGlslWriter & write(char character);
 
   inline SpglslGlslWriter & write(const char * text) {
     return text ? this->write(text, strlen(text)) : *this;
@@ -130,7 +120,7 @@ class SpglslGlslWriter : NonCopyable {
 
   inline SpglslGlslWriter & writeRaw(const char * s, size_t length) {
     if (length != 0) {
-      this->out.write(s, length);
+      this->out.write(s, (std::streamsize)length);
       this->_lastLastCh = this->_lastCh;
       this->_lastCh = s[length - 1];
       this->_size += length;

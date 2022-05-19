@@ -34,7 +34,7 @@ class SpglslAngleCallDag : public sh::CallDAG {
 class SpglslAngleCallDagUnusedPredicate {
  public:
   const SpglslAngleCallDag & callDag;
-  SpglslAngleCallDagUnusedPredicate(const SpglslAngleCallDag & callDag);
+  explicit SpglslAngleCallDagUnusedPredicate(const SpglslAngleCallDag & callDag);
   bool operator()(sh::TIntermNode * node);
 };
 

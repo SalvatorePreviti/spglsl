@@ -21,7 +21,7 @@ class SpglslModuleMetadata {
   bool early_fragment_tests;
   bool highPrecisionSupported;
 
-  SpglslModuleMetadata();
+  explicit SpglslModuleMetadata();
 
   void setFromParseContext(const sh::TParseContext & parseContext);
 };

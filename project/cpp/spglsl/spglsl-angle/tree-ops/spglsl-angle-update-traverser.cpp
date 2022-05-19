@@ -1,4 +1,6 @@
 #include "spglsl-angle-update-traverser.h"
+#include <string.h>
+#include <xlocale.h>
 
 #include "../spglsl-angle-compiler.h"
 
@@ -20,11 +22,7 @@ bool SpglslAngleUpdateTraverser::Apply(sh::TIntermNode * node) {
 
   this->traverseNode(node);
 
-  if (!this->updateTree(&this->compiler.tCompiler, node)) {
-    return false;
-  }
-
-  return true;
+  return this->updateTree(&this->compiler.tCompiler, node);
 }
 
 void SpglslAngleUpdateTraverser::traverseNode(sh::TIntermNode * node) {

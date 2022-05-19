@@ -48,7 +48,7 @@ class TScopedSymbolTableLevel : angle::NonCopyable {
  public:
   sh::TSymbolTable * symbolTable;
 
-  TScopedSymbolTableLevel(sh::TSymbolTable * symbolTable);
+  explicit TScopedSymbolTableLevel(sh::TSymbolTable * symbolTable);
 
   ~TScopedSymbolTableLevel();
 };

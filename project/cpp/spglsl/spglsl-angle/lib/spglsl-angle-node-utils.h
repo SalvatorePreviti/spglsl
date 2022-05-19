@@ -170,15 +170,15 @@ inline sh::TOperator nodeGetOperator(sh::TIntermNode * node) {
   if (!node) {
     return sh::EOpNull;
   }
-  auto unary = node->getAsUnaryNode();
+  auto * unary = node->getAsUnaryNode();
   if (unary) {
     return unary->getOp();
   }
-  auto binary = node->getAsBinaryNode();
+  auto * binary = node->getAsBinaryNode();
   if (binary) {
     return binary->getOp();
   }
-  auto aggr = node->getAsAggregate();
+  auto * aggr = node->getAsAggregate();
   if (aggr) {
     return aggr->getOp();
   }
@@ -189,11 +189,11 @@ inline sh::TIntermTyped * nodeGetUnaryOperand(sh::TIntermTyped * node) {
   if (!node) {
     return nullptr;
   }
-  auto unary = node->getAsUnaryNode();
+  auto * unary = node->getAsUnaryNode();
   if (unary) {
     return unary->getOperand();
   }
-  auto swizzle = node->getAsSwizzleNode();
+  auto * swizzle = node->getAsSwizzleNode();
   if (swizzle) {
     return swizzle->getOperand();
   }

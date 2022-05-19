@@ -10,10 +10,11 @@
 
 #include "../core/hash-stream.h"
 #include "../core/non-copyable.h"
+#include "lib/spglsl-glsl-precisions.h"
 #include "lib/spglsl-t-compiler.h"
 #include "spglsl-angle-call-dag.h"
-#include "spglsl-angle-mangler.h"
 #include "spglsl-module-metadata.h"
+#include "symbols/spglsl-symbol-info.h"
 
 class SpglslAngleCompilerHandle;
 class SpglslAngleCompilerBase : NonCopyable {};
@@ -23,20 +24,23 @@ class SpglslAngleCompiler : public SpglslTCompilerHolder {
   const SpglslCompileOptions & compilerOptions;
   SpglslModuleMetadata metadata;
   sh::TSymbolTable symbolTable;
+  SpglslSymbols symbols;
   sh::TIntermBlock * body;
   SpglslAngleCallDag callDag;
-
-  SpglslAngleReservedWords reservedWords;
+  SpglslGlslPrecisions precisions;
 
   explicit SpglslAngleCompiler(sh::GLenum shaderType, const SpglslCompileOptions & compilerOptions);
 
   bool compile(const char * sourceCode);
+
+  void loadPrecisions(bool reload);
 
   std::string decompileOutput();
   std::string decompileOutput(bool minify);
 
  private:
   bool _checkAndSimplifyAST(sh::TIntermBlock * root, const sh::TParseContext & parseContext);
+  void _mangle(sh::TIntermBlock * root);
 
   std::vector<SpglslAngleFunctionMetadata> _functionMetadata;
 };

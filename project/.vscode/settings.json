@@ -86,5 +86,6 @@
     "**/.yarn-integrity": true,
     "**/.grunt": true
   },
-  "C_Cpp.errorSquiggles": "Enabled"
+  "C_Cpp.errorSquiggles": "Enabled",
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true
 }

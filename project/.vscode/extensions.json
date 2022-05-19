@@ -2,10 +2,10 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "notskm.clang-tidy",
     "pflannery.vscode-versionlens",
     "visualstudioexptteam.vscodeintellicode",
     "donjayamanne.githistory",
-    "eamodio.gitlens"
+    "eamodio.gitlens",
+    "dtoplak.vscode-glsllint"
   ]
 }
