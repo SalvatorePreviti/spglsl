@@ -51,7 +51,7 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
 
   this->_additionalReservedWords.emplace(Strings::empty);
   for (const auto & kv : this->symbols._map) {
-    if (spglslIsWordReserved(kv.second.symbolName) || this->symbols.getIsReserved(kv.second)) {
+    if (this->symbols.getIsReserved(kv.second)) {
       this->_additionalReservedWords.emplace(kv.second.symbolName);
     }
   }
@@ -72,13 +72,7 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
 }
 
 bool SpglslSymbolUsage::isReservedWord(const std::string & word) const {
-  if (this->_additionalReservedWords.count(word) > 0) {
-    return true;
-  }
-  if (spglslIsWordReserved(word)) {
-    return true;
-  }
-  return false;
+  return this->_additionalReservedWords.count(word) > 0 || spglslIsWordReserved(word);
 }
 
 void SpglslSymbolUsage::addReservedWord(const std::string & word) {
