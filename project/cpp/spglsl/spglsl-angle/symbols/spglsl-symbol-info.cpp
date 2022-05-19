@@ -15,8 +15,6 @@ SpglslSymbolInfo & SpglslSymbols::get(const sh::TSymbol * symbol) {
   return result;
 }
 
-#include <iostream>
-
 SpglslSymbols::SpglslSymbols(sh::TSymbolTable * symbolTable) : symbolTable(symbolTable) {
   auto & n = this->_map[nullptr];
   n.mangleId = -2;
@@ -94,13 +92,11 @@ bool SpglslSymbols::_loadIsReserved(SpglslSymbolInfo & entry) {
   if (symbol->isFunction()) {
     const auto * func = static_cast<const sh::TFunction *>(symbol);
     if (func->isMain() || func->name().beginsWith("main")) {
-      std::cout << "K " << entry.symbolName << std::endl;
       return true;
     }
   } else if (symbol->isVariable()) {
     const auto * var = static_cast<const sh::TVariable *>(symbol);
     if (var->isInterfaceBlock()) {
-      std::cout << "Z " << entry.symbolName << std::endl;
       return true;
     }
 

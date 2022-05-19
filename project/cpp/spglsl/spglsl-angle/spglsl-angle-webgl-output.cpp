@@ -318,12 +318,26 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
     canForwardType = true;
     needsToWriteType = this->_lastWrittenVarDecl == nullptr;
   } else {
-    if (type.getQualifier() == sh::EvqTemporary || type.getQualifier() == sh::EvqGlobal) {
-      canForwardType = true;
-      if (canForwardType && this->_canForwardVarDecl && this->_lastWrittenVarDecl &&
-          type == *this->_lastWrittenVarDecl && !this->needsToClearLastWrittenVarDecl()) {
-        needsToWriteType = false;
-      }
+    auto q = type.getQualifier();
+
+    switch (q) {
+      case sh::EvqTemporary:  // For temporaries (within a function), read/write
+      case sh::EvqGlobal:  // For globals read/write
+      case sh::EvqConst:  // User defined constants
+      case sh::EvqAttribute:  // Readonly
+      case sh::EvqVaryingIn:  // readonly, fragment shaders only
+      case sh::EvqVaryingOut:  // vertex shaders only  read/write
+      case sh::EvqUniform:  // Readonly, vertex and fragment
+      case sh::EvqBuffer:  // read/write, vertex, fragment and compute shader
+      case sh::EvqPatch:  // EXT_tessellation_shader storage qualifier
+        if (this->_canForwardVarDecl && this->_lastWrittenVarDecl && type == *this->_lastWrittenVarDecl &&
+            !this->needsToClearLastWrittenVarDecl()) {
+          needsToWriteType = false;
+        }
+        canForwardType = true;
+        break;
+
+      default: break;
     }
 
     if (!needsToWriteType && type.getBasicType() == sh::EbtStruct && type.getStruct() &&
@@ -771,9 +785,7 @@ void SpglslAngleWebglOutput::writeHeader(int shaderVersion,
   }
   if (pragma.debug) {
     this->writeDirective("#pragma", "debug(on)");
-  } /*else if (!this->beautify) {
-    this->writeDirective("#pragma", "webgl_debug_shader_precision(off)");
-  }*/
+  }
   if (pragma.stdgl.invariantAll) {
     this->writeDirective("#pragma", "STDGL invariant(all)");
   }

@@ -28,8 +28,6 @@ SpglslAngleCompiler::SpglslAngleCompiler(sh::GLenum shaderType, const SpglslComp
   this->metadata.shaderVersion = compilerOptions.outputShaderVersion;
 }
 
-#include <iostream>
-
 bool SpglslAngleCompiler::compile(const char * sourceCode) {
   SetGlobalPoolAllocator(&this->getAllocator());
 
@@ -133,9 +131,6 @@ void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
   for (const auto & entry : usage.sorted) {
     if (entry->entry->mangleId >= 0) {
       entry->entry->renamed = symgen.getOrCreateMangledName(entry->entry->mangleId);
-      std::cout << entry->entry->symbolName << "=" << entry->entry->renamed << " ";
-    } else {
-      std::cout << entry->entry->mangleId << "!";
     }
   }
 }
