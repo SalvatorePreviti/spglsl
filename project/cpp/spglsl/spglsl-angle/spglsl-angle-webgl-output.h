@@ -56,13 +56,14 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
     return this->_fnDefinitionStack.empty() ? nullptr : this->_fnDefinitionStack.top();
   }
 
-  virtual std::string getBuiltinTypeName(const sh::TType * type);
+  inline sh::TIntermNode * getCurrentScope() const {
+    return this->_scopeStack.empty() ? nullptr : this->_scopeStack.top();
+  }
 
-  /** Called when a new variable scope begins */
   virtual void onScopeBegin(sh::TIntermNode * node);
-
-  /** Called when a new variable scope ends */
   virtual void onScopeEnd(sh::TIntermNode * node);
+
+  virtual std::string getBuiltinTypeName(const sh::TType * type);
 
  private:
   void traverseCodeBlock(sh::TIntermBlock * node);
@@ -84,11 +85,15 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   void clearLastWrittenVarDecl();
   bool needsToClearLastWrittenVarDecl();
 
+  void pushScope(sh::TIntermNode * node);
+  void popScope();
+
   int _isInsideForInit = 0;
   bool _canForwardVarDecl = false;
   bool _skipNextBlockBraces = true;
   const sh::TType * _lastWrittenVarDecl = nullptr;
   std::stack<sh::TIntermFunctionDefinition *> _fnDefinitionStack;
+  std::stack<sh::TIntermNode *> _scopeStack;
 };
 
 #endif
