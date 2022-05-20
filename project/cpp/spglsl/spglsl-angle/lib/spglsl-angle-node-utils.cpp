@@ -554,3 +554,28 @@ AngleNodeKind nodeGetKind(sh::TIntermNode * node) {
   }
   return NodeKindGetterVisitor::instance.kind;
 }
+
+bool isIntermNodeSingleStatement(sh::TIntermNode * node) {
+  if (node->getAsFunctionDefinition()) {
+    return false;
+  }
+  if (node->getAsBlock()) {
+    return false;
+  }
+  if (node->getAsIfElseNode()) {
+    return false;
+  }
+  if (node->getAsLoopNode()) {
+    return false;
+  }
+  if (node->getAsSwitchNode()) {
+    return false;
+  }
+  if (node->getAsCaseNode()) {
+    return false;
+  }
+  if (node->getAsPreprocessorDirective()) {
+    return false;
+  }
+  return true;
+}

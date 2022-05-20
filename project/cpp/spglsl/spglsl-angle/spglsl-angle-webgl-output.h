@@ -10,11 +10,11 @@
 
 #include "../core/string-utils.h"
 #include "lib/spglsl-glsl-writer.h"
+#include "spglsl-scoped-traverser.h"
 #include "symbols/spglsl-symbol-info.h"
 
-class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWriter {
+class SpglslAngleWebglOutput : public SpglslScopedTraverser, public SpglslGlslWriter {
  public:
-  SpglslSymbols & symbols;
   std::unordered_set<const sh::TStructure *> declaredStructs;
 
   SpglslAngleWebglOutput(std::ostream & out,
@@ -24,7 +24,6 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
 
   void visitSymbol(sh::TIntermSymbol * node) override;
   void visitConstantUnion(sh::TIntermConstantUnion * node) override;
-  void visitFunctionPrototype(sh::TIntermFunctionPrototype * node) override;
   void visitPreprocessorDirective(sh::TIntermPreprocessorDirective * node) override;
   bool visitSwizzle(sh::Visit visit, sh::TIntermSwizzle * node) override;
   bool visitBinary(sh::Visit visit, sh::TIntermBinary * node) override;
@@ -33,17 +32,13 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   bool visitIfElse(sh::Visit visit, sh::TIntermIfElse * node) override;
   bool visitSwitch(sh::Visit visit, sh::TIntermSwitch * node) override;
   bool visitCase(sh::Visit visit, sh::TIntermCase * node) override;
-  bool visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) override;
   bool visitAggregate(sh::Visit visit, sh::TIntermAggregate * node) override;
-  bool visitBlock(sh::Visit visit, sh::TIntermBlock * node) override;
   bool visitGlobalQualifierDeclaration(sh::Visit visit, sh::TIntermGlobalQualifierDeclaration * node) override;
   bool visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) override;
-  bool visitLoop(sh::Visit visit, sh::TIntermLoop * node) override;
   bool visitBranch(sh::Visit visit, sh::TIntermBranch * node) override;
 
   void writeHeader(int shaderVersion, const TPragma & pragma, const sh::TExtensionBehavior & extensionBehavior);
   void writeTOperatorNode(sh::TIntermOperator * node);
-  void traverseNode(sh::TIntermNode * node);
 
   virtual const std::string & getSymbolName(const sh::TSymbol * symbol);
   virtual std::string getTypeName(const sh::TType * type);
@@ -51,19 +46,17 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   std::string getFunctionName(sh::TIntermAggregate * aggregateNode);
 
  protected:
-  /** The function currently being defined */
-  inline sh::TIntermFunctionDefinition * getCurrentFunctionDefinition() {
-    return this->_fnDefinitionStack.empty() ? nullptr : this->_fnDefinitionStack.top();
-  }
-
-  inline sh::TIntermNode * getCurrentScope() const {
-    return this->_scopeStack.empty() ? nullptr : this->_scopeStack.top();
-  }
-
-  virtual void onScopeBegin(sh::TIntermNode * node);
-  virtual void onScopeEnd(sh::TIntermNode * node);
-
   virtual std::string getBuiltinTypeName(const sh::TType * type);
+
+  void beforeVisitFunctionDefinition(sh::TIntermFunctionDefinition * node) override;
+  void beforeVisitFunctionPrototype(sh::TIntermFunctionPrototype * node,
+      sh::TIntermFunctionDefinition * definition) override;
+  void afterVisitFunctionPrototype(sh::TIntermFunctionPrototype * node,
+      sh::TIntermFunctionDefinition * definition) override;
+  void onVisitBlock(sh::TIntermBlock * node) override;
+  void onVisitForLoop(sh::TIntermLoop * node, bool infinite) override;
+  void onVisitWhileLoop(sh::TIntermLoop * node) override;
+  void onVisitDoWhileLoop(sh::TIntermLoop * node) override;
 
  private:
   void traverseCodeBlock(sh::TIntermBlock * node);
@@ -79,21 +72,15 @@ class SpglslAngleWebglOutput : public sh::TIntermTraverser, public SpglslGlslWri
   void declareInterfaceBlock(const sh::TInterfaceBlock & interfaceBlock);
 
   void writeVariableDeclaration(sh::TIntermNode & child);
-  bool isIntermNodeSingleStatement(sh::TIntermNode * node);
   void writeConstantUnionSingleValue(const sh::TConstantUnion * value, bool needsParentheses, bool needsFloat);
 
   void clearLastWrittenVarDecl();
   bool needsToClearLastWrittenVarDecl();
 
-  void pushScope(sh::TIntermNode * node);
-  void popScope();
-
   int _isInsideForInit = 0;
   bool _canForwardVarDecl = false;
   bool _skipNextBlockBraces = true;
   const sh::TType * _lastWrittenVarDecl = nullptr;
-  std::stack<sh::TIntermFunctionDefinition *> _fnDefinitionStack;
-  std::stack<sh::TIntermNode *> _scopeStack;
 };
 
 #endif

@@ -1,5 +1,6 @@
 #include "./spglsl-symbol-info.h"
 #include <string>
+#include "../spglsl-scoped-traverser.h"
 
 bool SpglslSymbols::has(const sh::TSymbol * symbol) const {
   auto found = this->_map.find(symbol);
@@ -122,16 +123,13 @@ void SpglslSymbols::clearMangleId() {
   }
 }
 
-class GenMangleIdTraverser : public sh::TIntermTraverser {
+class GenMangleIdTraverser : public SpglslScopedTraverser {
  public:
-  SpglslSymbols & symbols;
-
   std::stack<int> scopeStack;
 
   int maxId;
 
-  explicit GenMangleIdTraverser(SpglslSymbols & symbols) :
-      sh::TIntermTraverser(true, false, true, symbols.symbolTable), symbols(symbols), maxId(0) {
+  explicit GenMangleIdTraverser(SpglslSymbols & symbols) : SpglslScopedTraverser(symbols), maxId(0) {
     this->scopeStack.push(0);
   }
 
@@ -150,58 +148,32 @@ class GenMangleIdTraverser : public sh::TIntermTraverser {
     }
   }
 
-  void scopePush() {
-    this->scopeStack.push(this->scopeStack.top() + 1);
+  void onScopeBegin(sh::TIntermNode * node) override {
+    this->scopeStack.push(this->scopeStack.top());
   }
 
-  void scopePop() {
+  void onScopeEnd(sh::TIntermNode * node) override {
     if (!this->scopeStack.empty()) {
       this->scopeStack.pop();
     }
   }
 
-  bool visitLoop(sh::Visit visit, sh::TIntermLoop * node) override {
-    if (node->getType() == sh::ELoopFor) {
-      if (visit == sh::PreVisit) {
-        this->scopePush();
-      } else if (visit == sh::PostVisit) {
-        this->scopePop();
-      }
-    }
-    return true;
+  void beforeVisitFunctionDefinition(sh::TIntermFunctionDefinition * node) override {
+    this->assignMangleId(node->getFunction());
   }
 
-  bool visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) override {
-    const sh::TFunction * func = node->getFunction();
+  void afterVisitFunctionPrototype(sh::TIntermFunctionPrototype * proto,
+      sh::TIntermFunctionDefinition * definition) override {
+    const auto * func = proto->getFunction();
     this->assignMangleId(func);
-
-    sh::TIntermBlock * body = node->getBody();
-    if (body) {
-      this->scopePush();
+    if (definition) {
       if (func) {
         for (size_t i = 0, len = func->getParamCount(); i < len; ++i) {
           const auto * var = func->getParam(i);
           this->assignMangleId(var);
         }
       }
-      if (body) {
-        body->traverse(this);
-      }
-      this->scopePop();
     }
-
-    return false;
-  }
-
-  bool visitBlock(sh::Visit visit, sh::TIntermBlock * node) override {
-    if (this->getCurrentTraversalDepth() != 0) {
-      if (visit == sh::PreVisit) {
-        this->scopePush();
-      } else if (visit == sh::PostVisit) {
-        this->scopePop();
-      }
-    }
-    return true;
   }
 
   bool visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) override {

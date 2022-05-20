@@ -13,9 +13,7 @@ SpglslAngleWebglOutput::SpglslAngleWebglOutput(std::ostream & out,
     SpglslSymbols & symbols,
     const SpglslGlslPrecisions & precisions,
     bool beautify) :
-    sh::TIntermTraverser(true, true, true, symbols.symbolTable),
-    SpglslGlslWriter(out, precisions, beautify),
-    symbols(symbols) {
+    SpglslScopedTraverser(symbols), SpglslGlslWriter(out, precisions, beautify) {
 }
 
 const std::string & SpglslAngleWebglOutput::getSymbolName(const sh::TSymbol * symbol) {
@@ -52,33 +50,6 @@ std::string SpglslAngleWebglOutput::getTypeName(const sh::TType * type) {
     return this->getSymbolName(type->getInterfaceBlock());
   }
   return this->getBuiltinTypeName(type);
-}
-
-/** Called when a new variable scope begins */
-void SpglslAngleWebglOutput::pushScope(sh::TIntermNode * node) {
-  if (this->getCurrentScope() != node) {
-    this->onScopeBegin(node);
-  }
-  this->_scopeStack.push(node);
-}
-
-/** Called when a new variable scope ends */
-void SpglslAngleWebglOutput::popScope() {
-  if (!this->_scopeStack.empty()) {
-    auto * node = this->_scopeStack.top();
-    this->_scopeStack.pop();
-    if (this->_scopeStack.empty() || node != this->_scopeStack.top()) {
-      this->onScopeEnd(node);
-    }
-  }
-}
-
-#include <iostream>
-
-void SpglslAngleWebglOutput::onScopeBegin(sh::TIntermNode * node) {
-}
-
-void SpglslAngleWebglOutput::onScopeEnd(sh::TIntermNode * node) {
 }
 
 void SpglslAngleWebglOutput::writeTOperatorNode(sh::TIntermOperator * node) {
@@ -502,68 +473,127 @@ bool SpglslAngleWebglOutput::visitIfElse(sh::Visit visit, sh::TIntermIfElse * no
   return false;
 }
 
-bool SpglslAngleWebglOutput::visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) {
+void SpglslAngleWebglOutput::beforeVisitFunctionDefinition(sh::TIntermFunctionDefinition * node) {
+  this->clearLastWrittenVarDecl();
   this->beautyDoubleNewLine();
-
-  auto * body = node->getBody();
-
-  this->_fnDefinitionStack.push(node);
-  auto * proto = node->getFunctionPrototype();
-  if (body) {
-    if (proto) {
-      this->traverseNode(proto);
-    } else {
-      this->pushScope(body);
-    }
-    this->traverseNode(body);
-    if (this->getCurrentScope() == body) {
-      this->popScope();
-    }
-  } else {
-    this->traverseNode(proto);
-    if (this->getCurrentScope() == node) {
-      this->popScope();
-    }
-  }
-  this->_fnDefinitionStack.pop();
-
-  return false;
 }
 
-void SpglslAngleWebglOutput::visitFunctionPrototype(sh::TIntermFunctionPrototype * node) {
+void SpglslAngleWebglOutput::beforeVisitFunctionPrototype(sh::TIntermFunctionPrototype * node,
+    sh::TIntermFunctionDefinition * definition) {
   this->clearLastWrittenVarDecl();
-
-  auto * currentFunctionDefinition = this->getCurrentFunctionDefinition();
-  bool isCurrentFunctionDefinitionPrototype =
-      currentFunctionDefinition != nullptr && currentFunctionDefinition->getFunctionPrototype() == node;
-
   const sh::TType & type = node->getType();
   this->writeVariableType(type, false);
   this->write(sh::ArrayString(type));
   const auto * proto = node->getFunction();
   this->write(this->getSymbolName(proto)).write('(');
-  if (isCurrentFunctionDefinitionPrototype) {
-    auto * body = currentFunctionDefinition->getBody();
-    if (body) {
-      this->pushScope(body);
-    } else {
-      this->pushScope(currentFunctionDefinition);
-    }
-  }
-  size_t paramCount = proto->getParamCount();
+}
+
+void SpglslAngleWebglOutput::afterVisitFunctionPrototype(sh::TIntermFunctionPrototype * node,
+    sh::TIntermFunctionDefinition * definition) {
+  const auto * fun = node->getFunction();
+  size_t paramCount = fun->getParamCount();
   for (size_t i = 0; i < paramCount; ++i) {
-    const sh::TVariable * param = proto->getParam(i);
+    const sh::TVariable * param = fun->getParam(i);
     const sh::TType & paramType = param->getType();
     if (i != 0) {
       this->writeComma();
     }
     this->writeVariableType(paramType, true);
-    if (isCurrentFunctionDefinitionPrototype) {
+    if (definition) {
       this->write(this->getSymbolName(param));
     }
     this->write(sh::ArrayString(paramType));
   }
   this->write(')');
+}
+
+void SpglslAngleWebglOutput::onVisitBlock(sh::TIntermBlock * node) {
+  this->clearLastWrittenVarDecl();
+  bool skipBlockBraces = this->_skipNextBlockBraces || this->getCurrentTraversalDepth() == 0;
+  sh::TIntermSequence * sequence = node->getSequence();
+  int initialIndentLevel = this->getIndentLevel();
+  if (!skipBlockBraces) {
+    this->beautyStatementNewLine();
+    this->write('{').indent().beautyNewLine();
+  } else {
+    this->_skipNextBlockBraces = false;
+  }
+  if (sequence) {
+    sh::TIntermNode * prev = nullptr;
+    for (sh::TIntermNode * child : *sequence) {
+      if (!nodeBlockIsEmpty(child)) {
+        bool isVarDecl = child->getAsDeclarationNode() != nullptr;
+        if (!isVarDecl) {
+          this->clearLastWrittenVarDecl();
+        }
+
+        if (((prev && prev->getAsCaseNode()) || child->getAsBlock()) &&
+            !nodeBlockContainsSomeSortOfDeclaration(child)) {
+          if (child->getAsBlock()) {
+            this->_skipNextBlockBraces = true;
+          }
+          this->beautyNewLine().indent();
+          this->traverseNode(child);
+          if (isIntermNodeSingleStatement(child) && (!isVarDecl)) {
+            this->writeStatementSemicolon();
+          }
+          this->deindent().beautyDoubleNewLine();
+        } else {
+          this->beautyStatementNewLine(true);
+          this->traverseNode(child);
+          if (isIntermNodeSingleStatement(child) && (!isVarDecl)) {
+            this->writeStatementSemicolon();
+          }
+        }
+      }
+      prev = child;
+    }
+  }
+  if (!skipBlockBraces) {
+    this->clearLastWrittenVarDecl();
+    this->setIndentLevel(initialIndentLevel);
+    this->beautyStatementNewLine();
+    this->write('}');
+  }
+}
+
+void SpglslAngleWebglOutput::onVisitForLoop(sh::TIntermLoop * node, bool infinite) {
+  this->clearLastWrittenVarDecl();
+  this->write("for").beautySpace().write('(');
+  ++this->_isInsideForInit;
+  this->traverseNode(node->getInit());
+  --this->_isInsideForInit;
+  this->write(';');
+  this->clearLastWrittenVarDecl();
+  if (!infinite) {
+    this->traverseNode(node->getCondition());
+  }
+  this->write(';');
+  if (nodeHasSideEffects(node->getExpression())) {
+    this->traverseNode(node->getExpression());
+  }
+  this->write(')').beautySpace();
+  this->traverseCodeBlock(node->getBody(), true);
+  this->beautyDoubleNewLine();
+}
+
+void SpglslAngleWebglOutput::onVisitWhileLoop(sh::TIntermLoop * node) {
+  this->clearLastWrittenVarDecl();
+  this->write("while").beautySpace().write('(');
+  this->traverseNode(node->getCondition());
+  this->write(')').beautySpace();
+  this->traverseCodeBlock(node->getBody(), true);
+  this->beautyDoubleNewLine();
+}
+
+void SpglslAngleWebglOutput::onVisitDoWhileLoop(sh::TIntermLoop * node) {
+  this->clearLastWrittenVarDecl();
+  this->write("do").beautySpace();
+  this->traverseCodeBlock(node->getBody(), true);
+  this->write("while").beautySpace().write('(');
+  this->traverseNode(node->getCondition());
+  this->write(')').write(';');
+  this->beautyDoubleNewLine();
 }
 
 bool SpglslAngleWebglOutput::visitAggregate(sh::Visit visit, sh::TIntermAggregate * node) {
@@ -612,60 +642,6 @@ bool SpglslAngleWebglOutput::visitCase(sh::Visit visit, sh::TIntermCase * node) 
   return true;
 }
 
-bool SpglslAngleWebglOutput::visitBlock(sh::Visit visit, sh::TIntermBlock * node) {
-  int depth = this->getCurrentTraversalDepth();
-  this->pushScope(node);
-  this->clearLastWrittenVarDecl();
-  bool skipBlockBraces = this->_skipNextBlockBraces || depth == 0;
-  sh::TIntermSequence * sequence = node->getSequence();
-  int initialIndentLevel = this->getIndentLevel();
-  if (!skipBlockBraces) {
-    this->beautyStatementNewLine();
-    this->write('{').indent().beautyNewLine();
-  } else {
-    this->_skipNextBlockBraces = false;
-  }
-  if (sequence) {
-    sh::TIntermNode * prev = nullptr;
-    for (sh::TIntermNode * child : *sequence) {
-      if (!nodeBlockIsEmpty(child)) {
-        bool isVarDecl = child->getAsDeclarationNode() != nullptr;
-        if (!isVarDecl) {
-          this->clearLastWrittenVarDecl();
-        }
-
-        if (((prev && prev->getAsCaseNode()) || child->getAsBlock()) &&
-            !nodeBlockContainsSomeSortOfDeclaration(child)) {
-          if (child->getAsBlock()) {
-            this->_skipNextBlockBraces = true;
-          }
-          this->beautyNewLine().indent();
-          this->traverseNode(child);
-          if (isIntermNodeSingleStatement(child) && (!isVarDecl)) {
-            this->writeStatementSemicolon();
-          }
-          this->deindent().beautyDoubleNewLine();
-        } else {
-          this->beautyStatementNewLine(true);
-          this->traverseNode(child);
-          if (isIntermNodeSingleStatement(child) && (!isVarDecl)) {
-            this->writeStatementSemicolon();
-          }
-        }
-      }
-      prev = child;
-    }
-  }
-  if (!skipBlockBraces) {
-    this->clearLastWrittenVarDecl();
-    this->setIndentLevel(initialIndentLevel);
-    this->beautyStatementNewLine();
-    this->write('}');
-  }
-  this->popScope();
-  return false;
-}
-
 bool SpglslAngleWebglOutput::visitGlobalQualifierDeclaration(sh::Visit visit,
     sh::TIntermGlobalQualifierDeclaration * node) {
   this->clearLastWrittenVarDecl();
@@ -708,69 +684,6 @@ void SpglslAngleWebglOutput::traverseCodeBlock(sh::TIntermBlock * body, bool all
   this->clearLastWrittenVarDecl();
 }
 
-bool SpglslAngleWebglOutput::visitLoop(sh::Visit visit, sh::TIntermLoop * node) {
-  sh::TIntermBlock * body = node->getBody();
-  sh::TLoopType loopType = node->getType();
-  if (loopType == sh::ELoopFor && !node->getInit() && !nodeHasSideEffects(node->getExpression())) {
-    loopType = sh::ELoopWhile;  // For without init and expression is just a while
-  }
-  int boolValue = node->getCondition() ? nodeConstantBooleanValue(node->getCondition()) : 1;
-  if (boolValue == 1) {
-    loopType = sh::ELoopFor;  // A while loop or do-while loop with always a true condition is just a for (;;)
-  }
-
-  switch (loopType) {
-    case sh::ELoopFor:
-      if (body) {
-        this->pushScope(body);
-      } else {
-        this->pushScope(node);
-      }
-      this->clearLastWrittenVarDecl();
-      this->write("for").beautySpace().write('(');
-      ++this->_isInsideForInit;
-      this->traverseNode(node->getInit());
-      --this->_isInsideForInit;
-      this->write(';');
-      this->clearLastWrittenVarDecl();
-      if (boolValue != 1) {
-        this->traverseNode(node->getCondition());
-      }
-      this->write(';');
-      if (nodeHasSideEffects(node->getExpression())) {
-        this->traverseNode(node->getExpression());
-      }
-      this->write(')').beautySpace();
-      this->traverseCodeBlock(body, true);
-      this->beautyDoubleNewLine();
-      this->popScope();
-      return false;
-
-    case sh::ELoopWhile: {
-      this->clearLastWrittenVarDecl();
-      this->write("while").beautySpace().write('(');
-      this->traverseNode(node->getCondition());
-      this->write(')').beautySpace();
-      this->traverseCodeBlock(body, true);
-      this->beautyDoubleNewLine();
-      return false;
-    }
-
-    case sh::ELoopDoWhile: {
-      this->clearLastWrittenVarDecl();
-      this->write("do").beautySpace();
-      this->traverseCodeBlock(body, true);
-      this->write("while").beautySpace().write('(');
-      this->traverseNode(node->getCondition());
-      this->write(')').write(';');
-      this->beautyDoubleNewLine();
-      return false;
-    }
-
-    default: return true;
-  }
-}
-
 bool SpglslAngleWebglOutput::visitBranch(sh::Visit visit, sh::TIntermBranch * node) {
   if (visit == sh::PreVisit) {
     this->clearLastWrittenVarDecl();
@@ -786,12 +699,6 @@ bool SpglslAngleWebglOutput::visitBranch(sh::Visit visit, sh::TIntermBranch * no
     this->write(ops);
   }
   return true;
-}
-
-void SpglslAngleWebglOutput::traverseNode(sh::TIntermNode * node) {
-  if (node) {
-    node->traverse(this);
-  }
 }
 
 void SpglslAngleWebglOutput::traverseWithParentheses(sh::TIntermNode * node, int operandIndex) {
@@ -859,29 +766,4 @@ void SpglslAngleWebglOutput::writeHeader(int shaderVersion,
   }
 
   this->beautyDoubleNewLine();
-}
-
-bool SpglslAngleWebglOutput::isIntermNodeSingleStatement(sh::TIntermNode * node) {
-  if (node->getAsFunctionDefinition()) {
-    return false;
-  }
-  if (node->getAsBlock()) {
-    return false;
-  }
-  if (node->getAsIfElseNode()) {
-    return false;
-  }
-  if (node->getAsLoopNode()) {
-    return false;
-  }
-  if (node->getAsSwitchNode()) {
-    return false;
-  }
-  if (node->getAsCaseNode()) {
-    return false;
-  }
-  if (node->getAsPreprocessorDirective()) {
-    return false;
-  }
-  return true;
 }

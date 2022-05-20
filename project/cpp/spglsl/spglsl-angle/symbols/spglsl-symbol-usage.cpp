@@ -14,12 +14,6 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
       SpglslAngleWebglOutput(out, usage.symbols, precisions, false), usage(usage) {
   }
 
-  void onScopeBegin(sh::TIntermNode * node) override {
-  }
-
-  void onScopeEnd(sh::TIntermNode * node) override {
-  }
-
   const std::string & getSymbolName(const sh::TSymbol * symbol) override {
     auto & symentry = this->symbols.get(symbol);
     if (!symentry.symbol || symentry.symbolName.empty()) {

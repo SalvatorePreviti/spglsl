@@ -49,6 +49,8 @@ bool nodeBlockContainsSomeSortOfDeclaration(sh::TIntermNode * node);
 
 const sh::TFunction * nodeGetAsFunction(sh::TIntermNode * node);
 
+bool isIntermNodeSingleStatement(sh::TIntermNode * node);
+
 inline sh::TIntermTyped * nodeGetAsTyped(sh::TIntermNode * node) {
   return node ? node->getAsTyped() : nullptr;
 }

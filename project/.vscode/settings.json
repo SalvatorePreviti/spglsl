@@ -87,5 +87,10 @@
     "**/.grunt": true
   },
   "C_Cpp.errorSquiggles": "Enabled",
-  "C_Cpp.codeAnalysis.clangTidy.enabled": true
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+  "files.associations": {
+    "__node_handle": "cpp",
+    "__locale": "cpp",
+    "ios": "cpp"
+  }
 }

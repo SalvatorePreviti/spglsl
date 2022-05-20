@@ -1,506 +1,501 @@
+#version 300 es
 precision highp float;
 // NEW CODE
+precision highp float;
 in vec2 FC;
 uniform vec2 iR;
 uniform vec3 iP;
-uniform vec4 iD;
-uniform vec4 iA;
-uniform vec4 iB;
-uniform vec4 iC;
-uniform vec4 iS;
-uniform vec4 iX;
+uniform vec4 iD, iA, iB, iC, iS, iX;
 uniform mat3 iM;
 uniform lowp int iF;
 out vec4 oC;
-uniform highp sampler2D tN;
-uniform highp sampler2D tH;
-uniform highp sampler2D tP;
-uniform highp sampler2D tS;
-float u;
-float n(float rn) {
-  return clamp(rn, 0., 1.);
+uniform highp sampler2D tN, tH, tP, tS;
+float s;
+float n(float wi) {
+  return clamp(wi, 0., 1.);
 }
-float X(float ur, float et, float c3) {
-  float t = max(c3 - abs(ur - et), 0.) / c3;
-  return min(ur, et) - t * t * c3 / 4.;
+
+float j(float fo, float am, float ax) {
+  float as = max(ax - abs(fo - am), 0.) / ax;
+  return min(fo, am) - as * as * ax / 4.;
 }
-vec4 rn(float et) {
-  vec4 M = n(et) * vec4(.999998, 254.99948, 65024.867, 160581056);
-  M = fract(M);
-  M -= M.yzww * vec4(.003921569, .003921569, .003921569, 0);
-  return M;
+vec4 ca(float au) {
+  vec4 q = n(au) * vec4(.999998, 254.99948, 65024.867, 160581056);
+  q = fract(q);
+  q -= q.yzww * vec4(.003921569, .003921569, .003921569, 0);
+  return q;
 }
-float ur(vec4 c3) {
-  return dot(c3, vec4(1, .003921569, 1.53787e-5, 6.2273724e-9));
+float q(vec4 bo) {
+  return dot(bo, vec4(1, .003921569, 1.53787e-5, 6.2273724e-9));
 }
-vec3 et(vec2 M) {
-  vec4 b = texelFetch(tN, ivec2(floor(M)) & 511, 0);
-  float c = b.y - b.x, Q = b.z - b.x, e = b.w - c - b.z;
-  vec2 H = fract(M), w = H * H, T = w * (3. - 2. * H);
-  return vec3(b.x + c * T.x + Q * T.y + e * T.x * T.y, 30. * w * (H * (H - 2.) + 1.) * (vec2(c, Q) + e * T.yx));
+vec3 xt(vec2 mp) {
+  vec4 p = texelFetch(tN, ivec2(floor(mp)) & 511, 0);
+  float en = p.y - p.x, c = p.z - p.x, al = p.w - en - p.z;
+  vec2 E = fract(mp), cl = E * E, I = cl * (3. - 2. * E);
+  return vec3(p.x + en * I.x + c * I.y + al * I.x * I.y, 30. * cl * (E * (E - 2.) + 1.) * (vec2(en, c) + al * I.yx));
 }
-int c3 = 0;
-float M = 150.;
-void t(int c, float Q) {
-  if (Q < u && Q != M) {
-    c3 = c;
-    M = Q;
+int iz = 0;
+float p = 150.;
+void c(int al, float E) {
+  if (E < s && E != p) {
+    iz = al;
+    p = E;
   }
 }
-float b(vec3 Q, float e) {
-  return length(Q) - e;
+float I(vec3 de, float hp) {
+  return length(de) - hp;
 }
-float c(vec3 e, vec3 H) {
-  vec3 T = abs(e) - H;
-  return min(max(T.x, max(T.y, T.z)), 0.) + length(max(T, 0.));
+float t(vec3 pl, vec3 er) {
+  vec3 ec = abs(pl) - er;
+  return min(max(ec.x, max(ec.y, ec.z)), 0.) + length(max(ec, 0.));
 }
-float Q(vec3 H, float w) {
-  vec3 G = abs(H) - w;
-  return min(max(G.x, max(G.y, G.z)), 0.) + length(max(G, 0.));
+float ve(vec3 eL, float fa) {
+  vec3 e = abs(eL) - fa;
+  return min(max(e.x, max(e.y, e.z)), 0.) + length(max(e, 0.));
 }
-float e(vec3 w, float T, float G) {
-  float v = length(w.xy) - T;
-  return max(v, abs(w.z) - G);
+float e(vec3 la, float il, float ig) {
+  float li = length(la.xy) - il;
+  return max(li, abs(la.z) - ig);
 }
-float H(vec3 T, vec2 G) {
-  return length(vec2(length(T.xz) - G.x, T.y)) - G.y;
+float li(vec3 no, vec2 ze) {
+  return length(vec2(length(no.xz) - ze.x, no.y)) - ze.y;
 }
-float w(float G, float L, float v, float xz) {
-  float at = L * .5, D = floor((G + at) / L), K = mod(G + at, L) - at;
-  return D > xz ? K + L * (D - xz) : D < v ? K + L * (D - v) : K;
+float F(float ni, float J, float ui, float un) {
+  float gt = J * .5, c3 = floor((ni + gt) / J), ng = mod(ni + gt, J) - gt;
+  return c3 > un ? ng + J * (c3 - un) : c3 < ui ? ng + J * (c3 - ui) : ng;
 }
-vec2 T(vec2 L, float v) {
-  float lo = 3.1415927 / v, at = mod(atan(L.y, L.x) + lo, lo * 2.) - lo;
-  return vec2(cos(at), sin(at)) * length(L);
+vec2 gt(vec2 c3, float ng) {
+  float xy = 3.1415927 / ng, ab = mod(atan(c3.y, c3.x) + xy, xy * 2.) - xy;
+  return vec2(cos(ab), sin(ab)) * length(c3);
 }
-vec2 G(vec2 v, float xz, float lo) {
-  float D = 3.1415927 / xz, K = mod(atan(v.y, v.x) + D + lo, D * 2.) - D;
-  return vec2(cos(K), sin(K)) * length(v);
+vec2 xy(vec2 ab, float lt, float r2) {
+  float at = 3.1415927 / lt, ow = mod(atan(ab.y, ab.x) + at + r2, at * 2.) - at;
+  return vec2(cos(ow), sin(ow)) * length(ab);
 }
-float L(float xz, float lo) {
-  return abs(xz) - lo;
+float at(float ow, float t3) {
+  return abs(ow) - t3;
 }
-mat2 v(float lo) {
-  float D = cos(lo), K = sin(lo);
-  return mat2(D, K, -K, D);
+mat2 v(float po) {
+  float co = cos(po), id = sin(po);
+  return mat2(co, id, -id, co);
 }
-vec3 xz(vec3 at) {
-  return vec3(at.xy, -at.z);
+vec3 co(vec3 id) {
+  return vec3(id.xy, -id.z);
 }
-float lo(vec3 D) {
-  float ma = length(D) - .3;
-  if (ma > .3)
-    return ma;
-  D.xz *= v(-1.2);
-  D.yz *= v(-.2);
-  return min(e(D, .025, .1), max(b(D - vec3(0, 0, .12), .05), D.z - .12));
+float xp(vec3 A) {
+  float mo = length(A) - .3;
+  if (mo > .3)
+    return mo;
+  A.xz *= v(-1.2);
+  A.yz *= v(-.2);
+  return min(e(A, .025, .1), max(I(A - vec3(0, 0, .12), .05), A.z - .12));
 }
-float at(vec3 K) {
-  float l = length(K) - .3;
-  if (l > .3)
-    return l;
-  float N = e(K, .01, .06);
-  N = min(N, e(K.yzx + vec3(0, .1, 0), .04, .005));
-  N = min(N, c(K - vec3(0, -.01, .04), vec3(.002, .02, .02)));
-  return N;
+float mo(vec3 lo) {
+  float vo = length(lo) - .3;
+  if (vo > .3)
+    return vo;
+  float Q = e(lo, .01, .06);
+  Q = min(Q, e(lo.yzx + vec3(0, .1, 0), .04, .005));
+  Q = min(Q, t(lo - vec3(0, -.01, .04), vec3(.002, .02, .02)));
+  return Q;
 }
-float D(vec3 ma) {
-  float N = c(ma - vec3(.03, 0, 0), vec3(.03, .006, .03));
-  t(1, N);
-  return min(c(ma, vec3(.06, .005, .06)), N);
+float vo(vec3 Q) {
+  float oi = t(Q - vec3(.03, 0, 0), vec3(.03, .006, .03));
+  c(1, oi);
+  return min(t(Q, vec3(.06, .005, .06)), oi);
 }
-float K(vec3 l, float N, float V) {
-  float s = length(l) - N * .6;
-  if (s > 4.)
-    return s;
-  l.y += cos(l.z * V / N);
-  l.x = abs(l.x);
-  float i = c(l - vec3(.2, 0, 0), vec3(.1, .03, N * .55)), C = e(l - vec3(.5, 1, 0), .02, N * .55);
-  l.z = w(l.z, .55, -N, N);
-  C = min(C, e(l.xzy - vec3(.5, 0, .5), .02, .5));
-  t(1, C);
-  i = min(i, c(l, vec3(.5, .05, .2)));
-  t(-1, i);
-  return min(i, C);
+float oi(vec3 r, float D, float gh) {
+  float os = length(r) - D * .6;
+  if (os > 4.)
+    return os;
+  r.y += cos(r.z * gh / D);
+  r.x = abs(r.x);
+  float fl = t(r - vec3(.2, 0, 0), vec3(.1, .03, D * .55)), oa = e(r - vec3(.5, 1, 0), .02, D * .55);
+  r.z = F(r.z, .55, -D, D);
+  oa = min(oa, e(r.xzy - vec3(.5, 0, .5), .02, .5));
+  c(1, oa);
+  fl = min(fl, t(r, vec3(.5, .05, .2)));
+  c(-1, fl);
+  return min(fl, oa);
 }
-float ma(vec3 N) {
-  float k = length(N) - 2.;
-  if (k > 1.)
-    return k;
-  vec3 s = N;
-  s.xy *= v(-.25);
-  float i = c(s + vec3(.2, .25, 0), vec3(.25, .5, .5)) - .01;
-  s -= vec3(-.13, .25, 0);
-  s.z = w(s.z, .04, -10., 10.);
-  s.x = w(s.x, .04, -3., 3.);
-  float C = Q(s, .01) - .005;
-  t(1, C);
-  i = min(min(i, C), c(N - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - .01);
+float os(vec3 fl) {
+  float oo = length(fl) - 2.;
+  if (oo > 1.)
+    return oo;
+  vec3 h = fl;
+  h.xy *= v(-.25);
+  float bs = t(h + vec3(.2, .25, 0), vec3(.25, .5, .5)) - .01;
+  h -= vec3(-.13, .25, 0);
+  h.z = F(h.z, .04, -10., 10.);
+  h.x = F(h.x, .04, -3., 3.);
+  float ai = ve(h, .01) - .005;
+  c(1, ai);
+  bs = min(min(bs, ai), t(fl - vec3(-.45, .2, 0), vec3(.2, .8, .5)) - .01);
+  return bs;
+}
+float oo(vec3 h) {
+  h.zy *= v(.06);
+  h.y += cos(h.z / 20.) * 3.;
+  return e(h, .01, 27.5);
+}
+float ai(vec3 C) {
+  float ch = length(C) - 3.;
+  if (ch > .5)
+    return ch;
+  C.xz -= vec2(1, -.05);
+  C.zx *= v(iA.y * -2.5);
+  C.xz += vec2(1, -.05);
+  float b = e(C, .99, .05);
+  vec3 el = vec3(gt(C.xy, 8.), C.z);
+  return max(b, -min(t(el - vec3(.5, 0, .1), vec3(.02, .1, .1)), e(el - vec3(0, 0, .1), .02, .1)));
+}
+float ch(vec3 b, float el) {
+  float it = length(b) - 1.;
+  if (it > 1.)
+    return it;
+  float i = t(b, vec3(.2, .5, .05));
+  i = max(i, -t(b, vec3(.03, .2, 1)));
+  b.yz *= v(-1.5707964 * el + .7853982);
+  b.z += .2;
+  i = min(i, e(b, .02, .2));
+  b.z += .2;
+  i = min(i, e(b, .03, .05));
   return i;
 }
-float l(vec3 V) {
-  V.zy *= v(.06);
-  V.y += cos(V.z / 20.) * 3.;
-  return e(V, .01, 27.5);
-}
-float N(vec3 k) {
-  float i = length(k) - 3.;
-  if (i > .5)
-    return i;
-  k.xz -= vec2(1, -.05);
-  k.zx *= v(iA.y * -2.5);
-  k.xz += vec2(1, -.05);
-  float C = e(k, .99, .05);
-  vec3 fl = vec3(T(k.xy, 8.), k.z);
-  return max(C, -min(c(fl - vec3(.5, 0, .1), vec3(.02, .1, .1)), e(fl - vec3(0, 0, .1), .02, .1)));
-}
-float V(vec3 s, float i) {
-  float fl = length(s) - 1.;
-  if (fl > 1.)
-    return fl;
-  float x = c(s, vec3(.2, .5, .05));
-  x = max(x, -c(s, vec3(.03, .2, 1)));
-  s.yz *= v(-1.5707964 * i + .7853982);
-  s.z += .2;
-  x = min(x, e(s, .02, .2));
-  s.z += .2;
-  x = min(x, e(s, .03, .05));
-  return x;
-}
-float k(vec3 i) {
-  float fl = length(i) - 18.;
-  if (fl > 5.)
-    return fl;
+float it(vec3 i) {
+  float tc = length(i) - 18.;
+  if (tc > 5.)
+    return tc;
   i.y -= 9.;
-  vec3 x = i;
-  x.xz *= v(iB.y);
-  x.xy *= v(.5);
-  x.y -= 9.;
-  float a = b(x, 9.), U = max(L(a, .01), x.y + 4.5);
-  U = min(U, e(x.xzy + vec3(0, 0, 4.5), .1, 4.5));
-  U = min(U, b(x, .3));
+  vec3 k = i;
+  k.xz *= v(iB.y);
+  k.xy *= v(.5);
+  k.y -= 9.;
+  float si = I(k, 9.), G = max(at(si, .01), k.y + 4.5);
+  G = min(G, e(k.xzy + vec3(0, 0, 4.5), .1, 4.5));
+  G = min(G, I(k, .3));
   i.y += 6.75;
-  float F = c(i, vec3(2.25, 3.6, 4.5));
-  F = min(F,
-      min(max(L(e(i.xzy - vec3(2.25, 0, 0), 4.4, 3.5), .1),
+  float S = t(i, vec3(2.25, 3.6, 4.5));
+  S = min(S,
+      min(max(at(e(i.xzy - vec3(2.25, 0, 0), 4.4, 3.5), .1),
               -min(e(i.zyx - vec3(0, 1.8, 0), 1., 100.), e(i - vec3(4.5, 2.3, 0), .4, 100.))),
           e(i.xzy - vec3(2.25, 0, -2.2), 4.4, 2.9)));
-  float q = ma(i - vec3(3, 1.5, 2)), f = N(i.zyx - vec3(0, 1.8, 6.5)),
-        m = V(xz(i - vec3(3.7, 2, -4)), clamp(iA.w, 0., 1.));
+  float od = os(i - vec3(3, 1.5, 2)), l = ai(i.zyx - vec3(0, 1.8, 6.5)),
+        m = ch(co(i - vec3(3.7, 2, -4)), clamp(iA.w, 0., 1.));
   i.y -= 2.25;
-  F = max(min(F, e(i.xzy, .45000002, 4.7699995)), -a);
+  S = max(min(S, e(i.xzy, .45000002, 4.7699995)), -si);
   i -= vec3(7, -2.85, 0);
   i.xy *= v(-.5);
-  F = min(F, c(i, vec3(1, 1, .8)) - .01);
-  float S = min(U, f);
-  t(2, m);
-  t(3, q);
-  t(5, S);
-  return min(min(q, F), min(S, m));
+  S = min(S, t(i, vec3(1, 1, .8)) - .01);
+  float ct = min(G, l);
+  c(2, m);
+  c(3, od);
+  c(5, ct);
+  return min(min(od, S), min(ct, m));
 }
-float s(vec3 C) {
-  float x = length(C.xz) - 2.;
-  if (x > 3.)
-    return x;
-  float a = e(C.xzy, .2, .5), U = C.y + iA.z * 4.;
+float tc(vec3 k) {
+  float G = length(k.xz) - 2.;
+  if (G > 3.)
+    return G;
+  float S = e(k.xzy, .2, .5), od = k.y + iA.z * 4.;
   if ((iF & 8) != 0) {
-    float q = at(vec3(C.x, U, C.z) + vec3(1.05, -5.05, 1.05));
-    if (q < a) {
-      t(2, q);
-      a = q;
+    float m = mo(vec3(k.x, od, k.z) + vec3(1.05, -5.05, 1.05));
+    if (m < S) {
+      c(2, m);
+      S = m;
     }
   }
-  float F = c(vec3(T(C.xz, 8.), U).xzy - vec3(1.5, 0, 0), vec3(.1, 5, .2));
-  if (F < a) {
-    t(4, F);
-    a = F;
+  float l = t(vec3(gt(k.xz, 8.), od).xzy - vec3(1.5, 0, 0), vec3(.1, 5, .2));
+  if (l < S) {
+    c(4, l);
+    S = l;
   }
-  float q = e(C.xzy + vec3(0, 0, clamp(iA.z, 0., .02)), .05, .53);
-  if (q < a) {
-    t(1, q);
-    a = q;
+  float m = e(k.xzy + vec3(0, 0, clamp(iA.z, 0., .02)), .05, .53);
+  if (m < S) {
+    c(1, m);
+    S = m;
   }
-  return a;
+  return S;
 }
-float i(vec3 fl) {
-  vec3 a = fl.zyx - vec3(11, 1.25, -44);
-  float U = length(a) - 8.;
-  if (U > 5.)
-    return U;
-  a.y -= 2.;
-  float F = c(a - vec3(-2.7, -1, -1.3), vec3(.35, .5, .5)),
-        q = max(L(c(a, vec3(4, 1.6, 2)), .23),
-            -min(e(a - vec3(0, .5, 0), .8, 100.), c(a - vec3(4, -.37, 1), vec3(2, 1, .53))));
-  vec3 f = a - vec3(4, -.77, .5);
-  f.xz *= v(-iA.x * 3.1415927 / 2.);
-  float m = c(f - vec3(0, .4, .5), vec3(.05, .99, .52));
-  a.x = w(a.x, .3, -10., 10.);
-  a.z = abs(a.z);
-  float S = e(a.xzy - vec3(0, 2, .5), .01, 1.), E = min(F, m);
-  t(1, S);
-  t(-1, E);
-  float re = min(S, min(q, E)), A = 150.;
-  if ((iF & 4) != 0)
-    A = lo(fl - vec3(-42, 3, 11.2));
-  if ((iF & 2) != 0)
-    A = min(A, at(fl.yzx - vec3(2, 7.4, -45.5)));
-  if (A < re) {
-    t(2, A);
-    return A;
-  }
-  return re;
-}
-float C(vec3 x) {
-  float U = length(x) - 9.;
-  if (U > 1.)
-    return U;
-  x.xz *= v(-.7853982);
-  float F = c(x - vec3(-1.5, 1, 5), vec3(1, .2, 3));
-  x.y -= iB.w;
-  vec3 q = x.xzy - vec3(-2, 0, 2);
-  float f = X(b(x - clamp(x, vec3(-6, 0, 0), vec3(6, 0, 0)), 1.7),
-      min(e(q - clamp(q, vec3(-.5, 0, 0), vec3(.5, 0, 0)), .4, .5),
-          min(c(x - vec3(7.5, 0, 0), vec3(.3, 2, .05)) - .05, c(x - vec3(7.5, 0, 0), vec3(.3, .05, 2)) - .05)),
-      .3);
-  t(3, f);
-  return min(F, f);
-}
-float fl(vec3 a) {
-  float F = length(a) - 13.;
-  if (F > 3.)
-    return F;
-  vec3 q = abs(a), f = vec3(q.x, abs(a.y - 4.58), q.z);
-  float m = V(xz(a.xzy - vec3(1.9, -1.5, .2)) * .5, min(1., (6. - iX.x) * .2)) / .5,
-        S = max(c(vec3(a.x, abs(a.y - 3.5) - 3.5, a.z), vec3(6, .2, 6)) - .05,
-            max(-Q(a - vec3(2, 7, 2), 1.5), -Q(a - vec3(5.7, 0, 4), .52)));
-  vec3 E = a - vec3(5, 7.6, -2);
-  E.xy *= v(.3);
-  vec3 re = vec3(a.xy, abs(a.z + 2.));
-  m = min(m,
-      min(min(e(re.xzy - vec3(-6, 1.1, 8.7), 1., 1.75), e(re.xzy - vec3(-6.5, 1.1, 0), .2, 8.)),
-          e(vec3(a.z, abs(a.y - 7.6), a.x) - vec3(-3, .2, 0), .1, 5.)));
-  float A = min(min(min(e(vec3(q.xz, a.y) - vec3(5, 5, 0), .5, 8.3), e(f.zyx - vec3(5.3, 3.5, 0), .05, 5.3)),
-                    max(e(f - vec3(5.3, 3.5, 0), .05, 5.3), -Q(a - vec3(5, .7, 4), .8))),
-      c(E, vec3(.5, .6, 1.5)) - .05);
-  t(1, A);
-  vec3 Y = a - vec3(2, 3.59, -.1);
-  Y.zy *= v(-.7853982);
-  Y.y -= iX.x;
-  m = min(m, c(Y, vec3(1, 5.1, .02)) - .05);
-  t(5, m);
-  float oa = min(min(S, m), A);
-  vec3 j = E - vec3(0, .8, 0);
-  if (length(j) - 1. < 2.) {
-    float R = min(min(H(j, vec2(.5, .02)), e(j.xzy + vec3(0, 0, .5), .02, .5)),
-        e(vec3(G(j.xz, 5., iB.x), j.y).zyx - vec3(0, 0, .25), .01, .25));
-    if (R < oa) {
-      t(2, R);
-      oa = R;
-    }
-  }
-  return oa;
-}
-float x(vec3 U) {
-  vec3 q = U.zyx - vec3(4, -1, 17);
-  q.zy *= v(-.19);
-  q.z -= 19. - iA.w;
-  return min(K(q, 21., 0.), e(q.xzy + vec3(0, 10.5, 6), .15, 5.));
-}
-float a(vec3 F) {
-  vec3 f = F - vec3(8.7, 9.3, 37);
-  float m = length(f.xz) - 5.;
-  if (m > 4.)
+float G(vec3 S) {
+  vec3 l = S.zyx - vec3(11, 1.25, -44);
+  float m = length(l) - 8.;
+  if (m > 5.)
     return m;
-  vec3 S = vec3(T(f.xz, 6.), f.y).xzy, E = vec3(S.x, w(f.y, 1.5, -3., 7.), S.z);
-  float re = max(
-      max(min(e(f.xzy, 1.1, 12.), max(L(e(f.xzy - vec3(0, 0, 14), 4., 2.), .2), -c(S - vec3(4, 14, 0), vec3(1, 1, 2)))),
-          -min(e(f.xzy, 1., 13.), c(E - vec3(1, 0, 0), vec3(.2, .3, .13)))),
-      -c(f + vec3(0, 7, 1), vec3(.8, 1.2, .8)));
-  vec3 A = vec3(f.x, f.y - iB.z, f.z);
-  float Y = e(A.xzy, 1., 11.);
-  A.y = w(A.y, 1.5, -7., 7.);
-  Y = max(Y, -H(A, vec2(1, .01)));
-  vec3 oa = vec3(f.x - .8, w(f.y - 12.7, 20.5, -1., 0.), f.z + .9);
-  float j = b(oa - vec3(0, .5, 0), .06),
-        mi = min(e(oa.xzy, .05, .5), min(c(oa - vec3(0, .5, 0), vec3(.05, .1, .1)), j));
-  t(2, j);
-  t(1, mi);
-  t(5, Y);
-  float R = min(min(re, min(mi, Y)), c(f + vec3(0, 10.3, 3), vec3(1.1, 2, 3)));
-  if ((iF & 16) != 0) {
-    float I = D(F - vec3(12.15, 22.31, 38.65));
-    if (I < R) {
-      t(2, I);
-      return I;
+  l.y -= 2.;
+  float ct = t(l - vec3(-2.7, -1, -1.3), vec3(.35, .5, .5)),
+        an = max(at(t(l, vec3(4, 1.6, 2)), .23),
+            -min(e(l - vec3(0, .5, 0), .8, 100.), t(l - vec3(4, -.37, 1), vec3(2, 1, .53))));
+  vec3 a = l - vec3(4, -.77, .5);
+  a.xz *= v(-iA.x * 3.1415927 / 2.);
+  float hi = t(a - vec3(0, .4, .5), vec3(.05, .99, .52));
+  l.x = F(l.x, .3, -10., 10.);
+  l.z = abs(l.z);
+  float zx = e(l.xzy - vec3(0, 2, .5), .01, 1.), yz = min(ct, hi);
+  c(1, zx);
+  c(-1, yz);
+  float ac = min(zx, min(an, yz)), R = 150.;
+  if ((iF & 4) != 0)
+    R = xp(S - vec3(-42, 3, 11.2));
+  if ((iF & 2) != 0)
+    R = min(R, mo(S.yzx - vec3(2, 7.4, -45.5)));
+  if (R < ac) {
+    c(2, R);
+    return R;
+  }
+  return ac;
+}
+float l(vec3 m) {
+  float an = length(m) - 9.;
+  if (an > 1.)
+    return an;
+  m.xz *= v(-.7853982);
+  float a = t(m - vec3(-1.5, 1, 5), vec3(1, .2, 3));
+  m.y -= iB.w;
+  vec3 hi = m.xzy - vec3(-2, 0, 2);
+  float zx = j(I(m - clamp(m, vec3(-6, 0, 0), vec3(6, 0, 0)), 1.7),
+      min(e(hi - clamp(hi, vec3(-.5, 0, 0), vec3(.5, 0, 0)), .4, .5),
+          min(t(m - vec3(7.5, 0, 0), vec3(.3, 2, .05)) - .05, t(m - vec3(7.5, 0, 0), vec3(.3, .05, 2)) - .05)),
+      .3);
+  c(3, zx);
+  return min(a, zx);
+}
+float an(vec3 a) {
+  float zx = length(a) - 13.;
+  if (zx > 3.)
+    return zx;
+  vec3 yz = abs(a), ac = vec3(yz.x, abs(a.y - 4.58), yz.z);
+  float R = ch(co(a.xzy - vec3(1.9, -1.5, .2)) * .5, min(1., (6. - iX.x) * .2)) / .5,
+        ep = max(t(vec3(a.x, abs(a.y - 3.5) - 3.5, a.z), vec3(6, .2, 6)) - .05,
+            max(-ve(a - vec3(2, 7, 2), 1.5), -ve(a - vec3(5.7, 0, 4), .52)));
+  vec3 ix = a - vec3(5, 7.6, -2);
+  ix.xy *= v(.3);
+  vec3 f = vec3(a.xy, abs(a.z + 2.));
+  R = min(R,
+      min(min(e(f.xzy - vec3(-6, 1.1, 8.7), 1., 1.75), e(f.xzy - vec3(-6.5, 1.1, 0), .2, 8.)),
+          e(vec3(a.z, abs(a.y - 7.6), a.x) - vec3(-3, .2, 0), .1, 5.)));
+  float hs = min(min(min(e(vec3(yz.xz, a.y) - vec3(5, 5, 0), .5, 8.3), e(ac.zyx - vec3(5.3, 3.5, 0), .05, 5.3)),
+                     max(e(ac - vec3(5.3, 3.5, 0), .05, 5.3), -ve(a - vec3(5, .7, 4), .8))),
+      t(ix, vec3(.5, .6, 1.5)) - .05);
+  c(1, hs);
+  vec3 V = a - vec3(2, 3.59, -.1);
+  V.zy *= v(-.7853982);
+  V.y -= iX.x;
+  R = min(R, t(V, vec3(1, 5.1, .02)) - .05);
+  c(5, R);
+  float c4 = min(min(ep, R), hs);
+  vec3 K = ix - vec3(0, .8, 0);
+  if (length(K) - 1. < 2.) {
+    float Y = min(min(li(K, vec2(.5, .02)), e(K.xzy + vec3(0, 0, .5), .02, .5)),
+        e(vec3(xy(K.xz, 5., iB.x), K.y).zyx - vec3(0, 0, .25), .01, .25));
+    if (Y < c4) {
+      c(2, Y);
+      c4 = Y;
     }
   }
-  return R;
+  return c4;
 }
-vec2 U;
-float F(vec3 f, vec3 m, vec2 S) {
-  f -= m;
-  float re = length(f) - 2.;
-  if (re > .5)
-    return re;
-  f.xz *= v(1.5707964);
-  U = (S - f.xy) / (S * 2.);
-  float A = c(f, vec3(S, .01));
-  return A;
+float zx(vec3 yz) {
+  vec3 R = yz.zyx - vec3(4, -1, 17);
+  R.zy *= v(-.19);
+  R.z -= 19. - iA.w;
+  return min(oi(R, 21., 0.), e(R.xzy + vec3(0, 10.5, 6), .15, 5.));
 }
-float q(vec3 m) {
-  vec3 E = abs(vec3(m.x, m.y + 3., m.z)) - vec3(60, 0, 39);
-  if (E.x < 0. && E.z < 0.)
-    E.y -= ur(textureLod(tH, m.xz / vec2(120, 78) + .5, 0.)) * 19.;
-  return min(E.y, 0.) + length(max(E, 0.));
-}
-float f(vec3 S) {
-  float re = K(S - vec3(45, 1.7, 22.4), 10., 2.), A = k(S - vec3(2, 10, 2)), Y = s(S - vec3(47.5, 3.5, 30.5)),
-        oa = i(S);
-  vec3 j = S - vec3(26, 5, -58);
-  j.xz *= v(1.9707963);
-  float mi = fl(j), R = x(j), Z = l(j.zyx - vec3(-2, 9.7, 32.5)), I = a(S), y = C(S - vec3(-46, -.5, -30)),
-        z = min(min(min(re, A), min(Y, oa)), min(mi, min(R, min(I, y))));
-  if (Z < z) {
-    t(1, Z);
-    return Z;
+float R(vec3 ep) {
+  vec3 f = ep - vec3(8.7, 9.3, 37);
+  float hs = length(f.xz) - 5.;
+  if (hs > 4.)
+    return hs;
+  vec3 V = vec3(gt(f.xz, 6.), f.y).xzy, c4 = vec3(V.x, F(f.y, 1.5, -3., 7.), V.z);
+  float K = max(max(min(e(f.xzy, 1.1, 12.),
+                        max(at(e(f.xzy - vec3(0, 0, 14), 4., 2.), .2), -t(V - vec3(4, 14, 0), vec3(1, 1, 2)))),
+                    -min(e(f.xzy, 1., 13.), t(c4 - vec3(1, 0, 0), vec3(.2, .3, .13)))),
+      -t(f + vec3(0, 7, 1), vec3(.8, 1.2, .8)));
+  vec3 re = vec3(f.x, f.y - iB.z, f.z);
+  float Y = e(re.xzy, 1., 11.);
+  re.y = F(re.y, 1.5, -7., 7.);
+  Y = max(Y, -li(re, vec2(1, .01)));
+  vec3 mi = vec3(f.x - .8, F(f.y - 12.7, 20.5, -1., 0.), f.z + .9);
+  float ef = I(mi - vec3(0, .5, 0), .06),
+        X = min(e(mi.xzy, .05, .5), min(t(mi - vec3(0, .5, 0), vec3(.05, .1, .1)), ef));
+  c(2, ef);
+  c(1, X);
+  c(5, Y);
+  float P = min(min(K, min(X, Y)), t(f + vec3(0, 10.3, 3), vec3(1.1, 2, 3)));
+  if ((iF & 16) != 0) {
+    float rm = vo(ep - vec3(12.15, 22.31, 38.65));
+    if (rm < P) {
+      c(2, rm);
+      return rm;
+    }
   }
-  t(0, z);
-  return z;
+  return P;
 }
-int m = 0;
-float S(vec3 re) {
-  float Y = q(re);
-  if (Y <= u) {
-    m = 1;
+vec2 ix;
+float hs(vec3 V, vec3 c4, vec2 K) {
+  V -= c4;
+  float Y = length(V) - 2.;
+  if (Y > .5)
     return Y;
-  }
-  float oa = f(re), j = F(re, vec3(4.76, 14.42, 4), vec2(.45, .29)), mi = min(j, oa);
-  if (Y < mi) {
-    m = 1;
-    return Y;
-  }
-  m = j <= oa ? 3 : 2;
+  V.xz *= v(1.5707964);
+  ix = (K - V.xy) / (K * 2.);
+  float mi = t(V, vec3(K, .01));
   return mi;
 }
-vec3 E(vec3 A) {
-  return normalize(vec3(f(A + vec3(.001, 0, 0)), f(A + vec3(0, .001, 0)), f(A + vec3(0, 0, .001))) - f(A));
+float Y(vec3 mi) {
+  vec3 X = abs(vec3(mi.x, mi.y + 3., mi.z)) - vec3(60, 0, 39);
+  if (X.x < 0. && X.z < 0.)
+    X.y -= q(textureLod(tH, mi.xz / vec2(120, 78) + .5, 0.)) * 19.;
+  return min(X.y, 0.) + length(max(X, 0.));
 }
-vec3 re(vec3 Y, float oa) {
-  vec2 mi = vec2(mix(.03, .001, min(oa / 120., 1.)), 0);
-  return normalize(vec3(q(Y + mi.xyy), q(Y + mi.yxy), q(Y + mi.yyx)) - q(Y));
+float X(vec3 P) {
+  float rm = oi(P - vec3(45, 1.7, 22.4), 10., 2.), fr = it(P - vec3(2, 10, 2)), ot = tc(P - vec3(47.5, 3.5, 30.5)),
+        sa = G(P);
+  vec3 tu = P - vec3(26, 5, -58);
+  tu.xz *= v(1.9707963);
+  float ur = an(tu), iv = zx(tu), nt = oo(tu.zyx - vec3(-2, 9.7, 32.5)), et = R(P), ul = l(P - vec3(-46, -.5, -30)),
+        te = min(min(min(rm, fr), min(ot, sa)), min(ur, min(iv, min(et, ul))));
+  if (nt < te) {
+    c(1, nt);
+    return nt;
+  }
+  c(0, te);
+  return te;
 }
-float A(vec3 oa, vec3 j, float mi, float R) {
-  float I = mi;
-  for (int z = 0;; z++) {
-    vec3 P = oa + j * R;
-    u = mi * max(R, 1.);
-    if (P.y <= -2.9995 || R >= 150.) {
-      float o = (-3. - oa.y) / j.y;
-      if (o >= 0. && o < 500.) {
-        m = 1;
-        return o;
+int y = 0;
+float fr(vec3 ot) {
+  float tu = Y(ot);
+  if (tu <= s) {
+    y = 1;
+    return tu;
+  }
+  float ur = X(ot), iv = hs(ot, vec3(4.76, 14.42, 4), vec2(.45, .29)), nt = min(iv, ur);
+  if (tu < nt) {
+    y = 1;
+    return tu;
+  }
+  y = iv <= ur ? 3 : 2;
+  return nt;
+}
+vec3 tu(vec3 ur) {
+  return normalize(vec3(X(ur + vec3(.001, 0, 0)), X(ur + vec3(0, .001, 0)), X(ur + vec3(0, 0, .001))) - X(ur));
+}
+vec3 nt(vec3 et, float ul) {
+  vec2 ak = vec2(mix(.03, .001, min(ul / 120., 1.)), 0);
+  return normalize(vec3(Y(et + ak.xyy), Y(et + ak.yxy), Y(et + ak.yyx)) - Y(et));
+}
+float ak(vec3 ls, vec3 lF, float ra, float M) {
+  float br = ra;
+  for (int ta = 0;; ta++) {
+    vec3 xz = ls + lF * M;
+    s = ra * max(M, 1.);
+    if (xz.y <= -2.9995 || M >= 150.) {
+      float H = (-3. - ls.y) / lF.y;
+      if (H >= 0. && H < 500.) {
+        y = 1;
+        return H;
       }
       break;
     }
-    if (P.y > 45.)
+    if (xz.y > 45.)
       break;
-    float d = S(P);
-    if (d < 0.) {
-      R -= I;
-      d = I / 2.;
+    float Z = fr(xz);
+    if (Z < 0.) {
+      M -= br;
+      Z = br / 2.;
     }
-    R += d;
-    if (d <= u || z >= 100)
-      return R;
-    I = d;
+    M += Z;
+    if (Z <= s || ta >= 100)
+      return M;
+    br = Z;
   }
-  m = 0;
+  y = 0;
   return 500.;
 }
-float Y(vec3 j, float mi, vec3 R, float Z) {
-  float y = clamp(mi * .005, .01, .1);
-  j = j + R * y;
-  float z = iS.w - u * 2.;
-  for (float P = 1.; P < 50.; P++) {
-    vec3 o = j + iS.xyz * y;
-    if (y >= 80. || o.y > 45. || o.y < z || length(j) >= 150.)
+float br(vec3 rn, float ta, vec3 ut, float xz) {
+  float H = clamp(ta * .005, .01, .1);
+  rn = rn + ut * H;
+  float zw = iS.w - s * 2.;
+  for (float ea = 1.; ea < 50.; ea++) {
+    vec3 T = rn + iS.xyz * H;
+    if (H >= 80. || T.y > 45. || T.y < zw || length(rn) >= 150.)
       break;
-    float h = f(o), O = max(u, .01 * min(1., y) + P * 2e-4);
-    if (h <= O)
+    float ex = X(T), tB = max(s, .01 * min(1., H) + ea * 2e-4);
+    if (ex <= tB)
       return 0.;
-    Z = min(Z, 85. * h / y);
-    if (Z < .078)
+    xz = min(xz, 85. * ex / H);
+    if (xz < .078)
       return 0.;
-    y += h + u;
+    H += ex + s;
   }
-  return Z;
+  return xz;
 }
-float oa(vec3 mi, vec3 R) {
-  float I = (iS.w - mi.y) / R.y;
-  return min(I >= 0. ? I : 500., 500.);
+float H(vec3 zw, vec3 ol) {
+  float ts = (iS.w - zw.y) / ol.y;
+  return min(ts >= 0. ? ts : 500., 500.);
 }
-vec3 j(vec2 R) {
-  vec3 I = vec3(0);
-  float y = 0., z = 1., th = 0., P = 1. - length(iP.xz - R) / 500., d = 5. * P * P;
-  for (float h = 0.; h < d; ++h) {
-    R += iD.w * .5;
-    th *= -.75;
-    vec3 r = et(R + sin(R.yx * .5 + iD.w * .5) * .5);
-    I += r * z;
-    R += r.yz * .43;
-    R *= 2.;
-    y += z;
-    z *= .75;
+vec3 ts(vec2 T) {
+  vec3 tB = vec3(0);
+  float t2 = 0., yx = 1., ou = 0., xe = 1. - length(iP.xz - T) / 500., oF = 5. * xe * xe;
+  for (float z = 0.; z < oF; ++z) {
+    T += iD.w * .5;
+    ou *= -.75;
+    vec3 ma = xt(T + sin(T.yx * .5 + iD.w * .5) * .5);
+    tB += ma * yx;
+    T += ma.yz * .43;
+    T *= 2.;
+    t2 += yx;
+    yx *= .75;
   }
-  return I / y;
+  return tB / t2;
 }
-vec3 mi(vec3 Z, float I, vec3 y) {
-  float th = min(I / 500., 1.), P = n(pow(th, 3.5) + 1. - exp(-I * .005)), d = max(dot(y, iS.xyz), 0.);
-  vec3 o = mix(vec3(.4, .8, 1), vec3(1.065, .95, .85), pow(d, 10.));
-  return mix(Z, o, P);
+vec3 tB(vec3 t2, float yx, vec3 ou) {
+  float oF = min(yx / 500., 1.), O = n(pow(oF, 3.5) + 1. - exp(-yx * .005)), z = max(dot(ou, iS.xyz), 0.);
+  vec3 oU = mix(vec3(.4, .8, 1), vec3(1.065, .95, .85), pow(z, 10.));
+  return mix(t2, oU, O);
 }
-vec3 R(vec3 I, vec3 y) {
-  vec4 packed = texelFetch(tP, ivec2(FC * 256. / iR), 0);
-  float th = uintBitsToFloat(uint(packed.x * 255.) << 24 | uint(packed.y * 255.) << 16 | uint(packed.z * 255.) << 8 |
-            uint(packed.w * 255.)),
-        P = A(I, y, .001, th), d = oa(I, y);
-  vec3 o, h = vec3(0, 1, 0);
-  float O = P;
-  if (m == 3)
-    return iB.y > 0. ? texture(tS, U).xyz : vec3(0);
-  vec3 r = I + y * P;
-  bool J = d < 500. && d < P;
-  vec3 c2;
-  float B = 0.;
-  if (J) {
-    B = mix(.2, 1., n((P - d) / 3.));
-    vec3 le = I + y * d, W = mix(vec3(0), j(le.xz * (.7 - iS.w * .02)) * (1. - length(le) / 450.), B);
-    h = normalize(vec3(W.y, 1., W.x));
-    d -= abs(W.z) * B * .6;
-    O = d;
-    c2 = mix(vec3(.25, .52, .73), vec3(.15, .62, .83), n(abs(W.z) - B));
+vec3 oF(vec3 O, vec3 z) {
+  vec4 ma = texelFetch(tP, ivec2(FC * 256. / iR), 0);
+  float sT = uintBitsToFloat(
+            uint(ma.x * 255.) << 24 | uint(ma.y * 255.) << 16 | uint(ma.z * 255.) << 8 | uint(ma.w * 255.)),
+        B = ak(O, z, .001, sT), L = H(O, z);
+  vec3 o, g = vec3(0, 1, 0);
+  float c2 = B;
+  if (y == 3)
+    return iB.y > 0. ? texture(tS, ix).xyz : vec3(0);
+  vec3 x = O + z * B;
+  bool st = L < 500. && L < B;
+  vec3 sm;
+  float N = 0.;
+  if (st) {
+    N = mix(.2, 1., n((B - L) / 3.));
+    vec3 sw = O + z * L, zy = mix(vec3(0), ts(sw.xz * (.7 - iS.w * .02)) * (1. - length(sw) / 450.), N);
+    g = normalize(vec3(zy.y, 1., zy.x));
+    L -= abs(zy.z) * N * .6;
+    c2 = L;
+    sm = mix(vec3(.25, .52, .73), vec3(.15, .62, .83), n(abs(zy.z) - N));
   }
-  int tu = m, le = c3;
-  if (m == 0)
+  int u = y, sw = iz;
+  if (y == 0)
     o = vec3(.4, .8, 1);
   else {
-    vec3 p;
-    if (r.y <= -2.9995) {
-      p = vec3(0, 1, 0);
+    vec3 w;
+    if (x.y <= -2.9995) {
+      w = vec3(0, 1, 0);
       o = vec3(1);
     } else {
       o = vec3(.8);
-      switch (tu) {
+      switch (u) {
         case 1:
-          p = re(r, P);
+          w = nt(x, B);
           o = mix(vec3(.93, .8, .64),
-                  mix(vec3(.69 + texture(tN, r.xz * 1e-4).x, .67, .65), vec3(.38, .52, .23), dot(p, vec3(0, 1, 0))),
-                  n(r.y * .5 - 1.)) +
-              texture(tN, r.xz * .15).x * .1 + texture(tN, r.xz * .01).y * .1;
+                  mix(vec3(.69 + texture(tN, x.xz * 1e-4).x, .67, .65), vec3(.38, .52, .23), dot(w, vec3(0, 1, 0))),
+                  n(x.y * .5 - 1.)) +
+              texture(tN, x.xz * .15).x * .1 + texture(tN, x.xz * .01).y * .1;
           break;
         case 2:
-          p = E(r);
-          switch (le) {
+          w = tu(x);
+          switch (sw) {
             case 1: o = vec3(1); break;
             case 2: o = vec3(1, 0, 0); break;
             case 3: o = vec3(.5, 0, 0); break;
@@ -508,72 +503,72 @@ vec3 R(vec3 I, vec3 y) {
             case 5: o = vec3(1, .95, .8); break;
             case -1: o = vec3(.64000005, .48000002, .32000002); break;
             default:
-              vec4 ec =
-                  texture(tN, r.xy * .35) * p.z + texture(tN, r.yz * .35) * p.x + texture(tN, r.xz * .35) * p.y - .5;
-              o += .125 * (ec.x - ec.y + ec.z - ec.w);
+              vec4 le =
+                  texture(tN, x.xy * .35) * w.z + texture(tN, x.yz * .35) * w.x + texture(tN, x.xz * .35) * w.y - .5;
+              o += .125 * (le.x - le.y + le.z - le.w);
               break;
           }
       }
-      h = normalize(mix(p, h, B));
+      g = normalize(mix(w, g, N));
     }
   }
-  float W = J || tu == 2 && le > 0 ? pow(n(dot(iS.xyz, reflect(y, h))), 50.) : 0., p = n(dot(iS.xyz, h)),
-        ax = n(dot(iS.xyz * vec3(-1, 1, -1), h)), g = p + ax * .15;
-  if (tu == 1)
-    g = pow(g * mix(.9, 1.02, p * p), 1. + p * .6);
-  g = mix(g, p, B);
-  float ve = 1.;
-  if (m != 0)
-    ve = Y(I + y * O, O, h, 1.);
-  if ((iF & 1) != 0 && P < 20.) {
-    float zy = pow(clamp(dot(iD.xyz, y), 0., 1.), 32.) * smoothstep(10., 0., P);
-    g += zy * max(dot(h, -y), 0.) * (1. - g);
-    ve += zy * (1. - ve);
+  float zy = st || u == 2 && sw > 0 ? pow(n(dot(iS.xyz, reflect(z, g))), 50.) : 0., w = n(dot(iS.xyz, g)),
+        U = n(dot(iS.xyz * vec3(-1, 1, -1), g)), d = w + U * .15;
+  if (u == 1)
+    d = pow(d * mix(.9, 1.02, w * w), 1. + w * .6);
+  d = mix(d, w, N);
+  float th = 1.;
+  if (y != 0)
+    th = br(O + z * c2, c2, g, 1.);
+  if ((iF & 1) != 0 && B < 20.) {
+    float W = pow(clamp(dot(iD.xyz, z), 0., 1.), 32.) * smoothstep(10., 0., B);
+    d += W * max(dot(g, -z), 0.) * (1. - d);
+    th += W * (1. - th);
   }
-  o = mix(o, c2, B);
-  o = (o * vec3(1.065, .95, .85) * g + W) * mix(.38 + (1. - g) * .2, 1., ve);
-  return mi(o, O, y);
+  o = mix(o, sm, N);
+  o = (o * vec3(1.065, .95, .85) * d + zy) * mix(.38 + (1. - d) * .2, 1., th);
+  return tB(o, c2, z);
 }
 void main_c() {
-  vec3 y = vec3(0, 0, 1);
-  y.xz *= v(FC.x * .049087387 + 3.1415927);
-  oC = rn(.2 - S(vec3(iP.x, iP.y + (FC.y / 64. - 1.) - .8, iP.z) + normalize(y) * .15));
+  vec3 sT = vec3(0, 0, 1);
+  sT.xz *= v(FC.x * .049087387 + 3.1415927);
+  oC = ca(.2 - fr(vec3(iP.x, iP.y + (FC.y / 64. - 1.) - .8, iP.z) + normalize(sT) * .15));
 }
 void main_p() {
-  vec2 y = FC / 128. - 1. + .001953125;
-  vec3 z = normalize(iM * vec3(y.x * -1.5, y.y, 2.4142134));
-  float th = A(iP, z, .0046875, .15);
-  uint packed = floatBitsToUint(th >= 150. ? 150. : th - u);
-  oC = vec4(float(packed >> 24 & 255u) / 255., float(packed >> 16 & 255u) / 255., float(packed >> 8 & 255u) / 255.,
-      float(packed & 255u) / 255.);
+  vec2 B = FC / 128. - 1. + .001953125;
+  vec3 L = normalize(iM * vec3(B.x * -1.5, B.y, 2.4142134));
+  float o = ak(iP, L, .0046875, .15);
+  uint g = floatBitsToUint(o >= 150. ? 150. : o - s);
+  oC = vec4(
+      float(g >> 24 & 255u) / 255., float(g >> 16 & 255u) / 255., float(g >> 8 & 255u) / 255., float(g & 255u) / 255.);
 }
 void main_m() {
-  vec2 y = FC / (iR * .5) - 1.;
-  vec3 z = normalize(iM * vec3(y.x * -1.5, y.y, 2.4142134));
-  oC = vec4(R(iP, z), 1);
+  vec2 L = FC / (iR * .5) - 1.;
+  vec3 o = normalize(iM * vec3(L.x * -1.5, L.y, 2.4142134));
+  oC = vec4(oF(iP, o), 1);
 }
-float Z(vec2 y, float z, float th, float P, float d) {
-  vec2 h = y - vec2(z, th);
-  return n(1. - smoothstep(P - P * d, P, dot(h, h) * 4.));
+float L(vec2 o, float g, float c2, float x, float st) {
+  vec2 N = o - vec2(g, c2);
+  return n(1. - smoothstep(x - x * st, x, dot(N, N) * 4.));
 }
 void main_h() {
-  vec2 z = FC / (iR * .5) - 1., th = vec2(1.3, 1), P = vec2(0);
-  float d = 0., o = 1., h = 1., O = 0., r = 1.;
-  while (r < 11.) {
-    vec3 B = et(21.1 + z * th * v(r++ * 2.4));
-    P += B.yz;
-    d += h * (1. - B.x) / (1. + dot(P, P));
-    o += h * (.5 - B.x);
-    O += h;
-    h *= .5;
-    th *= 1.8;
+  vec2 u = FC / (iR * .5) - 1., sw = vec2(1.3, 1), zy = vec2(0);
+  float w = 0., U = 1., d = 1., th = 0., le = 1.;
+  while (le < 11.) {
+    vec3 se = xt(21.1 + u * sw * v(le++ * 2.4));
+    zy += se.yz;
+    w += d * (1. - se.x) / (1. + dot(zy, zy));
+    U += d * (.5 - se.x);
+    th += d;
+    d *= .5;
+    sw *= 1.8;
   }
-  d /= O;
-  o *= .5;
-  float J = length(z * (1.2 - o + d)) * n(o + .55 - .5 * d * z.x * (1. - z.y * .5)),
-        c2 = Z(z, -.45, -.52, 1., 2.3) + Z(z, -.6, -.1, 1., 3.3) + Z(z, .6, -.7, 1., 5.) + Z(z, .84, .84, d, o * 5.);
-  J = n(1. - X(J, 1. - mix(0., d * 2., c2), .05 + o * .5));
-  vec2 B = 1. - abs(z) + d * .04;
-  J = X(J, X(B.x, B.y, .3) * 2., .1);
-  oC = rn(X(d, J, .01) * 1.33 - .045);
+  w /= th;
+  U *= .5;
+  float W = length(u * (1.2 - U + w)) * n(U + .55 - .5 * w * u.x * (1. - u.y * .5)),
+        se = L(u, -.45, -.52, 1., 2.3) + L(u, -.6, -.1, 1., 3.3) + L(u, .6, -.7, 1., 5.) + L(u, .84, .84, w, U * 5.);
+  W = n(1. - j(W, 1. - mix(0., w * 2., se), .05 + U * .5));
+  vec2 yy = 1. - abs(u) + w * .04;
+  W = j(W, j(yy.x, yy.y, .3) * 2., .1);
+  oC = ca(j(w, W, .01) * 1.33 - .045);
 }
