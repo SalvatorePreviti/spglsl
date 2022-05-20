@@ -31,12 +31,6 @@ class SpglslSymbolUsage {
       const SpglslGlslPrecisions & precisions,
       SpglslSymbolGenerator * generator = nullptr);
 
-  /**
-   * Computes all mangleId for the given AST.
-   * Returns the maximum mangleId generated. Must be called after load()
-   */
-  int genMangleIds(sh::TIntermBlock * root);
-
   bool isReservedWord(const std::string & word) const;
   void addReservedWord(const std::string & word);
 
