@@ -24,7 +24,7 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
     return result;
   }
 
-  const std::string & getSymbolName(const sh::TSymbol * symbol) override {
+  const std::string & getSymbolName(const sh::TSymbol * symbol, bool isDeclaration) override {
     auto & symentry = this->symbols.get(symbol);
     if (!symentry.symbol || symentry.symbolName.empty()) {
       return Strings::empty;
@@ -38,12 +38,18 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
       entry.insertionOrder = (uint32_t)(this->usage.map.size());
     }
     ++entry.frequency;
-    for (auto & scope : this->scopesStack) {
-      auto & scopeSymbols = this->usage.scopesUsedSymbols[scope];
-      if (!scopeSymbols.usedSymbols.emplace(symbol).second || scopeSymbols.declaredSymbols.count(symbol) != 0) {
-        break;
+
+    if (isDeclaration) {
+      this->assignMangleId(symbol);
+
+      for (auto & scope : this->scopesStack) {
+        auto & scopeSymbols = this->usage.scopesUsedSymbols[scope];
+        if (!scopeSymbols.usedSymbols.emplace(symbol).second || scopeSymbols.declaredSymbols.count(symbol) != 0) {
+          break;
+        }
       }
     }
+
     return Strings::empty;
   }
 
@@ -55,8 +61,6 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
   void onSymbolDeclaration(const sh::TSymbol * symbol,
       sh::TIntermNode * node,
       SpglslSymbolDeclarationKind kind) override {
-    this->assignMangleId(symbol);
-
     this->usage.scopesUsedSymbols[this->getCurrentScope()].declaredSymbols.emplace(symbol);
 
     SpglslAngleWebglOutput::onSymbolDeclaration(symbol, node, kind);
