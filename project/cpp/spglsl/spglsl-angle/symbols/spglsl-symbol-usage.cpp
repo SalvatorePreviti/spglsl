@@ -93,6 +93,58 @@ void SpglslSymbolUsage::addReservedWord(const std::string & word) {
   this->_additionalReservedWords.emplace(word);
 }
 
+class GenMangleIdTraverser : public SpglslScopedTraverser {
+ public:
+  SpglslSymbolUsage & usage;
+
+  std::stack<int> scopeStack;
+
+  int maxId;
+
+  explicit GenMangleIdTraverser(SpglslSymbolUsage & usage) :
+      SpglslScopedTraverser(usage.symbols), usage(usage), maxId(0) {
+    this->scopeStack.push(0);
+  }
+
+  void assignMangleId(const sh::TSymbol * symbol) {
+    auto & info = this->symbols.get(symbol);
+    if (info.mangleId == -1) {
+      if (this->symbols.getIsReserved(info)) {
+        info.mangleId = -2;
+      } else {
+        int newId = this->scopeStack.top()++;
+        info.mangleId = newId;
+        if (newId > this->maxId) {
+          this->maxId = newId;
+        }
+      }
+    }
+  }
+
+  void onScopeBegin(sh::TIntermNode * node) override {
+    this->scopeStack.push(this->scopeStack.top());
+  }
+
+  void onSymbolDeclaration(const sh::TSymbol * symbol,
+      sh::TIntermNode * node,
+      SpglslSymbolDeclarationKind kind) override {
+    this->assignMangleId(symbol);
+  }
+
+  void onScopeEnd(sh::TIntermNode * node) override {
+    if (!this->scopeStack.empty()) {
+      this->scopeStack.pop();
+    }
+  }
+};
+
+int SpglslSymbolUsage::genMangleIds(sh::TIntermBlock * root) {
+  this->symbols.clearMangleId();
+  GenMangleIdTraverser traverser(*this);
+  root->traverse(&traverser);
+  return traverser.maxId;
+}
+
 ////////////////////////////////////////
 //    Class SpglslSymbolGenerator
 ////////////////////////////////////////

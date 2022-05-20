@@ -122,11 +122,10 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
 }
 
 void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
-  this->symbols.genMangleIds(root);
-
   SpglslSymbolUsage usage(this->symbols);
   SpglslSymbolGenerator symgen(usage);
   usage.load(root, this->precisions, &symgen);
+  usage.genMangleIds(root);
 
   for (const auto & entry : usage.sorted) {
     if (entry->entry->mangleId >= 0) {

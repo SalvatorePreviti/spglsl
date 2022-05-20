@@ -50,9 +50,6 @@ class SpglslSymbols {
   /** Resets all mangleId to -1 */
   void clearMangleId();
 
-  /** Computes again all mangleId for the given AST. Returns the maximum mangleId generated. */
-  int genMangleIds(sh::TIntermBlock * root);
-
   inline const std::string & getName(const sh::TSymbol * symbol) {
     const auto & info = this->get(symbol);
     return info.renamed.empty() ? info.symbolName : info.renamed;

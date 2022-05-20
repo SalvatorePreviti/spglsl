@@ -39,7 +39,7 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
   }
 
   inline sh::TIntermNode * getCurrentScope() const {
-    return this->_scopesStack.empty() ? nullptr : *this->_scopesStack.begin();
+    return this->_scopesStack.empty() ? nullptr : *this->_scopesStack.end();
   }
 
   virtual void onScopeBegin(sh::TIntermNode * node);
