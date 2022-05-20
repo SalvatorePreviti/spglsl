@@ -12,11 +12,18 @@ struct SpglslSymbolUsageInfo {
 
 class SpglslSymbolGenerator;
 
+class SpglslScopeSymbols {
+ public:
+  std::unordered_set<const sh::TSymbol *> usedSymbols;
+  std::unordered_set<const sh::TSymbol *> declaredSymbols;
+};
+
 class SpglslSymbolUsage {
  public:
   SpglslSymbols & symbols;
   std::unordered_map<const sh::TSymbol *, SpglslSymbolUsageInfo> map;
   std::vector<SpglslSymbolUsageInfo *> sorted;
+  std::unordered_map<sh::TIntermNode *, SpglslScopeSymbols> scopesUsedSymbols;
 
   explicit SpglslSymbolUsage(SpglslSymbols & symbols);
 

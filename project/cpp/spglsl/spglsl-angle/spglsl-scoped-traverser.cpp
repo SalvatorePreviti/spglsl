@@ -10,6 +10,11 @@ SpglslScopedTraverser::SpglslScopedTraverser(SpglslSymbols & symbols) :
 void SpglslScopedTraverser::onScopeBegin(sh::TIntermNode * node) {
 }
 
+void SpglslScopedTraverser::onSymbolDeclaration(const sh::TSymbol * symbol,
+    sh::TIntermNode * node,
+    SpglslSymbolDeclarationKind kind) {
+}
+
 void SpglslScopedTraverser::onScopeEnd(sh::TIntermNode * node) {
 }
 
@@ -56,6 +61,10 @@ void SpglslScopedTraverser::onVisitDoWhileLoop(sh::TIntermLoop * node) {
   this->traverseNode(node->getCondition());
 }
 
+bool SpglslScopedTraverser::visitVariableDeclaration(sh::TIntermNode * node, sh::TIntermDeclaration * declarationNode) {
+  return true;
+}
+
 void SpglslScopedTraverser::traverseNode(sh::TIntermNode * node) {
   if (node) {
     node->traverse(this);
@@ -84,12 +93,11 @@ void SpglslScopedTraverser::popScope() {
 }
 
 bool SpglslScopedTraverser::visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) {
-  this->beforeVisitFunctionDefinition(node);
-
+  auto * proto = node->getFunctionPrototype();
   auto * body = node->getBody();
 
+  this->beforeVisitFunctionDefinition(node);
   this->_fnDefinitionStack.push(node);
-  auto * proto = node->getFunctionPrototype();
   if (body) {
     if (proto) {
       this->traverseNode(proto);
@@ -119,15 +127,57 @@ void SpglslScopedTraverser::visitFunctionPrototype(sh::TIntermFunctionPrototype 
   auto * def = isCurrentFunctionDefinitionPrototype ? currentFunctionDefinition : nullptr;
   this->beforeVisitFunctionPrototype(node, def);
 
+  const auto * func = node->getFunction();
+
   if (isCurrentFunctionDefinitionPrototype) {
+    this->onSymbolDeclaration(func, node, SpglslSymbolDeclarationKind::FunctionDefinition);
+
     auto * body = currentFunctionDefinition->getBody();
     if (body) {
       this->pushScope(body);
     } else {
       this->pushScope(currentFunctionDefinition);
     }
+
+    for (size_t i = 0, len = func->getParamCount(); i < len; ++i) {
+      const auto * var = func->getParam(i);
+      this->onSymbolDeclaration(var, node, SpglslSymbolDeclarationKind::FunctionParameter);
+    }
+
+  } else {
+    this->onSymbolDeclaration(func, node, SpglslSymbolDeclarationKind::FunctionPrototype);
   }
   this->afterVisitFunctionPrototype(node, def);
+}
+
+bool SpglslScopedTraverser::visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) {
+  if (visit == sh::PreVisit) {
+    size_t childCount = node->getChildCount();
+    for (size_t i = 0; i < childCount; ++i) {
+      auto * child = node->getChildNode(i);
+      if (child) {
+        sh::TIntermSymbol * symbolNode = child->getAsSymbolNode();
+        if (symbolNode) {
+          this->onSymbolDeclaration(&symbolNode->variable(), symbolNode, SpglslSymbolDeclarationKind::Variable);
+        } else {
+          sh::TIntermBinary * binaryNode = child->getAsBinaryNode();
+          if (binaryNode) {
+            sh::TIntermTyped * left = binaryNode->getLeft();
+            if (left) {
+              sh::TIntermSymbol * leftAsSym = left->getAsSymbolNode();
+              if (leftAsSym) {
+                this->onSymbolDeclaration(&leftAsSym->variable(), leftAsSym, SpglslSymbolDeclarationKind::Variable);
+              }
+            }
+          }
+        }
+        if (!child->getAsSymbolNode() || this->visitVariableDeclaration(child, node)) {
+          this->traverseNode(child);
+        }
+      }
+    }
+  }
+  return false;
 }
 
 bool SpglslScopedTraverser::visitBlock(sh::Visit visit, sh::TIntermBlock * node) {

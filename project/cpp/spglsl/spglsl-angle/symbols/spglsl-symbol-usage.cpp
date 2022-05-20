@@ -4,6 +4,8 @@
 #include "../spglsl-angle-webgl-output.h"
 #include "spglsl-symbol-usage.h"
 
+#include <iostream>
+
 class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
  public:
   SpglslSymbolUsage & usage;
@@ -12,6 +14,12 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
       SpglslSymbolUsage & usage,
       const SpglslGlslPrecisions & precisions) :
       SpglslAngleWebglOutput(out, usage.symbols, precisions, false), usage(usage) {
+  }
+
+  std::string getBuiltinTypeName(const sh::TType * type) override {
+    auto result = SpglslAngleWebglOutput::getBuiltinTypeName(type);
+    this->usage.addReservedWord(result);
+    return result;
   }
 
   const std::string & getSymbolName(const sh::TSymbol * symbol) override {
@@ -28,13 +36,19 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
       entry.insertionOrder = (uint32_t)(this->usage.map.size());
     }
     ++entry.frequency;
+    for (auto & scope : this->scopesStack) {
+      auto & scopeSymbols = this->usage.scopesUsedSymbols[scope];
+      if (!scopeSymbols.usedSymbols.emplace(symbol).second || scopeSymbols.declaredSymbols.count(symbol) != 0) {
+        break;
+      }
+    }
     return Strings::empty;
   }
 
-  std::string getBuiltinTypeName(const sh::TType * type) override {
-    auto result = SpglslAngleWebglOutput::getBuiltinTypeName(type);
-    this->usage.addReservedWord(result);
-    return result;
+  void onSymbolDeclaration(const sh::TSymbol * symbol,
+      sh::TIntermNode * node,
+      SpglslSymbolDeclarationKind kind) override {
+    this->usage.scopesUsedSymbols[this->getCurrentScope()].declaredSymbols.emplace(symbol);
   }
 };
 

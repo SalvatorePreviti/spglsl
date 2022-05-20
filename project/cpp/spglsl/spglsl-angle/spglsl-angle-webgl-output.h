@@ -34,8 +34,8 @@ class SpglslAngleWebglOutput : public SpglslScopedTraverser, public SpglslGlslWr
   bool visitCase(sh::Visit visit, sh::TIntermCase * node) override;
   bool visitAggregate(sh::Visit visit, sh::TIntermAggregate * node) override;
   bool visitGlobalQualifierDeclaration(sh::Visit visit, sh::TIntermGlobalQualifierDeclaration * node) override;
-  bool visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) override;
   bool visitBranch(sh::Visit visit, sh::TIntermBranch * node) override;
+  bool visitVariableDeclaration(sh::TIntermNode * node, sh::TIntermDeclaration * declarationNode) override;
 
   void writeHeader(int shaderVersion, const TPragma & pragma, const sh::TExtensionBehavior & extensionBehavior);
   void writeTOperatorNode(sh::TIntermOperator * node);

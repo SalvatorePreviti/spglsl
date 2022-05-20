@@ -152,56 +152,16 @@ class GenMangleIdTraverser : public SpglslScopedTraverser {
     this->scopeStack.push(this->scopeStack.top());
   }
 
+  void onSymbolDeclaration(const sh::TSymbol * symbol,
+      sh::TIntermNode * node,
+      SpglslSymbolDeclarationKind kind) override {
+    this->assignMangleId(symbol);
+  }
+
   void onScopeEnd(sh::TIntermNode * node) override {
     if (!this->scopeStack.empty()) {
       this->scopeStack.pop();
     }
-  }
-
-  void beforeVisitFunctionDefinition(sh::TIntermFunctionDefinition * node) override {
-    this->assignMangleId(node->getFunction());
-  }
-
-  void afterVisitFunctionPrototype(sh::TIntermFunctionPrototype * proto,
-      sh::TIntermFunctionDefinition * definition) override {
-    const auto * func = proto->getFunction();
-    this->assignMangleId(func);
-    if (definition) {
-      if (func) {
-        for (size_t i = 0, len = func->getParamCount(); i < len; ++i) {
-          const auto * var = func->getParam(i);
-          this->assignMangleId(var);
-        }
-      }
-    }
-  }
-
-  bool visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) override {
-    if (visit == sh::PreVisit) {
-      size_t childCount = node->getChildCount();
-      for (size_t i = 0; i < childCount; ++i) {
-        auto * child = node->getChildNode(i);
-        if (child) {
-          sh::TIntermSymbol * symbolNode = child->getAsSymbolNode();
-          if (symbolNode) {
-            this->assignMangleId(&symbolNode->variable());
-            continue;
-          }
-          sh::TIntermBinary * binaryNode = child->getAsBinaryNode();
-          if (binaryNode) {
-            sh::TIntermTyped * left = binaryNode->getLeft();
-            if (left) {
-              sh::TIntermSymbol * leftAsSym = left->getAsSymbolNode();
-              if (leftAsSym) {
-                this->assignMangleId(&leftAsSym->variable());
-              }
-            }
-            continue;
-          }
-        }
-      }
-    }
-    return true;
   }
 };
 

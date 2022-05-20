@@ -12,6 +12,8 @@
 #include "lib/spglsl-glsl-writer.h"
 #include "symbols/spglsl-symbol-info.h"
 
+enum class SpglslSymbolDeclarationKind { FunctionPrototype, FunctionDefinition, FunctionParameter, Variable };
+
 class SpglslScopedTraverser : public sh::TIntermTraverser {
  public:
   SpglslSymbols & symbols;
@@ -22,6 +24,9 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
   void visitFunctionPrototype(sh::TIntermFunctionPrototype * node) final;
   bool visitBlock(sh::Visit visit, sh::TIntermBlock * node) final;
   bool visitLoop(sh::Visit visit, sh::TIntermLoop * node) final;
+  bool visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) final;
+
+  virtual bool visitVariableDeclaration(sh::TIntermNode * node, sh::TIntermDeclaration * declarationNode);
 
   void traverseNode(sh::TIntermNode * node);
 
@@ -52,6 +57,9 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
   virtual void onVisitForLoop(sh::TIntermLoop * loop, bool infinite);
   virtual void onVisitWhileLoop(sh::TIntermLoop * loop);
   virtual void onVisitDoWhileLoop(sh::TIntermLoop * node);
+  virtual void onSymbolDeclaration(const sh::TSymbol * symbol,
+      sh::TIntermNode * node,
+      SpglslSymbolDeclarationKind kind);
 
  private:
   std::stack<sh::TIntermFunctionDefinition *> _fnDefinitionStack;

@@ -650,18 +650,9 @@ bool SpglslAngleWebglOutput::visitGlobalQualifierDeclaration(sh::Visit visit,
   return false;
 }
 
-bool SpglslAngleWebglOutput::visitDeclaration(sh::Visit visit, sh::TIntermDeclaration * node) {
-  size_t childCount = node->getChildCount();
-  for (size_t i = 0; i < childCount; ++i) {
-    auto * child = node->getChildNode(i);
-    if (child) {
-      if (child->getAsSymbolNode()) {
-        this->writeVariableDeclaration(*child);
-      } else {
-        this->traverseNode(child);
-      }
-    }
-  }
+bool SpglslAngleWebglOutput::visitVariableDeclaration(sh::TIntermNode * node,
+    sh::TIntermDeclaration * declarationNode) {
+  this->writeVariableDeclaration(*node);
   return false;
 }
 

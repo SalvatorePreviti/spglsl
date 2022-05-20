@@ -94,6 +94,8 @@
     "ios": "cpp",
     "queue": "cpp",
     "stack": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "ostream": "cpp",
+    "locale": "cpp"
   }
 }
