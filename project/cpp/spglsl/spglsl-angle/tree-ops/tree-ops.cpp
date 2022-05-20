@@ -24,6 +24,9 @@ bool SpglslOptimizeAngleAst(SpglslAngleCompiler & compiler, sh::TIntermBlock * r
     if (!sh::RemoveUnreferencedVariables(&compiler.tCompiler, root, &compiler.symbolTable)) {
       return false;
     }
+    if (!sh::SeparateDeclarations(&compiler.tCompiler, root, &compiler.symbolTable)) {
+      return false;
+    }
     if (!sh::PruneEmptyCases(&compiler.tCompiler, root)) {
       return false;
     }
@@ -43,7 +46,7 @@ bool SpglslOptimizeAngleAst(SpglslAngleCompiler & compiler, sh::TIntermBlock * r
 
     compiler.callDag.tagUsedFunctions();
     compiler.callDag.pruneUnusedFunctions(root);
-  } while (repeat < 32 && astHasher.computeNodeHashChanged(root, oldAstHash));
+  } while (repeat < 40 && astHasher.computeNodeHashChanged(root, oldAstHash));
 
   return true;
 }

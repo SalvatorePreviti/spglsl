@@ -130,7 +130,6 @@ const sh::TConstantUnion * AngleAstHasher::writeConstantUnion(const sh::TType * 
     return pConstUnion;
   }
   size_t size = type->getObjectSize();
-  bool writeType = size > 1;
   this->begin(CONSTANT_UNION_VALUE);
   this->writeTypeRef(*type);
   for (size_t i = 0; i < size; ++i, ++pConstUnion) {
@@ -201,7 +200,6 @@ void AngleAstHasher::visitSymbol(sh::TIntermSymbol * node) {
 }
 
 void AngleAstHasher::visitConstantUnion(sh::TIntermConstantUnion * node) {
-  sh::TIntermBinary * parentBinary = nodeGetAsBinaryNode(this->getParentNode());
   this->writeConstantUnion(&node->getType(), node->getConstantValue());
 }
 

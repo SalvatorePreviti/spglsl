@@ -55,7 +55,7 @@ void SpglslGetPrecisionsTraverser::add(const sh::TType & type) {
       this->_declaredStructs.emplace(type.getStruct()).second) {
     for (const auto & field : type.getStruct()->fields()) {
       if (field) {
-        auto fieldType = field->type();
+        auto * fieldType = field->type();
         if (fieldType) {
           this->add(*fieldType);
         }
@@ -65,7 +65,7 @@ void SpglslGetPrecisionsTraverser::add(const sh::TType & type) {
       this->_declaredInterfaces.emplace(type.getInterfaceBlock()).second) {
     for (const auto & field : type.getInterfaceBlock()->fields()) {
       if (field) {
-        auto fieldType = field->type();
+        auto * fieldType = field->type();
         if (fieldType) {
           this->add(*fieldType);
         }
@@ -143,9 +143,9 @@ void SpglslGetPrecisionsTraverser::count() {
     this->floatPrecision = sh::EbpHigh;
   }
   if (this->_floatPrecisionLowp > fc) {
-    fc = this->_floatPrecisionLowp;
     this->floatPrecision = sh::EbpLow;
   }
+
   fc = this->_intPrecisionMediump;
   this->intPrecision = sh::EbpMedium;
   if (this->_intPrecisionHighp > fc) {
@@ -153,7 +153,6 @@ void SpglslGetPrecisionsTraverser::count() {
     this->intPrecision = sh::EbpHigh;
   }
   if (this->_intPrecisionLowp > fc) {
-    fc = this->_intPrecisionLowp;
     this->intPrecision = sh::EbpLow;
   }
 }

@@ -320,7 +320,7 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
     }
   }
 
-  if (!needsToWriteType && this->needsToWriteTTypeLayoutQualifier(type)) {
+  if (!needsToWriteType && SpglslGlslWriter::needsToWriteTTypeLayoutQualifier(type)) {
     needsToWriteType = true;
   }
 

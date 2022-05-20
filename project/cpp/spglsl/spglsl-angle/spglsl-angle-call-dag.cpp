@@ -29,14 +29,14 @@ bool SpglslAngleCallDag::init(sh::TIntermNode * root, sh::TDiagnostics * diagnos
   this->metadata.resize(this->size());
 
   for (size_t i = this->size(); i-- > 0;) {
-    auto func = this->getRecordFromIndex(i).node->getFunction();
+    const auto * func = this->getRecordFromIndex(i).node->getFunction();
     if (func &&
         (func->isMain() || (func->symbolType() == sh::SymbolType::UserDefined && func->name().beginsWith("main")))) {
       this->indexOfMainFunctions.emplace(i);
     }
   }
 
-  if (this->indexOfMainFunctions.size() == 0) {
+  if (this->indexOfMainFunctions.empty()) {
     diagnostics->globalError("Missing main()");
     return false;
   }
@@ -50,7 +50,7 @@ void SpglslAngleCallDag::tagUsedFunctions() {
   for (size_t i = this->metadata.size(); i-- > 0;) {
     this->metadata[i].used = false;
   }
-  if (this->indexOfMainFunctions.size() != 0) {
+  if (!this->indexOfMainFunctions.empty()) {
     for (int idx : this->indexOfMainFunctions) {
       this->_tagUsedFunction(idx);
     }

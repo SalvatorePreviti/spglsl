@@ -72,10 +72,7 @@ bool nodeBlockIsEmpty(sh::TIntermNode * node) {
     return false;
   }
   const sh::TIntermSequence * sequence = block->getSequence();
-  if (!sequence || sequence->size() == 0) {
-    return true;
-  }
-  return false;
+  return !sequence || sequence->empty();
 }
 
 sh::TIntermNode * nodeGetBlockSingleNode(sh::TIntermBlock * block) {
@@ -130,12 +127,10 @@ bool nodeIsSomeSortOfDeclaration(sh::TIntermNode * node) {
     return true;
   }
 
-  sh::TIntermBinary * binaryNode = node->getAsBinaryNode();
-  if (binaryNode && binaryNode->getOp() == sh::EOpInitialize) {
-    return true;  // TODO: maybe this is not needed.
-  }
+  // TODO: maybe this is not needed, maybe we can return just false.
 
-  return false;
+  sh::TIntermBinary * binaryNode = node->getAsBinaryNode();
+  return binaryNode && binaryNode->getOp() == sh::EOpInitialize;
 }
 
 bool nodeBlockContainsSomeSortOfDeclaration(sh::TIntermNode * node) {
@@ -216,7 +211,7 @@ const sh::TConstantUnion * _constantUnionIsAllOne(const sh::TType * type,
       case sh::EbtInt: isOne = pConstUnion->getIConst() == 1; break;
       case sh::EbtUInt: isOne = pConstUnion->getUConst() == 1; break;
       case sh::EbtFloat: isOne = pConstUnion->getFConst() == 1.0f; break;
-      case sh::EbtBool: isOne = pConstUnion->getBConst() == true; break;
+      case sh::EbtBool: isOne = pConstUnion->getBConst(); break;
       default: isOne = false;
     }
 
@@ -267,7 +262,7 @@ sh::TConstantUnion * _writeConstantUnionFromScalar(const sh::TType * type,
             pConstUnion->setIConst(floatIsNaN(constant.getFConst()) ? 0 : (int)constant.getFConst());
             break;
           case sh::EbtUInt: pConstUnion->setIConst((int)constant.getUConst()); break;
-          case sh::EbtBool: pConstUnion->setIConst(constant.getBConst() ? 0xffffffff : 0); break;
+          case sh::EbtBool: pConstUnion->setIConst(constant.getBConst() ? -1 : 0); break;
           case sh::EbtYuvCscStandardEXT: pConstUnion->setIConst((int)constant.getYuvCscStandardEXTConst()); break;
           default: break;
         }
@@ -313,7 +308,7 @@ sh::TConstantUnion * _writeConstantUnionFromScalar(const sh::TType * type,
 
 sh::TConstantUnion * CreateConstantUnionFillFromScalar(const sh::TType & type, const sh::TConstantUnion & constant) {
   size_t size = type.getObjectSize();
-  sh::TConstantUnion * result = new sh::TConstantUnion[size];
+  auto * result = new sh::TConstantUnion[size];
   _writeConstantUnionFromScalar(&type, result, constant);
   return result;
 }
@@ -324,7 +319,7 @@ sh::TIntermConstantUnion * nodeCreateConstantUnionFillFromScalar(const sh::TType
 }
 
 bool nodeConstantUnionIsAllZero(sh::TIntermNode * node) {
-  auto constantUnion = node ? node->getAsConstantUnion() : nullptr;
+  auto * constantUnion = node ? node->getAsConstantUnion() : nullptr;
   if (!constantUnion) {
     return false;
   }
@@ -334,7 +329,7 @@ bool nodeConstantUnionIsAllZero(sh::TIntermNode * node) {
 }
 
 bool nodeConstantUnionIsAllOne(sh::TIntermNode * node) {
-  auto constantUnion = node ? node->getAsConstantUnion() : nullptr;
+  auto * constantUnion = node ? node->getAsConstantUnion() : nullptr;
   if (!constantUnion || !constantUnion->getConstantValue()) {
     return false;
   }

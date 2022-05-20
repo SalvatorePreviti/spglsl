@@ -104,7 +104,7 @@ class SpglslGlslWriter : NonCopyable {
   SpglslGlslWriter & writeTMemoryQualifier(const sh::TMemoryQualifier & q);
   SpglslGlslWriter & writeTypePrecision(const sh::TType & type);
 
-  bool needsToWriteTTypeLayoutQualifier(const sh::TType & type);
+  static bool needsToWriteTTypeLayoutQualifier(const sh::TType & type);
   bool writeTTypeLayoutQualifier(const sh::TType & type);
 
  protected:

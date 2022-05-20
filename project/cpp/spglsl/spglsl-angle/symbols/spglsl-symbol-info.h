@@ -57,10 +57,6 @@ class SpglslSymbols {
     const auto & info = this->get(symbol);
     return info.renamed.empty() ? info.symbolName : info.renamed;
   }
-
- protected:
-  void _loadSymbolName(SpglslSymbolInfo & entry);
-  bool _loadIsReserved(SpglslSymbolInfo & entry);
 };
 
 #endif
