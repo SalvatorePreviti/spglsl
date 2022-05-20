@@ -91,6 +91,9 @@
   "files.associations": {
     "__node_handle": "cpp",
     "__locale": "cpp",
-    "ios": "cpp"
+    "ios": "cpp",
+    "queue": "cpp",
+    "stack": "cpp",
+    "vector": "cpp"
   }
 }

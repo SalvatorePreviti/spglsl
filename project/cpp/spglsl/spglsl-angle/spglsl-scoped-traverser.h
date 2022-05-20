@@ -26,7 +26,7 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
   void traverseNode(sh::TIntermNode * node);
 
  protected:
-  std::vector<sh::TIntermNode *> scopeStack;
+  std::vector<sh::TIntermNode *> scopesStack;
 
   /** The function currently being defined */
   inline sh::TIntermFunctionDefinition * getCurrentFunctionDefinition() {
@@ -34,7 +34,7 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
   }
 
   inline sh::TIntermNode * getCurrentScope() const {
-    return this->scopeStack.empty() ? nullptr : *this->scopeStack.begin();
+    return this->_scopesStack.empty() ? nullptr : *this->_scopesStack.begin();
   }
 
   virtual void onScopeBegin(sh::TIntermNode * node);
@@ -55,5 +55,6 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
 
  private:
   std::stack<sh::TIntermFunctionDefinition *> _fnDefinitionStack;
+  std::vector<sh::TIntermNode *> _scopesStack;
 };
 #endif

@@ -3,7 +3,8 @@
 
 SpglslScopedTraverser::SpglslScopedTraverser(SpglslSymbols & symbols) :
     sh::TIntermTraverser(true, true, true, symbols.symbolTable), symbols(symbols) {
-  this->scopeStack.reserve(32);
+  this->_scopesStack.reserve(32);
+  this->scopesStack.reserve(24);
 }
 
 void SpglslScopedTraverser::onScopeBegin(sh::TIntermNode * node) {
@@ -65,16 +66,18 @@ void SpglslScopedTraverser::traverseNode(sh::TIntermNode * node) {
 void SpglslScopedTraverser::pushScope(sh::TIntermNode * node) {
   if (this->getCurrentScope() != node) {
     this->onScopeBegin(node);
+    this->scopesStack.push_back(node);
   }
-  this->scopeStack.push_back(node);
+  this->_scopesStack.push_back(node);
 }
 
 /** Called when a new variable scope ends */
 void SpglslScopedTraverser::popScope() {
-  if (!this->scopeStack.empty()) {
-    auto * node = *this->scopeStack.end();
-    this->scopeStack.pop_back();
+  if (!this->_scopesStack.empty()) {
+    auto * node = *this->_scopesStack.end();
+    this->_scopesStack.pop_back();
     if (this->getCurrentScope() != node) {
+      this->scopesStack.pop_back();
       this->onScopeEnd(node);
     }
   }
