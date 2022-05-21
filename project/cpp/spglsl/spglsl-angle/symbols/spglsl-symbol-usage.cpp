@@ -6,10 +6,10 @@
 
 bool _isSymReserved(const SpglslSymbolInfo & entry);
 
-class ScopeUsedSymbols {
+class ScopeSymbols {
  public:
-  ScopeUsedSymbols * parent = nullptr;
-  std::vector<ScopeUsedSymbols *> children;
+  ScopeSymbols * parent = nullptr;
+  std::vector<ScopeSymbols *> children;
 
   std::unordered_set<const sh::TSymbol *> declarations;
   std::unordered_set<const sh::TSymbol *> usedSymbols;
@@ -51,17 +51,17 @@ class ScopeUsedSymbols {
   }
 };
 
-typedef std::unordered_map<sh::TIntermNode *, ScopeUsedSymbols> ScopeUsedSymbolsMap;
+typedef std::unordered_map<sh::TIntermNode *, ScopeSymbols> ScopeSymbolsMap;
 
 class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
  public:
   SpglslSymbolUsage & usage;
   std::string _dummyVariable = "$";
 
-  ScopeUsedSymbolsMap & usedSymbols;
-  ScopeUsedSymbols * currentUsedScope = nullptr;
+  ScopeSymbolsMap & usedSymbols;
+  ScopeSymbols * currentUsedScope = nullptr;
 
-  explicit SpglslAngleWebglOutputCounter(ScopeUsedSymbolsMap & usedSymbols,
+  explicit SpglslAngleWebglOutputCounter(ScopeSymbolsMap & usedSymbols,
       std::ostream & out,
       SpglslSymbolUsage & usage,
       const SpglslGlslPrecisions & precisions) :
@@ -128,10 +128,10 @@ class SpglslMangleIdAssigner : public SpglslScopedTraverser {
  public:
   SpglslSymbolUsage & usage;
 
-  ScopeUsedSymbolsMap & usedSymbols;
+  ScopeSymbolsMap & usedSymbols;
   std::unordered_map<const sh::TSymbol *, int> newMangleIds;
 
-  SpglslMangleIdAssigner(ScopeUsedSymbolsMap & usedSymbols, SpglslSymbolUsage & usage) :
+  SpglslMangleIdAssigner(ScopeSymbolsMap & usedSymbols, SpglslSymbolUsage & usage) :
       SpglslScopedTraverser(usage.symbols), usage(usage), usedSymbols(usedSymbols) {
   }
 
@@ -192,7 +192,7 @@ SpglslSymbolUsage::SpglslSymbolUsage(SpglslSymbols & symbols) : symbols(symbols)
 void SpglslSymbolUsage::load(sh::TIntermBlock * root,
     const SpglslGlslPrecisions & precisions,
     SpglslSymbolGenerator * generator) {
-  ScopeUsedSymbolsMap scopesUsedSymbols;
+  ScopeSymbolsMap scopesUsedSymbols;
 
   std::stringstream ss;
 
