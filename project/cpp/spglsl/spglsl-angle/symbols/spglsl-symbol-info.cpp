@@ -35,44 +35,6 @@ void _loadSymbolName(SpglslSymbolInfo & entry) {
   entry.symbolName = std::string(n.data(), len);
 }
 
-bool _loadIsReserved(SpglslSymbolInfo & entry) {
-  const auto * symbol = entry.symbol;
-
-  if (!symbol || entry.symbolName.empty()) {
-    return true;
-  }
-
-  if (symbol->symbolType() != sh::SymbolType::UserDefined && symbol->symbolType() != sh::SymbolType::AngleInternal) {
-    return true;
-  }
-
-  if (symbol->isFunction()) {
-    const auto * func = static_cast<const sh::TFunction *>(symbol);
-    if (func->isMain() || func->name().beginsWith("main")) {
-      return true;
-    }
-  } else if (symbol->isVariable()) {
-    const auto * var = static_cast<const sh::TVariable *>(symbol);
-    if (var->isInterfaceBlock()) {
-      return true;
-    }
-
-    const sh::TType & type = var->getType();
-
-    auto q = type.getQualifier();
-
-    bool isParameter = q == sh::EvqParamIn || q == sh::EvqParamOut || q == sh::EvqParamInOut || q == sh::EvqParamConst;
-
-    if (!isParameter && q != sh::EvqTemporary && q != sh::EvqGlobal && q != sh::EvqConst) {
-      return true;
-    }
-  }
-
-  // Note: interfaces are considered always reserved.
-
-  return symbol->isStruct();
-}
-
 bool SpglslSymbols::has(const sh::TSymbol * symbol) const {
   auto found = this->_map.find(symbol);
   return found != this->_map.end() && found->second.symbol != nullptr;
@@ -82,6 +44,7 @@ SpglslSymbolInfo & SpglslSymbols::get(const sh::TSymbol * symbol) {
   SpglslSymbolInfo & result = this->_map[symbol];
   if (symbol && !result.symbol) {
     result.symbol = symbol;
+    result.insertionOrder = ++this->_insertionOrderCounter;
     _loadSymbolName(result);
   }
   return result;
@@ -90,31 +53,6 @@ SpglslSymbolInfo & SpglslSymbols::get(const sh::TSymbol * symbol) {
 SpglslSymbols::SpglslSymbols(sh::TSymbolTable * symbolTable) : symbolTable(symbolTable) {
   auto & n = this->_map[nullptr];
   n.mangleId = -2;
-  n._isReserved = 1;
-}
-
-bool SpglslSymbols::getIsReserved(const SpglslSymbolInfo & entry) {
-  if (entry.symbol == nullptr) {
-    return true;
-  }
-  if (entry._isReserved == -1) {
-    return this->getIsReserved(entry.symbol);
-  }
-  return entry._isReserved != 0;
-}
-
-bool SpglslSymbols::getIsReserved(const sh::TSymbol * symbol) {
-  auto & entry = this->get(symbol);
-  if (entry._isReserved == -1) {
-    entry._isReserved = _loadIsReserved(entry) ? 1 : 0;
-  }
-  return entry._isReserved != 0;
-}
-
-SpglslSymbolInfo & SpglslSymbols::setIsReserved(const sh::TSymbol * symbol, bool value) {
-  auto & result = this->get(symbol);
-  result._isReserved = value || !result.symbol ? 1 : 0;
-  return result;
 }
 
 void SpglslSymbols::clearMangleId() {

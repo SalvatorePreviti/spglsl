@@ -394,14 +394,17 @@ float antenna(vec3 p) {
   q.xz *= rot(iAnimAntennaRotation);
   q.xy *= rot(0.5);
   q.y -= size;
-  float dishSphere = sphere(q, size);
-  float dish = max(opOnion(dishSphere, .01),
+
+  float dishSphere, dish, structure;
+
+  dishSphere = sphere(q, size);
+  dish = max(opOnion(dishSphere, .01),
       q.y + size / 2.  // cut the sphere part-way up
   );
   dish = min(dish, cylinder(q.xzy + vec3(0, 0, size * .5), .1, size * .5));
   dish = min(dish, sphere(q, .3));
   p.y += size * .75;
-  float structure = cuboid(p, size / vec3(4., 2.5, 2.));
+  structure = cuboid(p, size / vec3(4., 2.5, 2.));
   structure = min(structure,
       min(max(opOnion(cylinder(p.xzy - vec3(size / 4., 0, 0), size / 2. - .1, size / 2.5 - .1), .1),
               -min(cylinder(p.zyx - vec3(0, 1.8, 0), 1., 100.),  // hole for the door

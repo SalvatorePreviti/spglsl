@@ -40,7 +40,7 @@ class SpglslAngleWebglOutput : public SpglslScopedTraverser, public SpglslGlslWr
   void writeHeader(int shaderVersion, const TPragma & pragma, const sh::TExtensionBehavior & extensionBehavior);
   void writeTOperatorNode(sh::TIntermOperator * node);
 
-  virtual const std::string & getSymbolName(const sh::TSymbol * symbol, bool isDeclaration);
+  virtual const std::string & getSymbolName(const sh::TSymbol * symbol);
   virtual std::string getTypeName(const sh::TType * type);
   virtual std::string getFieldName(const sh::TField * field);
   std::string getFunctionName(sh::TIntermAggregate * aggregateNode);

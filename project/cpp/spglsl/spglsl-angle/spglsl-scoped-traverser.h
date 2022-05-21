@@ -33,20 +33,13 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
  protected:
   std::vector<sh::TIntermNode *> scopesStack;
 
-  /** The function currently being defined */
-  inline sh::TIntermFunctionDefinition * getCurrentFunctionDefinition() {
-    return this->_fnDefinitionStack.empty() ? nullptr : this->_fnDefinitionStack.top();
-  }
-
   inline sh::TIntermNode * getCurrentScope() const {
-    return this->_scopesStack.empty() ? nullptr : *this->_scopesStack.end();
+    auto size = this->scopesStack.size();
+    return size ? this->scopesStack[size - 1] : nullptr;
   }
 
-  virtual void onScopeBegin(sh::TIntermNode * node);
-  virtual void onScopeEnd(sh::TIntermNode * node);
-
-  void pushScope(sh::TIntermNode * node);
-  void popScope();
+  virtual void onScopeBegin();
+  virtual void onScopeEnd();
 
   virtual void beforeVisitFunctionDefinition(sh::TIntermFunctionDefinition * node);
   virtual void beforeVisitFunctionPrototype(sh::TIntermFunctionPrototype * proto,
@@ -61,8 +54,18 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
       sh::TIntermNode * node,
       SpglslSymbolDeclarationKind kind);
 
+  void pushScope(sh::TIntermNode * node);
+  void popScope();
+
+  inline bool tryPushScope(sh::TIntermNode * node) {
+    if (this->getCurrentScope() == node) {
+      return false;
+    }
+    this->pushScope(node);
+    return true;
+  }
+
  private:
-  std::stack<sh::TIntermFunctionDefinition *> _fnDefinitionStack;
-  std::vector<sh::TIntermNode *> _scopesStack;
+  sh::TIntermFunctionDefinition * _currentFuncDef = nullptr;
 };
 #endif

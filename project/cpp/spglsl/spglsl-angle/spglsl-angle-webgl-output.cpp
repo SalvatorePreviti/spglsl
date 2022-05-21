@@ -16,7 +16,7 @@ SpglslAngleWebglOutput::SpglslAngleWebglOutput(std::ostream & out,
     SpglslScopedTraverser(symbols), SpglslGlslWriter(out, precisions, beautify) {
 }
 
-const std::string & SpglslAngleWebglOutput::getSymbolName(const sh::TSymbol * symbol, bool isDeclaration) {
+const std::string & SpglslAngleWebglOutput::getSymbolName(const sh::TSymbol * symbol) {
   return this->symbols.getName(symbol);
 }
 
@@ -26,7 +26,7 @@ std::string SpglslAngleWebglOutput::getFunctionName(sh::TIntermAggregate * aggre
   }
   const auto op = aggregateNode->getOp();
   if (op == sh::EOpCallInternalRawFunction || op == sh::EOpCallFunctionInAST || sh::BuiltInGroup::IsBuiltIn(op)) {
-    return this->getSymbolName(aggregateNode->getFunction(), false);
+    return this->getSymbolName(aggregateNode->getFunction());
   }
   return sh::GetOperatorString(op);
 }
@@ -44,10 +44,10 @@ std::string SpglslAngleWebglOutput::getTypeName(const sh::TType * type) {
     return Strings::empty;
   }
   if (type->getBasicType() == sh::EbtStruct && type->getStruct()) {
-    return this->getSymbolName(type->getStruct(), false);
+    return this->getSymbolName(type->getStruct());
   }
   if (type->getBasicType() == sh::EbtInterfaceBlock && type->getInterfaceBlock()) {
-    return this->getSymbolName(type->getInterfaceBlock(), false);
+    return this->getSymbolName(type->getInterfaceBlock());
   }
   return this->getBuiltinTypeName(type);
 }
@@ -67,7 +67,7 @@ void SpglslAngleWebglOutput::writeTOperatorNode(sh::TIntermOperator * node) {
   if (unaryNode) {
     const auto * fn = unaryNode->getFunction();
     if (fn) {
-      this->write(this->getSymbolName(fn, false));
+      this->write(this->getSymbolName(fn));
       return;
     }
   }
@@ -82,7 +82,7 @@ void SpglslAngleWebglOutput::writeTOperatorNode(sh::TIntermOperator * node) {
         if (!fn) {
           break;
         }
-        this->write(this->getSymbolName(fn, false));
+        this->write(this->getSymbolName(fn));
         return;
       }
 
@@ -103,9 +103,6 @@ void SpglslAngleWebglOutput::writeTOperatorNode(sh::TIntermOperator * node) {
       this->write(fname);
       return;
     }
-
-    this->write(GetOperatorString(node->getOp()));
-    return;
   }
 
   this->write(GetOperatorString(node->getOp()));
@@ -132,7 +129,7 @@ const sh::TConstantUnion * SpglslAngleWebglOutput::writeConstantUnion(const sh::
 
   const sh::TStructure * structure = type->getBasicType() == sh::EbtStruct ? type->getStruct() : nullptr;
   if (structure) {
-    this->write(this->getSymbolName(structure, false));
+    this->write(this->getSymbolName(structure));
     this->write('(');
     const sh::TFieldList & fields = structure->fields();
     for (size_t i = 0, size = fields.size(); i < size; ++i) {
@@ -229,7 +226,7 @@ void SpglslAngleWebglOutput::writeVariableType(const sh::TType & type, bool isFu
 }
 
 void SpglslAngleWebglOutput::declareInterfaceBlock(const sh::TInterfaceBlock & interfaceBlock) {
-  this->write(this->getSymbolName(&interfaceBlock, true));
+  this->write(this->getSymbolName(&interfaceBlock));
   this->write('{').indent().beautyNewLine();
   for (const auto * field : interfaceBlock.fields()) {
     const auto * type = field->type();
@@ -255,7 +252,7 @@ void SpglslAngleWebglOutput::declareInterfaceBlock(const sh::TInterfaceBlock & i
 
 void SpglslAngleWebglOutput::declareStruct(const sh::TStructure & structure) {
   this->write("struct");
-  this->write(this->getSymbolName(&structure, true));
+  this->write(this->getSymbolName(&structure));
   this->write('{').indent().beautyNewLine();
   for (const auto & field : structure.fields()) {
     auto * fieldType = field->type();
@@ -315,8 +312,7 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
       needsToWriteType = false;
     }
     if (!needsToWriteType && type.getBasicType() == sh::EbtStruct && type.getStruct() &&
-        this->declaredStructs.count(type.getStruct()) == 0 &&
-        this->getSymbolName(type.getStruct(), true).length() != 0) {
+        this->declaredStructs.count(type.getStruct()) == 0 && this->getSymbolName(type.getStruct()).length() != 0) {
       needsToWriteType = true;
     }
   }
@@ -335,14 +331,14 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
     this->writeComma();
   }
 
-  this->write(this->getSymbolName(&variable, true)).write(sh::ArrayString(type));
+  this->write(this->getSymbolName(&variable)).write(sh::ArrayString(type));
 
   this->_lastWrittenVarDecl = &type;
   this->_canForwardVarDecl = true;
 }
 
 void SpglslAngleWebglOutput::visitSymbol(sh::TIntermSymbol * node) {
-  this->write(this->getSymbolName(&node->variable(), false));
+  this->write(this->getSymbolName(&node->variable()));
 }
 
 void SpglslAngleWebglOutput::visitConstantUnion(sh::TIntermConstantUnion * node) {
@@ -397,7 +393,7 @@ bool SpglslAngleWebglOutput::visitBinary(sh::Visit visit, sh::TIntermBinary * no
         const sh::TInterfaceBlock * iface = node->getLeft() ? node->getLeft()->getType().getInterfaceBlock() : nullptr;
         if (iface) {
           sh::TIntermSymbol * symLeft = nodeGetAsSymbolNode(node->getLeft());
-          if (!symLeft || !this->getSymbolName(&symLeft->variable(), false).empty()) {
+          if (!symLeft || !this->getSymbolName(&symLeft->variable()).empty()) {
             this->traverseWithParentheses(node, 0);
             this->write('.');
           }
@@ -486,7 +482,7 @@ void SpglslAngleWebglOutput::beforeVisitFunctionPrototype(sh::TIntermFunctionPro
   this->writeVariableType(type, false);
   this->write(sh::ArrayString(type));
   const auto * proto = node->getFunction();
-  this->write(this->getSymbolName(proto, true)).write('(');
+  this->write(this->getSymbolName(proto)).write('(');
 }
 
 void SpglslAngleWebglOutput::afterVisitFunctionPrototype(sh::TIntermFunctionPrototype * node,
@@ -501,7 +497,7 @@ void SpglslAngleWebglOutput::afterVisitFunctionPrototype(sh::TIntermFunctionProt
     }
     this->writeVariableType(paramType, true);
     if (definition) {
-      this->write(this->getSymbolName(param, true));
+      this->write(this->getSymbolName(param));
     }
     this->write(sh::ArrayString(paramType));
   }
@@ -647,8 +643,7 @@ bool SpglslAngleWebglOutput::visitGlobalQualifierDeclaration(sh::Visit visit,
     sh::TIntermGlobalQualifierDeclaration * node) {
   this->clearLastWrittenVarDecl();
   this->beautyStatementNewLine(true);
-  this->write(node->isPrecise() ? "precise" : "invariant")
-      .write(this->getSymbolName(&node->getSymbol()->variable(), true));
+  this->write(node->isPrecise() ? "precise" : "invariant").write(this->getSymbolName(&node->getSymbol()->variable()));
   return false;
 }
 

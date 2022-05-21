@@ -17,16 +17,13 @@
 bool spglslIsValidIdentifier(const std::string & str);
 bool spglslIsWordReserved(const std::string & word);
 
-class SpglslSymbolInfo {
+class SpglslSymbolInfo : NonCopyable {
  public:
   const sh::TSymbol * symbol = nullptr;
   std::string symbolName;
   std::string renamed;
+  uint32_t insertionOrder = 0;
   int mangleId = -1;
-
- private:
-  int _isReserved = -1;
-  friend class SpglslSymbols;
 };
 
 class SpglslSymbols {
@@ -35,10 +32,6 @@ class SpglslSymbols {
   std::unordered_map<const sh::TSymbol *, SpglslSymbolInfo> _map;
 
   explicit SpglslSymbols(sh::TSymbolTable * symbolTable);
-
-  bool getIsReserved(const sh::TSymbol * symbol);
-  bool getIsReserved(const SpglslSymbolInfo & entry);
-  SpglslSymbolInfo & setIsReserved(const sh::TSymbol * symbol, bool value = true);
 
   SpglslSymbolInfo & get(const sh::TSymbol * symbol);
 
@@ -54,6 +47,9 @@ class SpglslSymbols {
     const auto & info = this->get(symbol);
     return info.renamed.empty() ? info.symbolName : info.renamed;
   }
+
+ private:
+  uint32_t _insertionOrderCounter = 0;
 };
 
 #endif

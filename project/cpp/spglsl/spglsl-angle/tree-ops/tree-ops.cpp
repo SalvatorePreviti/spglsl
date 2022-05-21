@@ -12,7 +12,6 @@
 #include "../lib/spglsl-angle-ast-hasher.h"
 #include "../spglsl-angle-compiler.h"
 #include "../spglsl-angle-webgl-output.h"
-#include "spglsl-angle-update-traverser.h"
 
 bool SpglslOptimizeAngleAst(SpglslAngleCompiler & compiler, sh::TIntermBlock * root) {
   SpglslHashValue oldAstHash;

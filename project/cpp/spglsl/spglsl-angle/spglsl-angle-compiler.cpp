@@ -114,7 +114,7 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
 
   this->loadPrecisions(true);
 
-  if (this->compilerOptions.minify || this->compilerOptions.compileMode == SpglslCompileMode::Optimize) {
+  if (this->compilerOptions.mangle) {
     this->_mangle(root);
   }
 
@@ -129,7 +129,8 @@ void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
 
   for (const auto & entry : usage.sorted) {
     if (entry->entry->mangleId >= 0) {
-      entry->entry->renamed = symgen.getOrCreateMangledName(entry->entry->mangleId);
+      entry->entry->renamed =  // usage.sorted[entry->entry->mangleId]->entry->symbolName + "_" +
+          symgen.getOrCreateMangledName(entry->entry->mangleId);
     }
   }
 }

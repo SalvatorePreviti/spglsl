@@ -19,6 +19,7 @@ Checks: "
   -cert-dcl51-cpp,
   -cert-dcl58-cpp,
   -cert-err60-cpp,
+  -readability-use-anyofallof,
   -readability-uppercase-literal-suffix,
   -cppcoreguidelines-pro-type-static-cast-downcast,
   -readability-inconsistent-declaration-parameter-name,
