@@ -154,13 +154,10 @@ class SpglslMangleIdAssigner : public SpglslScopedTraverser {
     size_t candidateIndex = 0;
 
     for (auto * declInfo : sortedDeclarations) {
-      if (candidateIndex >= usage.sorted.size()) {
-        break;
-      }
-
       int mangleId = declInfo->mangleId;
+
       if (mangleId < 0) {
-        continue;  // Is reserved.
+        continue;  // Symbol is reserved.
       }
 
       const auto * declSym = declInfo->symbol;
@@ -172,17 +169,12 @@ class SpglslMangleIdAssigner : public SpglslScopedTraverser {
         }
 
         const auto * candidateSym = candidate->entry->symbol;
-        if (scope.isSymbolUsed(candidateSym)) {
-          continue;  // This symbol is already used
+        if (!scope.isSymbolUsed(candidateSym)) {
+          this->newMangleIds[declSym] = candidate->entry->mangleId;
+          scope.renameUsedSymbol(declSym, candidateSym);
+          ++candidateIndex;
+          break;  // Symbol renamed.
         }
-
-        // Mark the symbol as renamed.
-        this->newMangleIds[declSym] = candidate->entry->mangleId;
-
-        scope.renameUsedSymbol(declSym, candidateSym);
-
-        ++candidateIndex;
-        break;
       }
     }
   }
@@ -194,6 +186,8 @@ class SpglslMangleIdAssigner : public SpglslScopedTraverser {
 
 SpglslSymbolUsage::SpglslSymbolUsage(SpglslSymbols & symbols) : symbols(symbols) {
 }
+
+#include <iostream>
 
 void SpglslSymbolUsage::load(sh::TIntermBlock * root,
     const SpglslGlslPrecisions & precisions,
@@ -212,6 +206,8 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
       this->addReservedWord(kv.second.symbolName);
     }
   }
+
+  std::cout << "GENERATED:" << ss.str() << std::endl;
 
   if (generator) {
     generator->load(ss.str());

@@ -2,6 +2,7 @@ import { expect } from "chai";
 import type { SpglslAngleCompileOptions } from "spglsl";
 import { spglslAngleCompile } from "spglsl";
 import chalk from "chalk";
+import zlib from "node:zlib";
 
 export interface TestShader {
   name: string;
@@ -58,8 +59,15 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
     expect(validated.valid).to.equal(true, info1);
     expect(validated.infoLog.getCounts().errors).to.equal(0, info);
 
-    console.log(chalk.cyanBright(`${(compiled.output || "").length} bytes`));
-    console.log(fragmentShaderCode.length);
+    const out = compiled.output || "";
+    const outZlibSize = zlib.gzipSync(out, { level: 9 }).length;
+
+    console.log("output:", chalk.cyanBright(`${out.length} bytes (gzipped ${outZlibSize} bytes)`));
+
+    console.log(
+      "refern:",
+      `${fragmentShaderCode.length} bytes (gzipped ${zlib.gzipSync(fragmentShaderCode, { level: 9 }).length} bytes)`,
+    );
     // console.log(fragmentShaderCode)
     return compiled;
   };
