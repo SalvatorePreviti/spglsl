@@ -128,9 +128,8 @@ void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
   usage.load(root, this->precisions, &symgen);
 
   for (const auto & entry : usage.sorted) {
-    if (entry->entry->mangleId >= 0) {
-      entry->entry->renamed =  // usage.sorted[entry->entry->mangleId]->entry->symbolName + "_" +
-          symgen.getOrCreateMangledName(entry->entry->mangleId);
+    if (entry->mangleId >= 0) {
+      entry->entry->renamed = symgen.getOrCreateMangledName(entry->mangleId);
     }
   }
 }

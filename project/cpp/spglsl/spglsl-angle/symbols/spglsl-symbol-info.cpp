@@ -42,7 +42,7 @@ bool SpglslSymbols::has(const sh::TSymbol * symbol) const {
 
 SpglslSymbolInfo & SpglslSymbols::get(const sh::TSymbol * symbol) {
   SpglslSymbolInfo & result = this->_map[symbol];
-  if (symbol && !result.symbol) {
+  if (!result.symbol && symbol) {
     result.symbol = symbol;
     result.insertionOrder = ++this->_insertionOrderCounter;
     _loadSymbolName(result);
@@ -52,13 +52,7 @@ SpglslSymbolInfo & SpglslSymbols::get(const sh::TSymbol * symbol) {
 
 SpglslSymbols::SpglslSymbols(sh::TSymbolTable * symbolTable) : symbolTable(symbolTable) {
   auto & n = this->_map[nullptr];
-  n.mangleId = -2;
-}
-
-void SpglslSymbols::clearMangleId() {
-  for (auto & kv : this->_map) {
-    kv.second.mangleId = kv.first ? -1 : -2;
-  }
+  n.insertionOrder = -1;
 }
 
 static std::unordered_set<std::string> spglslReservedWordSet({"main", "and", "or", "xor", "not", "EmitVertex",
@@ -151,4 +145,47 @@ bool spglslIsWordReserved(const std::string & word) {
     return true;
   }
   return spglslReservedWordSet.count(word) != 0;
+}
+
+bool SpglslSymbolInfo::isReserved() const {
+  const auto * symbol = this->symbol;
+
+  if (!symbol || this->symbolName.empty()) {
+    return true;
+  }
+
+  auto st = symbol->symbolType();
+  if (st != sh::SymbolType::UserDefined && st != sh::SymbolType::AngleInternal) {
+    return true;
+  }
+
+  if (symbol->isFunction()) {
+    const auto * func = static_cast<const sh::TFunction *>(symbol);
+    return (func->isMain() || func->name().beginsWith("main"));
+  }
+
+  if (symbol->isVariable()) {
+    const auto * var = static_cast<const sh::TVariable *>(symbol);
+    if (var->isInterfaceBlock()) {
+      return true;
+    }
+
+    const sh::TType & type = var->getType();
+
+    switch (type.getQualifier()) {
+      case sh::EvqParamIn:
+      case sh::EvqParamOut:
+      case sh::EvqParamInOut:
+      case sh::EvqParamConst:
+      case sh::EvqTemporary:
+      case sh::EvqGlobal:
+      case sh::EvqConst: return false;
+
+      default: return true;
+    }
+  }
+
+  // Note: interfaces are considered always reserved.
+
+  return !symbol->isStruct();
 }

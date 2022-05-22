@@ -23,7 +23,8 @@ class SpglslSymbolInfo : NonCopyable {
   std::string symbolName;
   std::string renamed;
   uint32_t insertionOrder = 0;
-  int mangleId = -1;
+
+  bool isReserved() const;
 };
 
 class SpglslSymbols {
@@ -40,13 +41,12 @@ class SpglslSymbols {
   /** Mark a variable as function parameter */
   SpglslSymbolInfo & declareParameter(const sh::TVariable * variable);
 
-  /** Resets all mangleId to -1 */
-  void clearMangleId();
-
   inline const std::string & getName(const sh::TSymbol * symbol) {
     const auto & info = this->get(symbol);
     return info.renamed.empty() ? info.symbolName : info.renamed;
   }
+
+  bool isSymbolReserved(SpglslSymbolInfo & syminfo);
 
  private:
   uint32_t _insertionOrderCounter = 0;

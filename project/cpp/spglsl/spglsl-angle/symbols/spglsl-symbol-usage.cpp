@@ -4,7 +4,7 @@
 #include "../spglsl-angle-webgl-output.h"
 #include "spglsl-symbol-usage.h"
 
-bool _isSymReserved(const SpglslSymbolInfo & entry);
+#include <iostream>
 
 class ScopeSymbols {
  public:
@@ -79,6 +79,7 @@ class ScopeSymbolsManager {
 
 class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
  public:
+  SpglslSymbolGenerator * symbolGenerator;
   ScopeSymbolsManager & scopeSymbolsManager;
   SpglslSymbolUsage & usage;
   std::string _dummyVariable = "$";
@@ -86,10 +87,12 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
   explicit SpglslAngleWebglOutputCounter(ScopeSymbolsManager & scopeSymbolsManager,
       std::ostream & out,
       SpglslSymbolUsage & usage,
-      const SpglslGlslPrecisions & precisions) :
+      const SpglslGlslPrecisions & precisions,
+      SpglslSymbolGenerator * symbolGenerator = nullptr) :
       SpglslAngleWebglOutput(out, usage.symbols, precisions, false),
       scopeSymbolsManager(scopeSymbolsManager),
-      usage(usage) {
+      usage(usage),
+      symbolGenerator(symbolGenerator) {
   }
 
   void onScopeBegin() override {
@@ -111,30 +114,25 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
 
   std::string getBuiltinTypeName(const sh::TType * type) override {
     auto result = SpglslAngleWebglOutput::getBuiltinTypeName(type);
-    this->usage.addReservedWord(result);
+    if (this->symbolGenerator != nullptr) {
+      this->symbolGenerator->addReservedWord(result);
+    }
     return result;
   }
 
   const std::string & getSymbolName(const sh::TSymbol * symbol) override {
-    auto & symentry = this->symbols.get(symbol);
-    auto & entry = this->usage.map[symbol];
-    if (!entry.entry) {
-      entry.entry = &symentry;
-    }
-    ++entry.frequency;
+    auto & symentry = this->usage.get(symbol);
 
-    if (symentry.symbol) {
+    ++symentry.frequency;
+
+    if (symentry.entry->symbol) {
       this->scopeSymbolsManager.currentScope->addSymbolUsed(symbol);
     }
 
-    if (symentry.mangleId == -2) {
-      return SpglslAngleWebglOutput::getSymbolName(symbol);
+    if (symentry.mangleId < 0) {
+      return SpglslAngleWebglOutput::getSymbolName(symbol);  // Reserved.
     }
 
-    if (_isSymReserved(symentry)) {
-      symentry.mangleId = -2;
-      return SpglslAngleWebglOutput::getSymbolName(symbol);
-    }
     return this->_dummyVariable;
   }
 
@@ -147,37 +145,37 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
 SpglslSymbolUsage::SpglslSymbolUsage(SpglslSymbols & symbols) : symbols(symbols) {
 }
 
-void assignMangleIdsInScope(SpglslSymbolUsage & usage,
-    ScopeSymbols & scope,
-    std::unordered_map<const sh::TSymbol *, int> & newMangleIds) {
-  std::vector<SpglslSymbolInfo *> sortedDeclarations;
+void assignMangleIdsInScope(SpglslSymbolUsage & usage, ScopeSymbols & scope) {
+  std::vector<SpglslSymbolUsageInfo *> sortedDeclarations;
+
   sortedDeclarations.reserve(scope.declarations.size());
   for (const auto * declaration : scope.declarations) {
-    sortedDeclarations.push_back(&usage.symbols.get(declaration));
+    sortedDeclarations.push_back(&usage.get(declaration));
   }
+
   std::sort(sortedDeclarations.begin(), sortedDeclarations.end(),
-      [](const SpglslSymbolInfo * a, const SpglslSymbolInfo * b) { return a->mangleId < b->mangleId; });
+      [](const SpglslSymbolUsageInfo * a, const SpglslSymbolUsageInfo * b) { return a->mangleId < b->mangleId; });
 
   size_t candidateIndex = 0;
 
   for (auto * declInfo : sortedDeclarations) {
     int mangleId = declInfo->mangleId;
 
-    if (mangleId < 0) {
+    if (mangleId <= 0 || !declInfo->entry) {
       continue;  // Symbol is reserved.
     }
 
-    const auto * declSym = declInfo->symbol;
+    const auto * declSym = declInfo->entry->symbol;
 
     for (; candidateIndex < usage.sorted.size(); ++candidateIndex) {
       auto * candidate = usage.sorted[candidateIndex];
-      if (candidate->entry->mangleId >= mangleId) {
+      if (candidate->mangleId >= mangleId) {
         break;  // Nothing better found
       }
 
       const auto * candidateSym = candidate->entry->symbol;
       if (!scope.isSymbolUsed(candidateSym)) {
-        newMangleIds[declSym] = candidate->entry->mangleId;
+        declInfo->newMangleId = candidate->mangleId;
         scope.renameUsedSymbol(declSym, candidateSym);
         ++candidateIndex;
         break;  // Symbol renamed.
@@ -186,11 +184,9 @@ void assignMangleIdsInScope(SpglslSymbolUsage & usage,
   }
 }
 
-void assignMangleIds(SpglslSymbolUsage & usage,
-    std::unordered_map<const sh::TSymbol *, int> & newMangleIds,
-    ScopeSymbolsManager & scopeSymbolsManager) {
+void assignMangleIds(SpglslSymbolUsage & usage, ScopeSymbolsManager & scopeSymbolsManager) {
   for (auto & scope : scopeSymbolsManager.allScopes) {
-    assignMangleIdsInScope(usage, scope, newMangleIds);
+    assignMangleIdsInScope(usage, scope);
   }
 }
 
@@ -208,16 +204,12 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
     }
   }
 
-  this->symbols.clearMangleId();
-
   std::vector<SpglslSymbolUsageInfo *> tmpSorted;
   tmpSorted.reserve(this->map.size());
   for (auto & kv : this->map) {
     if (kv.second.entry) {
-      if (!_isSymReserved(*kv.second.entry)) {
+      if (kv.second.mangleId >= 0) {
         tmpSorted.push_back(&kv.second);
-      } else {
-        kv.second.entry->mangleId = -2;
       }
     }
   }
@@ -227,41 +219,28 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
         (a->frequency == b->frequency && a->entry->insertionOrder < b->entry->insertionOrder);
   });
 
-  this->sorted.clear();
-  this->sorted.reserve(tmpSorted.size());
-  for (auto & sym : tmpSorted) {
-    if (sym->entry->mangleId == -1) {
-      sym->entry->mangleId = (int)this->sorted.size();
-      this->sorted.push_back(sym);
-    }
-  }
-
   std::unordered_map<const sh::TSymbol *, int> newMangleIds;
 
-  assignMangleIds(*this, newMangleIds, scopeSymbolsManager);
-
-  for (auto & sym : this->sorted) {
-    auto & entry = sym->entry;
-    auto found = newMangleIds.find(entry->symbol);
-    if (found != newMangleIds.end()) {
-      entry->mangleId = found->second;
-    }
+  this->sorted.clear();
+  this->sorted.reserve(tmpSorted.size());
+  for (auto & entry : tmpSorted) {
+    //    newMangleIds[sym->entry->symbol] = (int)newMangleIds.size() + 1;
+    this->sorted.push_back(entry);
+    entry->mangleId = (int)this->sorted.size();
   }
 
-  this->_additionalReservedWords.emplace(Strings::empty);
-  for (const auto & kv : this->symbols._map) {
-    if (kv.second.mangleId < 0) {
-      this->addReservedWord(kv.second.symbolName);
+  if (generator) {
+    assignMangleIds(*this, scopeSymbolsManager);
+
+    for (const auto & kv : this->symbols._map) {
+      auto & entry = this->get(kv.first);
+      if (entry.newMangleId >= 0) {
+        entry.mangleId = entry.newMangleId;
+      } else if (entry.mangleId < 0) {
+        generator->addReservedWord(kv.second.symbolName);
+      }
     }
   }
-}
-
-bool SpglslSymbolUsage::isReservedWord(const std::string & word) const {
-  return this->_additionalReservedWords.count(word) > 0 || spglslIsWordReserved(word);
-}
-
-void SpglslSymbolUsage::addReservedWord(const std::string & word) {
-  this->_additionalReservedWords.emplace(word);
 }
 
 ////////////////////////////////////////
@@ -285,6 +264,15 @@ inline bool charLess(char a, char b) {
 }
 
 SpglslSymbolGenerator::SpglslSymbolGenerator(SpglslSymbolUsage & usage) : usage(usage) {
+  this->_additionalReservedWords.emplace(Strings::empty);
+}
+
+bool SpglslSymbolGenerator::isReservedWord(const std::string & word) const {
+  return this->_additionalReservedWords.count(word) > 0 || spglslIsWordReserved(word);
+}
+
+void SpglslSymbolGenerator::addReservedWord(const std::string & word) {
+  this->_additionalReservedWords.emplace(word);
 }
 
 void SpglslSymbolGenerator::load(const std::string & text) {
@@ -376,7 +364,7 @@ void SpglslSymbolGenerator::load(const std::string & text) {
   this->words.clear();
   this->words.reserve(wordsSorted.size());
   for (const auto & kv : wordsSorted) {
-    if (!this->usage.isReservedWord(kv.first)) {
+    if (!this->isReservedWord(kv.first)) {
       this->words.push_back(kv.first);
     }
   }
@@ -401,7 +389,7 @@ const std::string & SpglslSymbolGenerator::getOrCreateMangledName(int mangleId) 
         }
         result = ss.str();
       }
-      if (this->usage.isReservedWord(result)) {
+      if (this->isReservedWord(result)) {
         continue;
       }
       if (this->_usedNames.emplace(result).second) {
@@ -411,47 +399,4 @@ const std::string & SpglslSymbolGenerator::getOrCreateMangledName(int mangleId) 
   }
 
   return result;
-}
-
-bool _isSymReserved(const SpglslSymbolInfo & entry) {
-  const auto * symbol = entry.symbol;
-
-  if (!symbol || entry.symbolName.empty()) {
-    return true;
-  }
-
-  auto st = symbol->symbolType();
-  if (st != sh::SymbolType::UserDefined && st != sh::SymbolType::AngleInternal) {
-    return true;
-  }
-
-  if (symbol->isFunction()) {
-    const auto * func = static_cast<const sh::TFunction *>(symbol);
-    return (func->isMain() || func->name().beginsWith("main"));
-  }
-
-  if (symbol->isVariable()) {
-    const auto * var = static_cast<const sh::TVariable *>(symbol);
-    if (var->isInterfaceBlock()) {
-      return true;
-    }
-
-    const sh::TType & type = var->getType();
-
-    switch (type.getQualifier()) {
-      case sh::EvqParamIn:
-      case sh::EvqParamOut:
-      case sh::EvqParamInOut:
-      case sh::EvqParamConst:
-      case sh::EvqTemporary:
-      case sh::EvqGlobal:
-      case sh::EvqConst: return false;
-
-      default: return true;
-    }
-  }
-
-  // Note: interfaces are considered always reserved.
-
-  return !symbol->isStruct();
 }

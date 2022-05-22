@@ -7,6 +7,8 @@
 struct SpglslSymbolUsageInfo {
   SpglslSymbolInfo * entry = nullptr;
   uint32_t frequency = 0;
+  int mangleId = -1;
+  int newMangleId = -1;
 };
 
 class SpglslSymbolGenerator;
@@ -23,11 +25,15 @@ class SpglslSymbolUsage {
       const SpglslGlslPrecisions & precisions,
       SpglslSymbolGenerator * generator = nullptr);
 
-  bool isReservedWord(const std::string & word) const;
-  void addReservedWord(const std::string & word);
-
- private:
-  std::unordered_set<std::string> _additionalReservedWords;
+  inline SpglslSymbolUsageInfo & get(const sh::TSymbol * symbol) {
+    auto & found = this->map[symbol];
+    if (!found.entry) {
+      auto & info = this->symbols.get(symbol);
+      found.entry = &info;
+      found.mangleId = info.isReserved() ? -1 : (int)info.insertionOrder;
+    }
+    return found;
+  }
 };
 
 class SpglslSymbolGenerator {
@@ -37,6 +43,9 @@ class SpglslSymbolGenerator {
   std::string chars;
   std::string charsAndNumbers;
   std::vector<std::string> words;
+
+  bool isReservedWord(const std::string & word) const;
+  void addReservedWord(const std::string & word);
 
   explicit SpglslSymbolGenerator(SpglslSymbolUsage & usage);
 
@@ -49,6 +58,7 @@ class SpglslSymbolGenerator {
   size_t _genCounter = 0;
   std::unordered_map<int, std::string> _mangleMap;
   std::unordered_set<std::string> _usedNames;
+  std::unordered_set<std::string> _additionalReservedWords;
 };
 
 #endif
