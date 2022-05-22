@@ -1,5 +1,5 @@
 #include <ctype.h>
-#include <bit>
+#include <list>
 
 #include "../spglsl-angle-webgl-output.h"
 #include "spglsl-symbol-usage.h"
@@ -8,11 +8,14 @@ bool _isSymReserved(const SpglslSymbolInfo & entry);
 
 class ScopeSymbols {
  public:
-  ScopeSymbols * parent = nullptr;
+  ScopeSymbols * parent;
   std::vector<ScopeSymbols *> children;
 
   std::unordered_set<const sh::TSymbol *> declarations;
   std::unordered_set<const sh::TSymbol *> usedSymbols;
+
+  inline explicit ScopeSymbols(ScopeSymbols * parent = nullptr) : parent(parent) {
+  }
 
   bool isSymbolUsed(const sh::TSymbol * symbol) const {
     if (this->usedSymbols.count(symbol) != 0) {
@@ -26,11 +29,11 @@ class ScopeSymbols {
     return false;
   }
 
-  void addSymbolUsed(const sh::TSymbol * symbol) {
+  inline void addSymbolUsed(const sh::TSymbol * symbol) {
     this->usedSymbols.emplace(symbol);
   }
 
-  bool isSymbolDeclared(const sh::TSymbol * symbol) const {
+  inline bool isSymbolDeclared(const sh::TSymbol * symbol) const {
     return this->declarations.count(symbol) != 0 || (this->parent && this->parent->declarations.count(symbol) != 0);
   }
 
@@ -51,29 +54,46 @@ class ScopeSymbols {
   }
 };
 
-typedef std::unordered_map<sh::TIntermNode *, ScopeSymbols> ScopeSymbolsMap;
+class ScopeSymbolsManager {
+ public:
+  ScopeSymbols rootScope;
+  ScopeSymbols * currentScope = nullptr;
+  std::list<ScopeSymbols> allScopes;
+
+  void beginScope() {
+    if (this->currentScope == nullptr) {
+      this->currentScope = &rootScope;
+    } else {
+      auto & newScope = this->allScopes.emplace_back(this->currentScope);
+      this->currentScope->children.push_back(&newScope);
+      this->currentScope = &newScope;
+    }
+  }
+
+  void endScope() {
+    if (this->currentScope) {
+      this->currentScope = this->currentScope->parent;
+    }
+  }
+};
 
 class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
  public:
+  ScopeSymbolsManager & scopeSymbolsManager;
   SpglslSymbolUsage & usage;
   std::string _dummyVariable = "$";
 
-  ScopeSymbolsMap & usedSymbols;
-  ScopeSymbols * currentUsedScope = nullptr;
-
-  explicit SpglslAngleWebglOutputCounter(ScopeSymbolsMap & usedSymbols,
+  explicit SpglslAngleWebglOutputCounter(ScopeSymbolsManager & scopeSymbolsManager,
       std::ostream & out,
       SpglslSymbolUsage & usage,
       const SpglslGlslPrecisions & precisions) :
-      SpglslAngleWebglOutput(out, usage.symbols, precisions, false), usedSymbols(usedSymbols), usage(usage) {
+      SpglslAngleWebglOutput(out, usage.symbols, precisions, false),
+      scopeSymbolsManager(scopeSymbolsManager),
+      usage(usage) {
   }
 
   void onScopeBegin() override {
-    auto * scope = this->getCurrentScope();
-    auto & n = this->usedSymbols[scope];
-    this->currentUsedScope->children.push_back(&n);
-    n.parent = this->currentUsedScope;
-    this->currentUsedScope = &n;
+    this->scopeSymbolsManager.beginScope();
     SpglslAngleWebglOutput::onScopeBegin();
   }
 
@@ -85,7 +105,7 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
   void onSymbolDeclaration(const sh::TSymbol * symbol,
       sh::TIntermNode * node,
       SpglslSymbolDeclarationKind kind) override {
-    this->currentUsedScope->addDeclaredSymbol(symbol);
+    this->scopeSymbolsManager.currentScope->addDeclaredSymbol(symbol);
     SpglslAngleWebglOutput::onSymbolDeclaration(symbol, node, kind);
   }
 
@@ -104,7 +124,7 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
     ++entry.frequency;
 
     if (symentry.symbol) {
-      this->currentUsedScope->addSymbolUsed(symbol);
+      this->scopeSymbolsManager.currentScope->addSymbolUsed(symbol);
     }
 
     if (symentry.mangleId == -2) {
@@ -120,97 +140,72 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
 
   void onScopeEnd() override {
     SpglslAngleWebglOutput::onScopeEnd();
-    this->currentUsedScope = this->currentUsedScope->parent;
-  }
-};
-
-class SpglslMangleIdAssigner : public SpglslScopedTraverser {
- public:
-  SpglslSymbolUsage & usage;
-
-  ScopeSymbolsMap & usedSymbols;
-  std::unordered_map<const sh::TSymbol *, int> newMangleIds;
-
-  SpglslMangleIdAssigner(ScopeSymbolsMap & usedSymbols, SpglslSymbolUsage & usage) :
-      SpglslScopedTraverser(usage.symbols), usage(usage), usedSymbols(usedSymbols) {
-  }
-
-  void beforeVisitFunctionPrototype(sh::TIntermFunctionPrototype * node,
-      sh::TIntermFunctionDefinition * definition) override {
-  }
-
-  void renameSymbolsInScope() {
-    auto * node = this->getCurrentScope();
-    auto & scope = this->usedSymbols[node];
-
-    std::vector<SpglslSymbolInfo *> sortedDeclarations;
-    sortedDeclarations.reserve(scope.declarations.size());
-    for (const auto * declaration : scope.declarations) {
-      sortedDeclarations.push_back(&this->usage.symbols.get(declaration));
-    }
-    std::sort(sortedDeclarations.begin(), sortedDeclarations.end(),
-        [](const SpglslSymbolInfo * a, const SpglslSymbolInfo * b) { return a->mangleId < b->mangleId; });
-
-    size_t candidateIndex = 0;
-
-    for (auto * declInfo : sortedDeclarations) {
-      int mangleId = declInfo->mangleId;
-
-      if (mangleId < 0) {
-        continue;  // Symbol is reserved.
-      }
-
-      const auto * declSym = declInfo->symbol;
-
-      for (; candidateIndex < usage.sorted.size(); ++candidateIndex) {
-        auto * candidate = usage.sorted[candidateIndex];
-        if (candidate->entry->mangleId >= mangleId) {
-          break;  // Nothing better found
-        }
-
-        const auto * candidateSym = candidate->entry->symbol;
-        if (!scope.isSymbolUsed(candidateSym)) {
-          this->newMangleIds[declSym] = candidate->entry->mangleId;
-          scope.renameUsedSymbol(declSym, candidateSym);
-          ++candidateIndex;
-          break;  // Symbol renamed.
-        }
-      }
-    }
-  }
-
-  void onScopeBegin() override {
-    renameSymbolsInScope();
+    this->scopeSymbolsManager.endScope();
   }
 };
 
 SpglslSymbolUsage::SpglslSymbolUsage(SpglslSymbols & symbols) : symbols(symbols) {
 }
 
-#include <iostream>
+void assignMangleIdsInScope(SpglslSymbolUsage & usage,
+    ScopeSymbols & scope,
+    std::unordered_map<const sh::TSymbol *, int> & newMangleIds) {
+  std::vector<SpglslSymbolInfo *> sortedDeclarations;
+  sortedDeclarations.reserve(scope.declarations.size());
+  for (const auto * declaration : scope.declarations) {
+    sortedDeclarations.push_back(&usage.symbols.get(declaration));
+  }
+  std::sort(sortedDeclarations.begin(), sortedDeclarations.end(),
+      [](const SpglslSymbolInfo * a, const SpglslSymbolInfo * b) { return a->mangleId < b->mangleId; });
+
+  size_t candidateIndex = 0;
+
+  for (auto * declInfo : sortedDeclarations) {
+    int mangleId = declInfo->mangleId;
+
+    if (mangleId < 0) {
+      continue;  // Symbol is reserved.
+    }
+
+    const auto * declSym = declInfo->symbol;
+
+    for (; candidateIndex < usage.sorted.size(); ++candidateIndex) {
+      auto * candidate = usage.sorted[candidateIndex];
+      if (candidate->entry->mangleId >= mangleId) {
+        break;  // Nothing better found
+      }
+
+      const auto * candidateSym = candidate->entry->symbol;
+      if (!scope.isSymbolUsed(candidateSym)) {
+        newMangleIds[declSym] = candidate->entry->mangleId;
+        scope.renameUsedSymbol(declSym, candidateSym);
+        ++candidateIndex;
+        break;  // Symbol renamed.
+      }
+    }
+  }
+}
+
+void assignMangleIds(SpglslSymbolUsage & usage,
+    std::unordered_map<const sh::TSymbol *, int> & newMangleIds,
+    ScopeSymbolsManager & scopeSymbolsManager) {
+  for (auto & scope : scopeSymbolsManager.allScopes) {
+    assignMangleIdsInScope(usage, scope, newMangleIds);
+  }
+}
 
 void SpglslSymbolUsage::load(sh::TIntermBlock * root,
     const SpglslGlslPrecisions & precisions,
     SpglslSymbolGenerator * generator) {
-  ScopeSymbolsMap scopesUsedSymbols;
+  ScopeSymbolsManager scopeSymbolsManager;
 
-  std::stringstream ss;
-
-  SpglslAngleWebglOutputCounter counter(scopesUsedSymbols, ss, *this, precisions);
-
-  root->traverse(&counter);
-
-  this->_additionalReservedWords.emplace(Strings::empty);
-  for (const auto & kv : this->symbols._map) {
-    if (_isSymReserved(kv.second)) {
-      this->addReservedWord(kv.second.symbolName);
+  {
+    std::stringstream ss;
+    SpglslAngleWebglOutputCounter counter(scopeSymbolsManager, ss, *this, precisions);
+    root->traverse(&counter);
+    if (generator) {
+      generator->load(ss.str());
     }
-  }
-
-  std::cout << "GENERATED:" << ss.str() << std::endl;
-
-  if (generator) {
-    generator->load(ss.str());
   }
 
   this->symbols.clearMangleId();
@@ -223,7 +218,6 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
         tmpSorted.push_back(&kv.second);
       } else {
         kv.second.entry->mangleId = -2;
-        this->addReservedWord(this->symbols.getName(kv.second.entry->symbol));
       }
     }
   }
@@ -242,15 +236,22 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
     }
   }
 
-  SpglslMangleIdAssigner mangleIdAssigner(scopesUsedSymbols, *this);
+  std::unordered_map<const sh::TSymbol *, int> newMangleIds;
 
-  root->traverse(&mangleIdAssigner);
+  assignMangleIds(*this, newMangleIds, scopeSymbolsManager);
 
   for (auto & sym : this->sorted) {
     auto & entry = sym->entry;
-    auto found = mangleIdAssigner.newMangleIds.find(entry->symbol);
-    if (found != mangleIdAssigner.newMangleIds.end()) {
+    auto found = newMangleIds.find(entry->symbol);
+    if (found != newMangleIds.end()) {
       entry->mangleId = found->second;
+    }
+  }
+
+  this->_additionalReservedWords.emplace(Strings::empty);
+  for (const auto & kv : this->symbols._map) {
+    if (kv.second.mangleId < 0) {
+      this->addReservedWord(kv.second.symbolName);
     }
   }
 }
