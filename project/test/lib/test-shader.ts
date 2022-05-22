@@ -31,7 +31,7 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
       colors: true,
     })}`;
 
-    console.log(compiled.output);
+    // console.log(compiled.output);
 
     expect(compiled.valid).to.equal(true, info);
     expect(compiled.infoLog.getCounts().errors).to.equal(0, info);
