@@ -56,13 +56,20 @@ class ScopeSymbols {
 
 class ScopeSymbolsManager {
  public:
-  ScopeSymbols rootScope;
+  ScopeSymbols * rootScope;
   ScopeSymbols * currentScope = nullptr;
   std::list<ScopeSymbols> allScopes;
 
+  inline ScopeSymbolsManager() {
+    this->rootScope = &this->allScopes.emplace_back();
+  }
+
   void beginScope() {
     if (this->currentScope == nullptr) {
-      this->currentScope = &rootScope;
+      if (this->rootScope == nullptr) {
+        this->rootScope = &this->allScopes.emplace_back();
+      }
+      this->currentScope = this->rootScope;
     } else {
       auto & newScope = this->allScopes.emplace_back(this->currentScope);
       this->currentScope->children.push_back(&newScope);
@@ -152,6 +159,8 @@ void assignMangleIdsInScope(SpglslSymbolUsage & usage, ScopeSymbols & scope) {
     sortedDeclarations.push_back(&usage.get(declaration));
   }
 
+  std::unordered_map<const sh::TFunction *, std::vector<const sh::TFunction *>> mergedFunctions;
+
   std::sort(sortedDeclarations.begin(), sortedDeclarations.end(),
       [](const SpglslSymbolUsageInfo * a, const SpglslSymbolUsageInfo * b) { return a->mangleId < b->mangleId; });
 
@@ -223,7 +232,6 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
   this->sorted.clear();
   this->sorted.reserve(tmpSorted.size());
   for (auto & entry : tmpSorted) {
-    //    newMangleIds[sym->entry->symbol] = (int)newMangleIds.size() + 1;
     this->sorted.push_back(entry);
     entry->mangleId = (int)this->sorted.size();
   }
