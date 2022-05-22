@@ -82,7 +82,6 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
   SpglslSymbolGenerator * symbolGenerator;
   ScopeSymbolsManager & scopeSymbolsManager;
   SpglslSymbolUsage & usage;
-  std::string _dummyVariable = "$";
 
   explicit SpglslAngleWebglOutputCounter(ScopeSymbolsManager & scopeSymbolsManager,
       std::ostream & out,
@@ -122,18 +121,14 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
 
   const std::string & getSymbolName(const sh::TSymbol * symbol) override {
     auto & symentry = this->usage.get(symbol);
-
     ++symentry.frequency;
-
     if (symentry.entry->symbol) {
       this->scopeSymbolsManager.currentScope->addSymbolUsed(symbol);
     }
-
     if (symentry.mangleId < 0) {
       return SpglslAngleWebglOutput::getSymbolName(symbol);  // Reserved.
     }
-
-    return this->_dummyVariable;
+    return Strings::empty;
   }
 
   void onScopeEnd() override {
@@ -141,6 +136,10 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
     this->scopeSymbolsManager.endScope();
   }
 };
+
+////////////////////////////////////////
+//    Class SpglslSymbolUsage
+////////////////////////////////////////
 
 SpglslSymbolUsage::SpglslSymbolUsage(SpglslSymbols & symbols) : symbols(symbols) {
 }
