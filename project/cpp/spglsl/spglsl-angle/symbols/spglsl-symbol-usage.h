@@ -8,7 +8,6 @@ struct SpglslSymbolUsageInfo {
   SpglslSymbolInfo * entry = nullptr;
   uint32_t frequency = 0;
   int mangleId = -1;
-  int newMangleId = -1;
 };
 
 class SpglslSymbolGenerator;

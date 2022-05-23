@@ -38,6 +38,10 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
     return size ? this->scopesStack[size - 1] : nullptr;
   }
 
+  inline sh::TIntermFunctionDefinition * getCurrentFunctionDefinition() const {
+    return this->_currentFunc;
+  }
+
   virtual void onScopeBegin();
   virtual void onScopeEnd();
 
@@ -67,5 +71,6 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
 
  private:
   sh::TIntermFunctionDefinition * _currentFuncDef = nullptr;
+  sh::TIntermFunctionDefinition * _currentFunc = nullptr;
 };
 #endif

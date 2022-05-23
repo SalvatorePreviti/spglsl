@@ -2,6 +2,7 @@
 #include <list>
 
 #include "../spglsl-angle-webgl-output.h"
+#include "mangle-id-remapper.h"
 #include "spglsl-symbol-usage.h"
 
 #include <iostream>
@@ -9,12 +10,14 @@
 class ScopeSymbols {
  public:
   ScopeSymbols * parent;
+  sh::TIntermFunctionDefinition * node;
   std::vector<ScopeSymbols *> children;
 
   std::unordered_set<SpglslSymbolUsageInfo *> declarations;
   std::unordered_set<SpglslSymbolUsageInfo *> usedSymbols;
 
-  inline explicit ScopeSymbols(ScopeSymbols * parent = nullptr) : parent(parent) {
+  inline explicit ScopeSymbols(ScopeSymbols * parent = nullptr, sh::TIntermFunctionDefinition * node = nullptr) :
+      parent(parent), node(node) {
   }
 
   bool isSymbolUsed(SpglslSymbolUsageInfo * symbol) const {
@@ -64,14 +67,14 @@ class ScopeSymbolsManager {
     this->rootScope = &this->allScopes.emplace_back();
   }
 
-  void beginScope() {
+  void beginScope(sh::TIntermFunctionDefinition * node) {
     if (this->currentScope == nullptr) {
       if (this->rootScope == nullptr) {
-        this->rootScope = &this->allScopes.emplace_back();
+        this->rootScope = &this->allScopes.emplace_back(nullptr, node);
       }
       this->currentScope = this->rootScope;
     } else {
-      auto & newScope = this->allScopes.emplace_back(this->currentScope);
+      auto & newScope = this->allScopes.emplace_back(this->currentScope, node);
       this->currentScope->children.push_back(&newScope);
       this->currentScope = &newScope;
     }
@@ -102,7 +105,7 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
   }
 
   void onScopeBegin() override {
-    this->scopeSymbolsManager.beginScope();
+    this->scopeSymbolsManager.beginScope(this->getCurrentFunctionDefinition());
     SpglslAngleWebglOutput::onScopeBegin();
   }
 
@@ -145,49 +148,81 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
 };
 
 ////////////////////////////////////////
-//    Class SpglslSymbolUsage
+//    Class SpglslMangleIdOptimizer
 ////////////////////////////////////////
 
-SpglslSymbolUsage::SpglslSymbolUsage(SpglslSymbols & symbols) : symbols(symbols) {
-}
+class SpglslMangleIdOptimizer {
+ public:
+  SpglslSymbolUsage & usage;
+  MangleIdRemapper remapper;
 
-void assignMangleIdsInScope(SpglslSymbolUsage & usage, ScopeSymbols & scope) {
-  std::vector<SpglslSymbolUsageInfo *> sortedDeclarations(scope.declarations.begin(), scope.declarations.end());
+  explicit SpglslMangleIdOptimizer(SpglslSymbolUsage & usage) : usage(usage) {
+  }
 
-  std::unordered_map<const sh::TFunction *, std::vector<const sh::TFunction *>> mergedFunctions;
+  void processScopeDeclarations(ScopeSymbols & scope) {
+    std::vector<SpglslSymbolUsageInfo *> sortedDeclarations(scope.declarations.begin(), scope.declarations.end());
 
-  std::sort(sortedDeclarations.begin(), sortedDeclarations.end(),
-      [](const SpglslSymbolUsageInfo * a, const SpglslSymbolUsageInfo * b) { return a->mangleId < b->mangleId; });
+    std::sort(sortedDeclarations.begin(), sortedDeclarations.end(),
+        [](const SpglslSymbolUsageInfo * a, const SpglslSymbolUsageInfo * b) { return a->mangleId < b->mangleId; });
 
-  size_t candidateIndex = 0;
+    size_t candidateIndex = 0;
 
-  for (auto * declInfo : sortedDeclarations) {
-    int mangleId = declInfo->mangleId;
-
-    if (mangleId <= 0 || !declInfo->entry) {
-      continue;  // Symbol is reserved.
+    bool isDebug = scope.node != nullptr && scope.node->getFunction()->name() == "noiseDxy";
+    if (isDebug) {
+      std::cout << "begin debug" << std::endl;
     }
+    for (auto * declInfo : sortedDeclarations) {
+      int mangleId = declInfo->mangleId;
 
-    for (; candidateIndex < usage.sorted.size(); ++candidateIndex) {
-      auto * candidate = usage.sorted[candidateIndex];
-      if (candidate->mangleId >= mangleId) {
-        break;  // Nothing better found
+      if (mangleId <= 0 || !declInfo->entry) {
+        continue;  // Symbol is reserved.
       }
 
-      if (!scope.isSymbolUsed(candidate)) {
-        declInfo->newMangleId = candidate->mangleId;
+      if (this->remapper.has(mangleId)) {
+        continue;  // Already remapped
+      }
+
+      // std::cout << "---" << std::endl;
+      for (; candidateIndex < usage.sorted.size(); ++candidateIndex) {
+        auto * candidate = usage.sorted[candidateIndex];
+        if (candidate->mangleId == mangleId) {
+          ++candidateIndex;
+          break;  // Nothing better found
+        }
+
+        if (this->remapper.has(candidate->mangleId)) {
+          continue;  // Already remapped
+        }
+
+        // std::cout << candidate->entry->symbolName << " " << candidate->mangleId << std::endl;
+
+        if (scope.isSymbolUsed(candidate)) {
+          continue;  // Symbol cannot be reused
+        }
+
+        if (isDebug) {
+          std::cout << "rename " << declInfo->entry->symbolName << ":" << declInfo->mangleId << " to "
+                    << candidate->entry->symbolName << ":" << candidate->mangleId << std::endl;
+        }
+
+        this->remapper.set(declInfo->mangleId, candidate->mangleId);
         scope.renameUsedSymbol(declInfo, candidate);
+
         ++candidateIndex;
         break;  // Symbol renamed.
       }
     }
+    if (isDebug) {
+      std::cout << "end debug" << std::endl;
+    }
   }
-}
+};
 
-void assignMangleIds(SpglslSymbolUsage & usage, ScopeSymbolsManager & scopeSymbolsManager) {
-  for (auto & scope : scopeSymbolsManager.allScopes) {
-    assignMangleIdsInScope(usage, scope);
-  }
+////////////////////////////////////////
+//    Class SpglslSymbolUsage
+////////////////////////////////////////
+
+SpglslSymbolUsage::SpglslSymbolUsage(SpglslSymbols & symbols) : symbols(symbols) {
 }
 
 void SpglslSymbolUsage::load(sh::TIntermBlock * root,
@@ -228,14 +263,22 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
     entry->mangleId = (int)this->sorted.size();
   }
 
+  std::cout << std::endl << std::endl;
+
   if (generator) {
-    assignMangleIds(*this, scopeSymbolsManager);
+    SpglslMangleIdOptimizer optimizer(*this);
+
+    for (auto & scope : scopeSymbolsManager.allScopes) {
+      optimizer.processScopeDeclarations(scope);
+    }
 
     for (const auto & kv : this->symbols._map) {
       auto & entry = this->get(kv.first);
-      if (entry.newMangleId >= 0) {
-        entry.mangleId = entry.newMangleId;
-      } else if (entry.mangleId < 0) {
+      if (entry.mangleId >= 0) {
+        entry.mangleId = optimizer.remapper.remapped(entry.mangleId);
+      }
+
+      if (entry.mangleId < 0) {
         generator->addReservedWord(kv.second.symbolName);
       }
     }

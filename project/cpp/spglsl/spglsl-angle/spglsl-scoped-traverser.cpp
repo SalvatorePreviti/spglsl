@@ -87,6 +87,8 @@ void SpglslScopedTraverser::popScope() {
 bool SpglslScopedTraverser::visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) {
   auto * proto = node->getFunctionPrototype();
   auto * body = node->getBody();
+  auto * parentFunc = this->_currentFunc;
+  this->_currentFunc = node;
 
   this->beforeVisitFunctionDefinition(node);
   if (!body) {
@@ -113,6 +115,8 @@ bool SpglslScopedTraverser::visitFunctionDefinition(sh::Visit visit, sh::TInterm
   this->traverseNode(body);
 
   this->popScope();
+
+  this->_currentFunc = parentFunc;
 
   return false;
 }
