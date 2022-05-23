@@ -6,8 +6,9 @@
 
 struct SpglslSymbolUsageInfo {
   SpglslSymbolInfo * entry = nullptr;
+  bool isReserved = false;
   uint32_t frequency = 0;
-  int mangleId = -1;
+  int mangleId = 0;
 };
 
 class SpglslSymbolGenerator;
@@ -29,7 +30,7 @@ class SpglslSymbolUsage {
     if (!found.entry) {
       auto & info = this->symbols.get(symbol);
       found.entry = &info;
-      found.mangleId = info.isReserved() ? -1 : (int)info.insertionOrder;
+      found.isReserved = info.isReserved();
     }
     return found;
   }

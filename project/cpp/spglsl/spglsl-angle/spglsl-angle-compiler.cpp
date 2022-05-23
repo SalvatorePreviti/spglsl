@@ -121,6 +121,8 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
   return true;
 }
 
+//#include <iostream>
+
 void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
   SpglslSymbolUsage usage(this->symbols);
   SpglslSymbolGenerator symgen(usage);
@@ -128,9 +130,10 @@ void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
   usage.load(root, this->precisions, &symgen);
 
   for (const auto & entry : usage.sorted) {
-    if (entry->mangleId >= 0) {
+    if (entry->mangleId > 0) {
       entry->entry->renamed = symgen.getOrCreateMangledName(entry->mangleId);
     }
+    // std::cout << entry->entry->symbolName << " " << entry->mangleId << std::endl;
   }
 }
 

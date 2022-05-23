@@ -2,10 +2,23 @@
 #include <list>
 
 #include "../spglsl-angle-webgl-output.h"
-#include "mangle-id-remapper.h"
 #include "spglsl-symbol-usage.h"
 
 #include <iostream>
+
+static auto _cmp_SpglslSymbolUsageInfo(const SpglslSymbolUsageInfo * a, const SpglslSymbolUsageInfo * b) {
+  auto af = a->frequency;
+  auto bf = b->frequency;
+  if (af != bf) {
+    return af > bf;
+  }
+  auto ar = a->isReserved;
+  auto br = b->isReserved;
+  if (ar != br) {
+    return ar < br;
+  }
+  return a->entry->insertionOrder < b->entry->insertionOrder;
+}
 
 class ScopeSymbols {
  public:
@@ -32,6 +45,23 @@ class ScopeSymbols {
     return false;
   }
 
+  bool isMangleIdUsed(int mangleId) const {
+    if (mangleId <= 0) {
+      return false;
+    }
+    for (const auto * used : this->usedSymbols) {
+      if (used->mangleId == mangleId) {
+        return true;
+      }
+    }
+    for (const auto * child : this->children) {
+      if (child->isMangleIdUsed(mangleId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   inline void addSymbolUsed(SpglslSymbolUsageInfo * symbol) {
     this->usedSymbols.emplace(symbol);
   }
@@ -40,19 +70,12 @@ class ScopeSymbols {
     return this->declarations.count(symbol) != 0 || (this->parent && this->parent->declarations.count(symbol) != 0);
   }
 
-  void addDeclaredSymbol(SpglslSymbolUsageInfo * symbol) {
-    if (!this->isSymbolDeclared(symbol)) {
-      this->declarations.emplace(symbol);
-    }
-    this->usedSymbols.emplace(symbol);
-  }
-
-  void renameUsedSymbol(SpglslSymbolUsageInfo * source, SpglslSymbolUsageInfo * target) {
+  void replaceUsedSymbol(SpglslSymbolUsageInfo * source, SpglslSymbolUsageInfo * target) {
     if (this->usedSymbols.erase(source) != 0) {
       this->usedSymbols.emplace(target);
     }
     for (auto * child : this->children) {
-      child->renameUsedSymbol(source, target);
+      child->replaceUsedSymbol(source, target);
     }
   }
 };
@@ -61,6 +84,7 @@ class ScopeSymbolsManager {
  public:
   ScopeSymbols * rootScope;
   ScopeSymbols * currentScope = nullptr;
+  int declarationsCount = 0;
   std::list<ScopeSymbols> allScopes;
 
   inline ScopeSymbolsManager() {
@@ -78,6 +102,24 @@ class ScopeSymbolsManager {
       this->currentScope->children.push_back(&newScope);
       this->currentScope = &newScope;
     }
+  }
+
+  void addDeclaredSymbol(SpglslSymbolUsageInfo * symbol) {
+    auto * scope = this->currentScope;
+
+    if (!scope) {
+      return;
+    }
+    auto * parent = scope->parent;
+    if (parent && parent->isSymbolDeclared(symbol)) {
+      return;
+    }
+
+    if (!scope->declarations.emplace(symbol).second) {
+      return;
+    }
+
+    ++this->declarationsCount;
   }
 
   void endScope() {
@@ -117,7 +159,7 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
   void onSymbolDeclaration(const sh::TSymbol * symbol,
       sh::TIntermNode * node,
       SpglslSymbolDeclarationKind kind) override {
-    this->scopeSymbolsManager.currentScope->addDeclaredSymbol(&this->usage.get(symbol));
+    this->scopeSymbolsManager.addDeclaredSymbol(&this->usage.get(symbol));
     SpglslAngleWebglOutput::onSymbolDeclaration(symbol, node, kind);
   }
 
@@ -131,13 +173,11 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
 
   const std::string & getSymbolName(const sh::TSymbol * symbol) override {
     auto & symentry = this->usage.get(symbol);
-    ++symentry.frequency;
-    if (symentry.entry->symbol) {
-      this->scopeSymbolsManager.currentScope->addSymbolUsed(&symentry);
-    }
-    if (symentry.mangleId < 0) {
+    if (symentry.isReserved) {
       return SpglslAngleWebglOutput::getSymbolName(symbol);  // Reserved.
     }
+    ++symentry.frequency;
+    this->scopeSymbolsManager.currentScope->addSymbolUsed(&symentry);
     return Strings::empty;
   }
 
@@ -154,26 +194,35 @@ class SpglslAngleWebglOutputCounter : public SpglslAngleWebglOutput {
 class SpglslMangleIdOptimizer {
  public:
   SpglslSymbolUsage & usage;
-  MangleIdRemapper remapper;
+  ScopeSymbolsManager & scopeSymbolsManager;
 
-  explicit SpglslMangleIdOptimizer(SpglslSymbolUsage & usage) : usage(usage) {
+  explicit SpglslMangleIdOptimizer(SpglslSymbolUsage & usage, ScopeSymbolsManager & scopeSymbolsManager) :
+      usage(usage), scopeSymbolsManager(scopeSymbolsManager) {
   }
 
   void processScopeDeclarations(ScopeSymbols & scope) {
     std::vector<SpglslSymbolUsageInfo *> sortedDeclarations(scope.declarations.begin(), scope.declarations.end());
 
-    std::sort(sortedDeclarations.begin(), sortedDeclarations.end(),
-        [](const SpglslSymbolUsageInfo * a, const SpglslSymbolUsageInfo * b) { return a->mangleId < b->mangleId; });
+    std::sort(sortedDeclarations.begin(), sortedDeclarations.end(), _cmp_SpglslSymbolUsageInfo);
 
     size_t candidateIndex = 0;
 
+    for (auto * declInfo : sortedDeclarations) {
+      for (int id = 1; id <= scopeSymbolsManager.declarationsCount; ++id) {
+        if (!scope.isMangleIdUsed(id)) {
+          declInfo->mangleId = id;
+          break;
+        }
+      }
+    }
+
+    /*
     bool isDebug = scope.node != nullptr && scope.node->getFunction()->name() == "noiseDxy";
     if (isDebug) {
       std::cout << "begin debug" << std::endl;
     }
-    for (auto * declInfo : sortedDeclarations) {
-      int mangleId = declInfo->mangleId;
 
+    for (auto * declInfo : sortedDeclarations) {
       if (mangleId <= 0 || !declInfo->entry) {
         continue;  // Symbol is reserved.
       }
@@ -214,7 +263,7 @@ class SpglslMangleIdOptimizer {
     }
     if (isDebug) {
       std::cout << "end debug" << std::endl;
-    }
+    }*/
   }
 };
 
@@ -242,17 +291,12 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
   std::vector<SpglslSymbolUsageInfo *> tmpSorted;
   tmpSorted.reserve(this->map.size());
   for (auto & kv : this->map) {
-    if (kv.second.entry) {
-      if (kv.second.mangleId >= 0) {
-        tmpSorted.push_back(&kv.second);
-      }
+    if (!kv.second.isReserved) {
+      tmpSorted.push_back(&kv.second);
     }
   }
 
-  std::sort(tmpSorted.begin(), tmpSorted.end(), [](const SpglslSymbolUsageInfo * a, const SpglslSymbolUsageInfo * b) {
-    return a->frequency > b->frequency ||
-        (a->frequency == b->frequency && a->entry->insertionOrder < b->entry->insertionOrder);
-  });
+  std::sort(tmpSorted.begin(), tmpSorted.end(), _cmp_SpglslSymbolUsageInfo);
 
   std::unordered_map<const sh::TSymbol *, int> newMangleIds;
 
@@ -260,13 +304,12 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
   this->sorted.reserve(tmpSorted.size());
   for (auto & entry : tmpSorted) {
     this->sorted.push_back(entry);
-    entry->mangleId = (int)this->sorted.size();
   }
 
   std::cout << std::endl << std::endl;
 
   if (generator) {
-    SpglslMangleIdOptimizer optimizer(*this);
+    SpglslMangleIdOptimizer optimizer(*this, scopeSymbolsManager);
 
     for (auto & scope : scopeSymbolsManager.allScopes) {
       optimizer.processScopeDeclarations(scope);
@@ -274,11 +317,7 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
 
     for (const auto & kv : this->symbols._map) {
       auto & entry = this->get(kv.first);
-      if (entry.mangleId >= 0) {
-        entry.mangleId = optimizer.remapper.remapped(entry.mangleId);
-      }
-
-      if (entry.mangleId < 0) {
+      if (entry.isReserved || entry.mangleId <= 0) {
         generator->addReservedWord(kv.second.symbolName);
       }
     }
