@@ -331,7 +331,6 @@ inline bool charLess(char a, char b) {
 
 SpglslSymbolGenerator::SpglslSymbolGenerator(SpglslSymbolUsage & usage) : usage(usage) {
   this->_additionalReservedWords.emplace(Strings::empty);
-  this->_additionalReservedWords.emplace("PI");
 }
 
 bool SpglslSymbolGenerator::isReservedWord(const std::string & word) const {
