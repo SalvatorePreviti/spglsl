@@ -46,7 +46,7 @@ bool spglsl_treeops_optimize(SpglslAngleCompiler & compiler, sh::TIntermBlock * 
     compiler.callDag.tagUsedFunctions();
     compiler.callDag.pruneUnusedFunctions(root);
 
-    spglsl_treeops_removeUnnecessaryBlocks(compiler, root);
+    // spglsl_treeops_removeUnnecessaryBlocks(compiler, root);
 
   } while (repeat < 40 && astHasher.computeNodeHashChanged(root, oldAstHash));
 
