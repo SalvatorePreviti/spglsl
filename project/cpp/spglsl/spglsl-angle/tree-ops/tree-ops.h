@@ -9,6 +9,13 @@ namespace sh {
   class TIntermBlock;
 };
 
-bool SpglslOptimizeAngleAst(SpglslAngleCompiler & compiler, sh::TIntermBlock * root);
+/** A whole set of optimizations, including many declared in this file */
+bool spglsl_treeops_optimize(SpglslAngleCompiler & compiler, sh::TIntermBlock * root);
+
+/** Removes unnecessary or empty blocks, replace comma operators with statements */
+void spglsl_treeops_removeUnnecessaryBlocks(SpglslAngleCompiler & compiler, sh::TIntermNode * root);
+
+/** Minification - replace statements with comma operator where possible */
+void spglsl_treeops_putCommaOperators(SpglslAngleCompiler & compiler, sh::TIntermNode * root);
 
 #endif

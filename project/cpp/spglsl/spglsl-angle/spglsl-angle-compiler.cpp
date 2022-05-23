@@ -108,11 +108,15 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
     return false;
   }
 
-  if (!SpglslOptimizeAngleAst(*this, root)) {
+  if (!spglsl_treeops_optimize(*this, root)) {
     return false;
   }
 
   this->loadPrecisions(true);
+
+  if (this->compilerOptions.minify) {
+    spglsl_treeops_putCommaOperators(*this, root);
+  }
 
   if (this->compilerOptions.mangle) {
     this->_mangle(root);

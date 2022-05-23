@@ -19,19 +19,6 @@ bool opIsBuiltinUnaryFunction(sh::TOperator op) {
   }
 }
 
-bool basicTypeNeedsPrecision(sh::TBasicType basicType) {
-  switch (basicType) {
-    case sh::EbtStruct:
-    case sh::EbtInterfaceBlock:
-    case sh::EbtVoid:
-    case sh::EbtAtomicCounter:
-    case sh::EbtBool: return false;
-    default: break;
-  }
-
-  return true;
-}
-
 int nodeConstantBooleanValue(sh::TIntermNode * node) {
   sh::TIntermTyped * typed = node->getAsTyped();
   if (!typed) {
@@ -338,218 +325,6 @@ bool nodeConstantUnionIsAllOne(sh::TIntermNode * node) {
   return result;
 }
 
-class NodeCollectAllNodesVisitor final : public sh::TIntermTraverser {
- public:
-  std::vector<sh::TIntermNode *> * out;
-
-  static NodeCollectAllNodesVisitor instance;
-
-  NodeCollectAllNodesVisitor() : sh::TIntermTraverser(true, false, false, nullptr), out(nullptr) {
-  }
-
-  void visitSymbol(sh::TIntermSymbol * node) override {
-    this->out->push_back(node);
-  }
-
-  void visitConstantUnion(sh::TIntermConstantUnion * node) override {
-    this->out->push_back(node);
-  }
-
-  bool visitSwizzle(sh::Visit, sh::TIntermSwizzle * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitBinary(sh::Visit, sh::TIntermBinary * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitUnary(sh::Visit, sh::TIntermUnary * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitTernary(sh::Visit, sh::TIntermTernary * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitIfElse(sh::Visit, sh::TIntermIfElse * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitSwitch(sh::Visit, sh::TIntermSwitch * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitCase(sh::Visit, sh::TIntermCase * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  void visitFunctionPrototype(sh::TIntermFunctionPrototype * node) override {
-    this->out->push_back(node);
-  }
-
-  bool visitFunctionDefinition(sh::Visit, sh::TIntermFunctionDefinition * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitAggregate(sh::Visit, sh::TIntermAggregate * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitBlock(sh::Visit, sh::TIntermBlock * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitGlobalQualifierDeclaration(sh::Visit, sh::TIntermGlobalQualifierDeclaration * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitDeclaration(sh::Visit, sh::TIntermDeclaration * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitLoop(sh::Visit, sh::TIntermLoop * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  bool visitBranch(sh::Visit, sh::TIntermBranch * node) override {
-    this->out->push_back(node);
-    return true;
-  }
-
-  void visitPreprocessorDirective(sh::TIntermPreprocessorDirective * node) override {
-    this->out->push_back(node);
-  }
-};
-
-NodeCollectAllNodesVisitor NodeCollectAllNodesVisitor::instance;
-
-void nodeCollectAllNodes(sh::TIntermNode * root, std::vector<sh::TIntermNode *> & out) {
-  if (root) {
-    NodeCollectAllNodesVisitor::instance.out = &out;
-    root->traverse(&NodeCollectAllNodesVisitor::instance);
-  }
-}
-
-class NodeKindGetterVisitor final : public sh::TIntermTraverser {
- public:
-  AngleNodeKind kind;
-
-  static NodeKindGetterVisitor instance;
-
-  NodeKindGetterVisitor() : sh::TIntermTraverser(false, false, false, nullptr), kind(AngleNodeKind::TNull) {
-  }
-
-  void visitSymbol(sh::TIntermSymbol *) override {
-    this->kind = AngleNodeKind::TIntermSymbol;
-  }
-
-  void visitConstantUnion(sh::TIntermConstantUnion *) override {
-    this->kind = AngleNodeKind::TIntermConstantUnion;
-  }
-
-  bool visitSwizzle(sh::Visit, sh::TIntermSwizzle *) override {
-    this->kind = AngleNodeKind::TIntermSwizzle;
-    return false;
-  }
-
-  bool visitBinary(sh::Visit, sh::TIntermBinary *) override {
-    this->kind = AngleNodeKind::TIntermBinary;
-    return false;
-  }
-
-  bool visitUnary(sh::Visit, sh::TIntermUnary *) override {
-    this->kind = AngleNodeKind::TIntermUnary;
-    return false;
-  }
-
-  bool visitTernary(sh::Visit, sh::TIntermTernary *) override {
-    this->kind = AngleNodeKind::TIntermTernary;
-    return false;
-  }
-
-  bool visitIfElse(sh::Visit, sh::TIntermIfElse *) override {
-    this->kind = AngleNodeKind::TIntermIfElse;
-    return false;
-  }
-
-  bool visitSwitch(sh::Visit, sh::TIntermSwitch *) override {
-    this->kind = AngleNodeKind::TIntermSwitch;
-    return false;
-  }
-
-  bool visitCase(sh::Visit, sh::TIntermCase *) override {
-    this->kind = AngleNodeKind::TIntermCase;
-    return false;
-  }
-
-  void visitFunctionPrototype(sh::TIntermFunctionPrototype *) override {
-    this->kind = AngleNodeKind::TIntermFunctionPrototype;
-  }
-
-  bool visitFunctionDefinition(sh::Visit, sh::TIntermFunctionDefinition *) override {
-    this->kind = AngleNodeKind::TIntermFunctionDefinition;
-    return false;
-  }
-
-  bool visitAggregate(sh::Visit, sh::TIntermAggregate *) override {
-    this->kind = AngleNodeKind::TIntermAggregate;
-    return false;
-  }
-
-  bool visitBlock(sh::Visit, sh::TIntermBlock *) override {
-    this->kind = AngleNodeKind::TIntermBlock;
-    return false;
-  }
-
-  bool visitGlobalQualifierDeclaration(sh::Visit, sh::TIntermGlobalQualifierDeclaration *) override {
-    this->kind = AngleNodeKind::TIntermGlobalQualifierDeclaration;
-    return false;
-  }
-
-  bool visitDeclaration(sh::Visit, sh::TIntermDeclaration *) override {
-    this->kind = AngleNodeKind::TIntermDeclaration;
-    return false;
-  }
-
-  bool visitLoop(sh::Visit, sh::TIntermLoop *) override {
-    this->kind = AngleNodeKind::TIntermLoop;
-    return false;
-  }
-
-  bool visitBranch(sh::Visit, sh::TIntermBranch *) override {
-    this->kind = AngleNodeKind::TIntermBranch;
-    return false;
-  }
-
-  void visitPreprocessorDirective(sh::TIntermPreprocessorDirective *) override {
-    this->kind = AngleNodeKind::TIntermPreprocessorDirective;
-  }
-};
-
-NodeKindGetterVisitor NodeKindGetterVisitor::instance;
-
-AngleNodeKind nodeGetKind(sh::TIntermNode * node) {
-  // Not thread safe, but it does not matter in wasm
-  NodeKindGetterVisitor::instance.kind = AngleNodeKind::TNull;
-  if (node) {
-    node->visit(sh::PreVisit, &NodeKindGetterVisitor::instance);
-  }
-  return NodeKindGetterVisitor::instance.kind;
-}
-
 bool isIntermNodeSingleStatement(sh::TIntermNode * node) {
   if (node->getAsFunctionDefinition()) {
     return false;
@@ -573,4 +348,110 @@ bool isIntermNodeSingleStatement(sh::TIntermNode * node) {
     return false;
   }
   return true;
+}
+
+AngleNodeKind nodeGetKind(const sh::TIntermNode * node) {
+  if (node == nullptr) {
+    return AngleNodeKind::TNull;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsAggregate()) {
+    return AngleNodeKind::TIntermAggregate;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsBlock()) {
+    return AngleNodeKind::TIntermBlock;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsGlobalQualifierDeclarationNode()) {
+    return AngleNodeKind::TIntermGlobalQualifierDeclaration;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsDeclarationNode()) {
+    return AngleNodeKind::TIntermDeclaration;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsFunctionPrototypeNode()) {
+    return AngleNodeKind::TIntermDeclaration;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsFunctionDefinition()) {
+    return AngleNodeKind::TIntermFunctionDefinition;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsSwizzleNode()) {
+    return AngleNodeKind::TIntermSwizzle;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsBinaryNode()) {
+    return AngleNodeKind::TIntermBinary;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsUnaryNode()) {
+    return AngleNodeKind::TIntermUnary;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsConstantUnion()) {
+    return AngleNodeKind::TIntermConstantUnion;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsTernaryNode()) {
+    return AngleNodeKind::TIntermTernary;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsIfElseNode()) {
+    return AngleNodeKind::TIntermIfElse;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsSwitchNode()) {
+    return AngleNodeKind::TIntermSwitch;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsCaseNode()) {
+    return AngleNodeKind::TIntermCase;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsSymbolNode()) {
+    return AngleNodeKind::TIntermSymbol;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsLoopNode()) {
+    return AngleNodeKind::TIntermLoop;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsBranchNode()) {
+    return AngleNodeKind::TIntermBranch;
+  }
+
+  if (const_cast<sh::TIntermNode *>(node)->getAsPreprocessorDirective()) {
+    return AngleNodeKind::TIntermPreprocessorDirective;
+  }
+
+  return AngleNodeKind::TNull;
+}
+
+const char * AngleNodeKind_name(AngleNodeKind kind) {
+  switch (kind) {
+    case AngleNodeKind::TNull: return "TNull";
+    case AngleNodeKind::TIntermAggregate: return "TIntermAggregate";
+    case AngleNodeKind::TIntermBlock: return "TIntermBlock";
+    case AngleNodeKind::TIntermGlobalQualifierDeclaration: return "TIntermGlobalQualifierDeclaration";
+    case AngleNodeKind::TIntermDeclaration: return "TIntermDeclaration";
+    case AngleNodeKind::TIntermFunctionPrototype: return "TIntermFunctionPrototype";
+    case AngleNodeKind::TIntermFunctionDefinition: return "TIntermFunctionDefinition";
+    case AngleNodeKind::TIntermSwizzle: return "TIntermSwizzle";
+    case AngleNodeKind::TIntermBinary: return "TIntermBinary";
+    case AngleNodeKind::TIntermUnary: return "TIntermUnary";
+    case AngleNodeKind::TIntermConstantUnion: return "TIntermConstantUnion";
+    case AngleNodeKind::TIntermTernary: return "TIntermTernary";
+    case AngleNodeKind::TIntermIfElse: return "TIntermIfElse";
+    case AngleNodeKind::TIntermSwitch: return "TIntermSwitch";
+    case AngleNodeKind::TIntermCase: return "TIntermCase";
+    case AngleNodeKind::TIntermSymbol: return "TIntermSymbol";
+    case AngleNodeKind::TIntermLoop: return "TIntermLoop";
+    case AngleNodeKind::TIntermBranch: return "TIntermBranch";
+    case AngleNodeKind::TIntermPreprocessorDirective: return "TIntermPreprocessorDirective";
+
+    default: return "TIntermNode_Unknown";
+  }
 }

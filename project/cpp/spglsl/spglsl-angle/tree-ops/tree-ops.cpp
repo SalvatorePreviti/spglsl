@@ -13,7 +13,7 @@
 #include "../spglsl-angle-compiler.h"
 #include "../spglsl-angle-webgl-output.h"
 
-bool SpglslOptimizeAngleAst(SpglslAngleCompiler & compiler, sh::TIntermBlock * root) {
+bool spglsl_treeops_optimize(SpglslAngleCompiler & compiler, sh::TIntermBlock * root) {
   SpglslHashValue oldAstHash;
   AngleAstHasher astHasher(&compiler.symbolTable);
   int repeat = -1;
@@ -45,6 +45,9 @@ bool SpglslOptimizeAngleAst(SpglslAngleCompiler & compiler, sh::TIntermBlock * r
 
     compiler.callDag.tagUsedFunctions();
     compiler.callDag.pruneUnusedFunctions(root);
+
+    spglsl_treeops_removeUnnecessaryBlocks(compiler, root);
+
   } while (repeat < 40 && astHasher.computeNodeHashChanged(root, oldAstHash));
 
   return true;

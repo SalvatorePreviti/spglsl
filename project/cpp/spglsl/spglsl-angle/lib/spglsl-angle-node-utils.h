@@ -25,19 +25,23 @@ enum class AngleNodeKind {
   TIntermPreprocessorDirective
 };
 
-void nodeCollectAllNodes(sh::TIntermNode * root, std::vector<sh::TIntermNode *> & out);
+AngleNodeKind nodeGetKind(const sh::TIntermNode * node);
 
-AngleNodeKind nodeGetKind(sh::TIntermNode * node);
+const char * AngleNodeKind_name(AngleNodeKind kind);
+
+inline const char * AngleNodeKind_name(const sh::TIntermNode * node) {
+  return AngleNodeKind_name(nodeGetKind(node));
+}
 
 bool opIsBuiltinUnaryFunction(sh::TOperator op);
-
-bool basicTypeNeedsPrecision(sh::TBasicType basicType);
 
 int nodeConstantBooleanValue(sh::TIntermNode * condition);
 
 bool nodeBlockIsEmpty(sh::TIntermNode * node);
 
 bool nodeHasSideEffects(sh::TIntermNode * node);
+
+sh::TIntermNode * nodeGetStatementSingleNode(sh::TIntermNode * node);
 
 sh::TIntermNode * nodeGetBlockSingleNode(sh::TIntermBlock * block);
 
@@ -51,88 +55,16 @@ const sh::TFunction * nodeGetAsFunction(sh::TIntermNode * node);
 
 bool isIntermNodeSingleStatement(sh::TIntermNode * node);
 
-inline sh::TIntermTyped * nodeGetAsTyped(sh::TIntermNode * node) {
-  return node ? node->getAsTyped() : nullptr;
-}
-
 inline sh::TIntermConstantUnion * nodeGetAsConstantUnion(sh::TIntermNode * node) {
   return node ? node->getAsConstantUnion() : nullptr;
-}
-
-inline sh::TIntermFunctionDefinition * nodeGetAsFunctionDefinition(sh::TIntermNode * node) {
-  return node ? node->getAsFunctionDefinition() : nullptr;
-}
-
-inline sh::TIntermAggregate * nodeGetAsAggregate(sh::TIntermNode * node) {
-  return node ? node->getAsAggregate() : nullptr;
-}
-
-inline sh::TIntermBlock * nodeGetAsBlock(sh::TIntermNode * node) {
-  return node ? node->getAsBlock() : nullptr;
-}
-
-inline sh::TIntermFunctionPrototype * nodeGetAsFunctionPrototypeNode(sh::TIntermNode * node) {
-  return node ? node->getAsFunctionPrototypeNode() : nullptr;
-}
-
-inline sh::TIntermGlobalQualifierDeclaration * nodeGetAsGlobalQualifierDeclarationNode(sh::TIntermNode * node) {
-  return node ? node->getAsGlobalQualifierDeclarationNode() : nullptr;
-}
-
-inline sh::TIntermDeclaration * nodeGetAsDeclarationNode(sh::TIntermNode * node) {
-  return node ? node->getAsDeclarationNode() : nullptr;
-}
-
-inline sh::TIntermSwizzle * nodeGetAsSwizzleNode(sh::TIntermNode * node) {
-  return node ? node->getAsSwizzleNode() : nullptr;
 }
 
 inline sh::TIntermBinary * nodeGetAsBinaryNode(sh::TIntermNode * node) {
   return node ? node->getAsBinaryNode() : nullptr;
 }
 
-inline sh::TIntermUnary * nodeGetAsUnaryNode(sh::TIntermNode * node) {
-  return node ? node->getAsUnaryNode() : nullptr;
-}
-
-inline sh::TIntermTernary * nodeGetAsTernaryNode(sh::TIntermNode * node) {
-  return node ? node->getAsTernaryNode() : nullptr;
-}
-
-inline sh::TIntermIfElse * nodeGetAsIfElseNode(sh::TIntermNode * node) {
-  return node ? node->getAsIfElseNode() : nullptr;
-}
-
-inline sh::TIntermSwitch * nodeGetAsSwitchNode(sh::TIntermNode * node) {
-  return node ? node->getAsSwitchNode() : nullptr;
-}
-
-inline sh::TIntermCase * nodeGetAsCaseNode(sh::TIntermNode * node) {
-  return node ? node->getAsCaseNode() : nullptr;
-}
-
 inline sh::TIntermSymbol * nodeGetAsSymbolNode(sh::TIntermNode * node) {
   return node ? node->getAsSymbolNode() : nullptr;
-}
-
-inline sh::TIntermLoop * nodeGetAsLoopNode(sh::TIntermNode * node) {
-  return node ? node->getAsLoopNode() : nullptr;
-}
-
-inline sh::TIntermBranch * nodeGetAsBranchNode(sh::TIntermNode * node) {
-  return node ? node->getAsBranchNode() : nullptr;
-}
-
-inline sh::TIntermPreprocessorDirective * nodeGetAsPreprocessorDirective(sh::TIntermNode * node) {
-  return node ? node->getAsPreprocessorDirective() : nullptr;
-}
-
-inline bool nodeIsTrueConstant(sh::TIntermNode * node) {
-  return nodeConstantBooleanValue(node) == 1;
-}
-
-inline bool nodeIsFalseConstant(sh::TIntermNode * node) {
-  return nodeConstantBooleanValue(node) == 0;
 }
 
 sh::TConstantUnion * CreateConstantUnionFillFromScalar(const sh::TType & type,
