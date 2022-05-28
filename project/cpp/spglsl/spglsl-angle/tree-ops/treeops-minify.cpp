@@ -49,11 +49,11 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
   }
 
   bool visitBlock(sh::Visit visit, sh::TIntermBlock * block) override {
-    bool changed = false;
-    sh::TIntermTyped * commaLeft = nullptr;
     sh::TIntermSequence newSequence;
     auto count = block->getChildCount();
     size_t i = 0;
+
+    std::vector<sh::TIntermTyped *> commaPending;
 
     while (i < count) {
       auto * node = block->getChildNode(i++);
@@ -71,53 +71,55 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
             if (a1 && a0->getType() == a1->getType()) {
               // Replace "if(condition){a0}else{a1}" with "condition?a0:a1";
               node = new sh::TIntermTernary(condition, a0, a1);
-              changed = true;
             }
           } else if (a0->getType().isScalar() && a0->getType().getBasicType() == sh::EbtBool) {
             // Replace "if(condition){a0}" with "condition&&a0";
             node = new sh::TIntermBinary(sh::EOpLogicalAnd, condition, a0);
-            changed = true;
           }
         }
       }
 
       auto * commaRight = _asCommaOpArg(node);
-
       if (commaRight) {
-        if (commaLeft) {
-          // Merge two statement with a comma operator. Previous statement can be a comma.
-          commaLeft = new sh::TIntermBinary(sh::EOpComma, commaLeft, commaRight);
-          changed = true;
-        } else {
-          commaLeft = commaRight;
-        }
+        commaPending.push_back(commaRight);
         continue;
       }
 
-      if (commaLeft) {
+      auto * flushedCommas = _flushCommas(commaPending);
+      if (flushedCommas) {
         auto * branchNode = node->getAsBranchNode();
         if (branchNode && branchNode->getFlowOp() == sh::EOpReturn && branchNode->getExpression()) {
           node = new sh::TIntermBranch(
-              sh::EOpReturn, new sh::TIntermBinary(sh::EOpComma, commaLeft, branchNode->getExpression()));
-          changed = true;
+              sh::EOpReturn, new sh::TIntermBinary(sh::EOpComma, flushedCommas, branchNode->getExpression()));
         } else {
           auto * ifElseNode = node->getAsIfElseNode();
           if (ifElseNode) {
-            node = new sh::TIntermIfElse(new sh::TIntermBinary(sh::EOpComma, commaLeft, ifElseNode->getCondition()),
+            node = new sh::TIntermIfElse(new sh::TIntermBinary(sh::EOpComma, flushedCommas, ifElseNode->getCondition()),
                 ifElseNode->getTrueBlock(), ifElseNode->getFalseBlock());
-            changed = true;
           } else {
-            newSequence.push_back(commaLeft);
+            newSequence.push_back(flushedCommas);
           }
         }
-        commaLeft = nullptr;
       }
 
       newSequence.push_back(node);
     }
 
-    if (commaLeft) {
-      newSequence.push_back(commaLeft);
+    auto * lastCommas = _flushCommas(commaPending);
+    if (lastCommas) {
+      newSequence.push_back(lastCommas);
+    }
+
+    bool changed = false;
+    if (newSequence.size() != block->getChildCount()) {
+      changed = true;
+    } else {
+      for (size_t i = 0; i < newSequence.size(); ++i) {
+        if (newSequence[i] != block->getChildNode(i)) {
+          changed = true;
+          break;
+        }
+      }
     }
 
     if (changed) {
@@ -126,6 +128,26 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
     }
 
     return true;
+  }
+
+ private:
+  static sh::TIntermTyped * _flushCommas(std::vector<sh::TIntermTyped *> & commaPending) {
+    switch (commaPending.size()) {
+      case 0: return nullptr;
+      case 1: {
+        auto * result = commaPending[0];
+        commaPending.clear();
+        return result;
+      }
+      default: break;
+    }
+
+    sh::TIntermTyped * commaLeft = commaPending[0];
+    for (size_t i = 1; i < commaPending.size(); ++i) {
+      commaLeft = new sh::TIntermBinary(sh::EOpComma, commaLeft, commaPending[i]);
+    }
+    commaPending.clear();
+    return commaLeft;
   }
 };
 
