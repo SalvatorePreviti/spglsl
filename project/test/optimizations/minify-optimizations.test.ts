@@ -14,9 +14,15 @@ describe("blocks-optimizations", function () {
 
     it("replaces if else with ternary (when possible)", async () => {
       expect(await compileMain("P.z=3.;if (P.x==1.) {P.x=2.;} else P.y=2.;")).to.eq("P.z=3.,P.x==1.?P.x=2.:P.y=2.;");
+
+      expect(
+        await compile(
+          "bool boolFunc(){P.x=1.;return P.y>1.;} void main() { P.z=3.;boolFunc();if (P.x==1.) {P.x=2.;} else P.y=2.; }",
+        ),
+      ).to.eq("bool boolFunc(){return P.x=1.,P.y>1.;}void main(){P.z=3.,boolFunc(),P.x==1.?P.x=2.:P.y=2.;}");
     });
 
-    it("replaces if with binary and (when possible)", async () => {
+    it("replaces if with && (when possible)", async () => {
       expect(
         await compile("bool boolFunc(){P.x=1.;return P.y>1.;} void main() { if (P.x==1.) {{boolFunc();}} }"),
       ).to.eq("bool boolFunc(){return P.x=1.,P.y>1.;}void main(){P.x==1.&&boolFunc();}");

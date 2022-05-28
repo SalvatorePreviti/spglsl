@@ -156,7 +156,9 @@ bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, 
   }
 
   if (precedenceDiff > 0) {
-    return !(node.getAsTernaryNode() && (child.getAsBinaryNode() || child.getAsUnaryNode()));
+    return !(node.getAsTernaryNode() &&
+        (child.getAsBinaryNode() || child.getAsUnaryNode() || child.getAsSwizzleNode() || child.getAsConstantUnion() ||
+            child.getAsSwizzleNode() || child.getAsAggregate() || child.getAsSymbolNode() || child.getAsTernaryNode()));
   }
 
   if ((nodePrec.order == AngleOperatorOrder::LTR && operandIndex == 0) ||

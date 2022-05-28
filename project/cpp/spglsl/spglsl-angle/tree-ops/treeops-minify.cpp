@@ -16,14 +16,15 @@ sh::TIntermTyped * _asCommaOpArg(sh::TIntermNode * node) {
   }
 
   if (!asTyped->getAsAggregate() && !asTyped->getAsSwizzleNode() && !asTyped->getAsBinaryNode() &&
-      !asTyped->getAsUnaryNode() && !asTyped->getAsTernaryNode() && !asTyped->getAsSymbolNode()) {
-    // Declarations are not supported in comma operators.
+      !asTyped->getAsUnaryNode() && !asTyped->getAsTernaryNode() && !asTyped->getAsSymbolNode() &&
+      !asTyped->getAsConstantUnion()) {
+    // Not supported in sequence operator.
     return nullptr;
   }
 
   if (asTyped->isArray() || asTyped->getBasicType() == sh::EbtVoid ||
       asTyped->getType().isStructureContainingArrays()) {
-    // sequence operator is not allowed for void, arrays, or structs containing arrays not allowed in comma.
+    // sequence operator is not allowed for void, arrays, or structs containing arrays.
     return nullptr;
   }
 
