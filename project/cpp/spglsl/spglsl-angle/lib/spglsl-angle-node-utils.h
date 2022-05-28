@@ -43,9 +43,7 @@ bool nodeHasSideEffects(sh::TIntermNode * node);
 
 sh::TIntermNode * nodeGetStatementSingleNode(sh::TIntermNode * node);
 
-sh::TIntermNode * nodeGetBlockSingleNode(sh::TIntermBlock * block);
-
-sh::TIntermNode * nodeGetBlockLastNode(sh::TIntermBlock * block);
+sh::TIntermNode * nodeGetBlockSingleNode(sh::TIntermNode * node);
 
 bool nodeIsSomeSortOfDeclaration(sh::TIntermNode * node);
 

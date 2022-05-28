@@ -22,9 +22,13 @@ class SpglslSymbolInfo : NonCopyable {
   const sh::TSymbol * symbol = nullptr;
   std::string symbolName;
   std::string renamed;
-  uint32_t insertionOrder = 0;
 
   bool isReserved() const;
+
+  inline int uniqueId() const {
+    const auto * symbol = this->symbol;
+    return symbol ? symbol->uniqueId().get() : 0;
+  }
 };
 
 class SpglslSymbols {
@@ -47,9 +51,6 @@ class SpglslSymbols {
   }
 
   bool isSymbolReserved(SpglslSymbolInfo & syminfo);
-
- private:
-  uint32_t _insertionOrderCounter = 0;
 };
 
 #endif

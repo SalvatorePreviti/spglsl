@@ -6,9 +6,14 @@
 
 struct SpglslSymbolUsageInfo {
   SpglslSymbolInfo * entry = nullptr;
+  int mangleId = 0;
   bool isReserved = false;
   uint32_t frequency = 0;
-  int mangleId = 0;
+
+  inline int uniqueId() const {
+    const auto * entry = this->entry;
+    return entry ? entry->uniqueId() : 0;
+  }
 };
 
 class SpglslSymbolGenerator;

@@ -37,10 +37,6 @@ std::string SpglslAngleCompilerHandle::getInfoLog() const {
   return this->compiler ? this->compiler->infoSink.info.str() : "ERROR 0:0 '' Failed to initialize ANGLE compiler";
 }
 
-std::string SpglslAngleCompilerHandle::decompileOutput(bool minify) const {
-  return this->compiler ? this->compiler->decompileOutput(minify) : Strings::empty;
-}
-
 std::string SpglslAngleCompilerHandle::decompileOutput() const {
   return this->compiler ? this->compiler->decompileOutput() : Strings::empty;
 }

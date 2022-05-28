@@ -1,4 +1,5 @@
 #include "spglsl-angle-operator-precedence.h"
+#include "spglsl-angle-node-utils.h"
 
 struct AngleOperatorPrecedenceMap {
   AngleOperatorPrecedence ByOp[256];
@@ -134,6 +135,8 @@ bool nodesAreSameOpPriority(sh::TIntermNode & a, sh::TIntermNode & b) {
   return false;
 }
 
+#include <iostream>
+
 bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, size_t operandIndex) {
   const auto & nodePrec = AngleOperatorPrecedence::get(node);
   if (!nodePrec.exists) {
@@ -153,7 +156,7 @@ bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, 
   }
 
   if (precedenceDiff > 0) {
-    return true;
+    return !(node.getAsTernaryNode() && (child.getAsBinaryNode() || child.getAsUnaryNode()));
   }
 
   if ((nodePrec.order == AngleOperatorOrder::LTR && operandIndex == 0) ||

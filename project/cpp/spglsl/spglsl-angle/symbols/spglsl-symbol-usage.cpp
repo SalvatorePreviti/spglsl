@@ -15,7 +15,12 @@ static auto _cmp_SpglslSymbolUsageInfo(const SpglslSymbolUsageInfo * a, const Sp
   if (ar != br) {
     return ar < br;
   }
-  return a->entry->insertionOrder < b->entry->insertionOrder;
+  const auto * ae = a->entry;
+  const auto * be = b->entry;
+  if (ae == nullptr) {
+    return false;
+  }
+  return ae->uniqueId() < be->uniqueId();
 }
 
 class ScopeSymbols {
@@ -176,12 +181,12 @@ inline std::string _functionOverloadKey(const sh::TFunction * fn) {
 }
 
 void generateMangledOverloads(ScopeSymbols & scope,
+    std::vector<SpglslSymbolUsageInfo *> & sortedDeclarations,
     std::unordered_map<SpglslSymbolUsageInfo *, std::vector<SpglslSymbolUsageInfo *>> & output) {
   std::vector<std::vector<SpglslSymbolUsageInfo *>> functionsByArgs;
   std::unordered_map<std::string, uint32_t> argsMap;
   size_t maxGroupSize = 0;
-
-  for (auto * entry : scope.declarations) {
+  for (auto * entry : sortedDeclarations) {
     const auto * symbol = entry->entry->symbol;
     if (!symbol->isFunction()) {
       continue;
@@ -201,28 +206,28 @@ void generateMangledOverloads(ScopeSymbols & scope,
     }
   }
   if (!functionsByArgs.empty()) {
+    std::vector<SpglslSymbolUsageInfo *> tmpOverloads;
+
     for (size_t i = 0; i < maxGroupSize; ++i) {
       SpglslSymbolUsageInfo * selectedOverload = nullptr;
-
-      std::vector<SpglslSymbolUsageInfo *> tmpOverloads;
+      tmpOverloads.clear();
       for (auto & list : functionsByArgs) {
         if (i < list.size()) {
-          tmpOverloads.push_back(list[i]);
+          auto * item = list[i];
+          if (!selectedOverload) {
+            selectedOverload = item;
+          } else if (_cmp_SpglslSymbolUsageInfo(item, selectedOverload)) {
+            selectedOverload = item;
+          }
+          tmpOverloads.push_back(item);
         }
       }
       if (tmpOverloads.size() > 1) {
-        auto * selectedOverload =
-            *std::min_element(tmpOverloads.begin(), tmpOverloads.end(), _cmp_SpglslSymbolUsageInfo);
-
         for (auto * item : tmpOverloads) {
-          if (item == selectedOverload) {
-            continue;
+          if (item != selectedOverload) {
+            output[selectedOverload].push_back(item);
+            item->frequency = 0;  // Mark as renamed
           }
-
-          output[selectedOverload].push_back(item);
-
-          selectedOverload->frequency += item->frequency;
-          item->frequency = 0;
         }
       }
     }
@@ -231,10 +236,10 @@ void generateMangledOverloads(ScopeSymbols & scope,
 
 void mangleScopeDeclarations(ScopeSymbolsManager & scopeSymbolsManager, ScopeSymbols & scope) {
   std::unordered_map<SpglslSymbolUsageInfo *, std::vector<SpglslSymbolUsageInfo *>> overloads;
-  generateMangledOverloads(scope, overloads);
-
   std::vector<SpglslSymbolUsageInfo *> sortedDeclarations(scope.declarations.begin(), scope.declarations.end());
   std::sort(sortedDeclarations.begin(), sortedDeclarations.end(), _cmp_SpglslSymbolUsageInfo);
+
+  generateMangledOverloads(scope, sortedDeclarations, overloads);
 
   int lastMangleId = 1;
   for (auto * declInfo : sortedDeclarations) {

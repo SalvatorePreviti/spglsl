@@ -1,6 +1,7 @@
 #ifndef _SPGLSL_GET_PRECISIONS_TRAVERSER_H_
 #define _SPGLSL_GET_PRECISIONS_TRAVERSER_H_
 
+#include <angle/src/compiler/translator/tree_util/IntermNode_util.h>
 #include <angle/src/compiler/translator/tree_util/IntermTraverse.h>
 #include <unordered_set>
 

@@ -36,7 +36,6 @@ class SpglslAngleCompiler : public SpglslTCompilerHolder {
   void loadPrecisions(bool reload);
 
   std::string decompileOutput();
-  std::string decompileOutput(bool minify);
 
  private:
   bool _checkAndSimplifyAST(sh::TIntermBlock * root, const sh::TParseContext & parseContext);

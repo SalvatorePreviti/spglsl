@@ -17,6 +17,7 @@ export interface SpglslAngleCompileOptions {
   intPrecision?: SpglslPrecision;
   minify?: boolean;
   mangle?: boolean;
+  beautify?: boolean;
   recordConstantPrecision?: boolean;
 }
 
@@ -48,6 +49,7 @@ export class SpglslAngleCompileResult {
   public intPrecision: SpglslPrecision;
   public minify: boolean;
   public mangle: boolean;
+  public beautify: boolean;
   public recordConstantPrecision: boolean;
   public cwd: string | undefined;
 
@@ -65,6 +67,7 @@ export class SpglslAngleCompileResult {
     this.intPrecision = "";
     this.minify = false;
     this.mangle = false;
+    this.beautify = false;
     this.recordConstantPrecision = DEFAULT_RECORD_CONSTANT_PRECISION;
     this.duration = 0;
     this.cwd = undefined;
@@ -84,6 +87,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.intPrecision = (StringEnum.has(SpglslPrecision, input.intPrecision) && input.intPrecision) || "";
   result.minify = !!input.minify;
   result.mangle = input.mangle === undefined ? result.minify : !!input.mangle;
+  result.beautify = input.beautify === undefined ? !result.minify : !!input.beautify;
   result.recordConstantPrecision = input.recordConstantPrecision || DEFAULT_RECORD_CONSTANT_PRECISION;
   result.cwd = input.cwd;
   const resourceLimits = { ...SpglslResourceLimits, ...input.resourceLimits };

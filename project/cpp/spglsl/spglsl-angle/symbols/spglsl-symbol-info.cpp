@@ -44,7 +44,6 @@ SpglslSymbolInfo & SpglslSymbols::get(const sh::TSymbol * symbol) {
   SpglslSymbolInfo & result = this->_map[symbol];
   if (!result.symbol && symbol) {
     result.symbol = symbol;
-    result.insertionOrder = ++this->_insertionOrderCounter;
     _loadSymbolName(result);
   }
   return result;
@@ -52,7 +51,6 @@ SpglslSymbolInfo & SpglslSymbols::get(const sh::TSymbol * symbol) {
 
 SpglslSymbols::SpglslSymbols(sh::TSymbolTable * symbolTable) : symbolTable(symbolTable) {
   auto & n = this->_map[nullptr];
-  n.insertionOrder = -1;
 }
 
 static std::unordered_set<std::string> spglslReservedWordSet({"main", "and", "or", "xor", "not", "EmitVertex",

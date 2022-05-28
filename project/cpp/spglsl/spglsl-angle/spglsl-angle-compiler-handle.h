@@ -18,7 +18,6 @@ class SpglslAngleCompilerHandle : public NonCopyable {
   bool compile(const std::string & sourceCode);
 
   std::string getInfoLog() const;
-  std::string decompileOutput(bool minify) const;
   std::string decompileOutput() const;
 
   ~SpglslAngleCompilerHandle();

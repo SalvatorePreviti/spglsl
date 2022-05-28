@@ -20,34 +20,90 @@ bool opIsBuiltinUnaryFunction(sh::TOperator op) {
 }
 
 int nodeConstantBooleanValue(sh::TIntermNode * node) {
-  sh::TIntermTyped * typed = node->getAsTyped();
+  if (!node) {
+    return -1;
+  }
+  auto * typed = node->getAsTyped();
   if (!typed) {
     return -1;
   }
 
-  switch (typed->getType().getBasicType()) {
-    case sh::EbtFloat:
-    case sh::EbtDouble:
-    case sh::EbtInt:
-    case sh::EbtUInt:
-    case sh::EbtBool: break;
-    default: return -1;
+  if (typed->getType().getBasicType() != sh::EbtBool) {
+    return -1;  // Not a boolean.
   }
 
-  const sh::TConstantUnion * value = typed->getConstantValue();
-  if (!value) {
-    return -1;
+  const sh::TConstantUnion * asConstanUnion = typed->getConstantValue();
+  if (asConstanUnion) {
+    int size = typed->getNominalSize() * typed->getSecondarySize();
+    bool first = asConstanUnion[0].isZero();
+    for (int i = 1; i < size; ++i) {
+      if (first != asConstanUnion[i].isZero()) {
+        return -1;
+      }
+    }
+    return first ? 0 : 1;
   }
 
-  int size = typed->getNominalSize() * typed->getSecondarySize();
+  auto * asBinary = typed->getAsBinaryNode();
+  if (asBinary) {
+    switch (asBinary->getOp()) {
+      case sh::EOpLogicalAnd: {
+        auto va = nodeConstantBooleanValue(asBinary->getLeft());
+        auto vb = nodeConstantBooleanValue(asBinary->getRight());
+        if (va >= 0 && vb >= 0) {
+          return va == 1 && vb == 1;  // two constants
+        }
+        if (va == 0) {
+          return 0;  // false && something => false
+        }
+        if (!asBinary->getLeft()->hasSideEffects() && vb == 0) {
+          return 0;  // something that has no side effects && false => false
+        }
+        return -1;
+      }
 
-  bool first = value[0].isZero();
-  for (int i = 1; i < size; ++i) {
-    if (first != value[i].isZero()) {
-      return -1;
+      case sh::EOpLogicalOr: {
+        auto va = nodeConstantBooleanValue(asBinary->getLeft());
+        auto vb = nodeConstantBooleanValue(asBinary->getRight());
+        if (va >= 0 && vb >= 0) {
+          return va == 1 || vb == 1;  // two constants
+        }
+        if (va == 1 && !asBinary->getRight()->hasSideEffects()) {
+          return 1;  // true || something that has no side effect => true
+        }
+        if (!asBinary->getLeft()->hasSideEffects() && vb == 1) {
+          return 1;  // something that has no side effects && true => true
+        }
+        return -1;
+      }
+
+      case sh::EOpLogicalXor: {
+        auto va = nodeConstantBooleanValue(asBinary->getLeft());
+        auto vb = nodeConstantBooleanValue(asBinary->getRight());
+        if (va >= 0 && vb >= 0)
+          return va != vb ? 1 : 0;  // two constants
+        return -1;
+      }
+
+      default: return -1;
+    }
+  } else {
+    auto * asUnary = typed->getAsUnaryNode();
+    if (asUnary) {
+      switch (asUnary->getOp()) {
+        case sh::EOpLogicalNot: {
+          auto v = nodeConstantBooleanValue(asUnary->getOperand());
+          if (v >= 0)
+            return v ? 0 : 1;  // boolean not of a constant
+          return -1;
+        }
+
+        default: return -1;
+      }
     }
   }
-  return first ? 0 : 1;
+
+  return -1;
 }
 
 bool nodeBlockIsEmpty(sh::TIntermNode * node) {
@@ -58,39 +114,39 @@ bool nodeBlockIsEmpty(sh::TIntermNode * node) {
   if (!block) {
     return false;
   }
-  const sh::TIntermSequence * sequence = block->getSequence();
-  return !sequence || sequence->empty();
+  const sh::TIntermSequence & sequence = *block->getSequence();
+  if (sequence.empty()) {
+    return true;
+  }
+  for (size_t i = 0; i < sequence.size(); ++i) {
+    if (!nodeBlockIsEmpty(sequence[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
-sh::TIntermNode * nodeGetBlockSingleNode(sh::TIntermBlock * block) {
+sh::TIntermNode * nodeGetBlockSingleNode(sh::TIntermNode * node) {
+  if (!node) {
+    return nullptr;
+  }
+  sh::TIntermBlock * block = node->getAsBlock();
+  if (!block) {
+    return node;
+  }
+
+  const sh::TIntermSequence & sequence = *block->getSequence();
+
   sh::TIntermNode * result = nullptr;
-  if (block) {
-    const sh::TIntermSequence * sequence = block->getSequence();
-    if (sequence) {
-      for (sh::TIntermNode * child : *sequence) {
-        if (!nodeBlockIsEmpty(child)) {
-          if (result) {
-            return nullptr;
-          }
-          result = child;
-        }
+  for (size_t i = 0; i < sequence.size(); ++i) {
+    if (!nodeBlockIsEmpty(sequence[i])) {
+      if (result) {
+        return block;
       }
+      result = nodeGetBlockSingleNode(sequence[i]);
     }
   }
   return result;
-}
-
-sh::TIntermNode * nodeGetBlockLastNode(sh::TIntermBlock * block) {
-  if (block) {
-    const sh::TIntermSequence * sequence = block->getSequence();
-    if (sequence) {
-      size_t size = sequence->size();
-      if (size > 0) {
-        return (*sequence)[size - 1];
-      }
-    }
-  }
-  return nullptr;
 }
 
 bool nodeHasSideEffects(sh::TIntermNode * node) {
@@ -114,8 +170,6 @@ bool nodeIsSomeSortOfDeclaration(sh::TIntermNode * node) {
     return true;
   }
 
-  // TODO: maybe this is not needed, maybe we can return just false.
-
   sh::TIntermBinary * binaryNode = node->getAsBinaryNode();
   return binaryNode && binaryNode->getOp() == sh::EOpInitialize;
 }
@@ -125,11 +179,9 @@ bool nodeBlockContainsSomeSortOfDeclaration(sh::TIntermNode * node) {
     sh::TIntermBlock * block = node->getAsBlock();
     if (block) {
       const sh::TIntermSequence * sequence = block->getSequence();
-      if (sequence) {
-        for (sh::TIntermNode * child : *sequence) {
-          if (!nodeIsSomeSortOfDeclaration(child)) {
-            return false;
-          }
+      for (sh::TIntermNode * child : *sequence) {
+        if (!nodeIsSomeSortOfDeclaration(child)) {
+          return false;
         }
       }
     } else if (nodeIsSomeSortOfDeclaration(node)) {

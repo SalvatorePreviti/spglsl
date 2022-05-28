@@ -115,7 +115,7 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
   this->loadPrecisions(true);
 
   if (this->compilerOptions.minify) {
-    // spglsl_treeops_putCommaOperators(*this, root);
+    spglsl_treeops_minify(*this, root);
   }
 
   if (this->compilerOptions.mangle) {
@@ -136,10 +136,6 @@ void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
       entry->entry->renamed = symgen.getOrCreateMangledName(entry->mangleId);
     }
   }
-}
-
-std::string SpglslAngleCompiler::decompileOutput() {
-  return this->decompileOutput(this->compilerOptions.minify);
 }
 
 void SpglslAngleCompiler::loadPrecisions(bool reload) {
@@ -170,13 +166,13 @@ void SpglslAngleCompiler::loadPrecisions(bool reload) {
   }
 }
 
-std::string SpglslAngleCompiler::decompileOutput(bool minify) {
+std::string SpglslAngleCompiler::decompileOutput() {
   if (!this->body) {
     return "";
   }
   std::ostringstream out;
 
-  SpglslAngleWebglOutput outputTraverser(out, this->symbols, this->precisions, !minify);
+  SpglslAngleWebglOutput outputTraverser(out, this->symbols, this->precisions, this->compilerOptions.beautify);
 
   outputTraverser.writeHeader(this->metadata.shaderVersion, this->metadata.pragma, this->extensionBehavior);
   this->body->traverse(&outputTraverser);

@@ -163,6 +163,8 @@
     "functional": "cpp",
     "iterator": "cpp",
     "utility": "cpp",
-    "list": "cpp"
+    "list": "cpp",
+    "__memory": "cpp",
+    "filesystem": "cpp"
   }
 }
