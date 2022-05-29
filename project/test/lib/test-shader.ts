@@ -31,7 +31,9 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
       colors: true,
     })}`;
 
-    console.log(compiled.output);
+    if (shader.name.includes("island")) {
+      console.log(compiled.output);
+    }
 
     expect(compiled.valid).to.equal(true, info);
     expect(compiled.infoLog.getCounts().errors).to.equal(0, info);
@@ -64,10 +66,12 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
 
     console.log("output:", chalk.cyanBright(`${out.length} bytes (gzipped ${outZlibSize} bytes)`));
 
-    console.log(
-      "refern:",
-      `${fragmentShaderCode.length} bytes (gzipped ${zlib.gzipSync(fragmentShaderCode, { level: 9 }).length} bytes)`,
-    );
+    if (shader.name.includes("island")) {
+      console.log(
+        "refern:",
+        `${fragmentShaderCode.length} bytes (gzipped ${zlib.gzipSync(fragmentShaderCode, { level: 9 }).length} bytes)`,
+      );
+    }
     // console.log(fragmentShaderCode)
     return compiled;
   };
