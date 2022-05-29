@@ -24,10 +24,6 @@ class SpglslOptimizeBlocksTraverser : public sh::TIntermTraverser {
   bool hasChanges = false;
 
   bool visitBlock(sh::Visit visit, sh::TIntermBlock * block) override {
-    if (this->getCurrentBlockDepth() == 0) {
-      return true;
-    }
-
     auto count = block->getChildCount();
     sh::TIntermSequence newSequence;
     std::queue<sh::TIntermNode *> queue;
@@ -189,11 +185,12 @@ class SpglslOptimizeBlocksTraverser : public sh::TIntermTraverser {
         }
         return nullptr;
       }
-
-      auto * declInitialize = nodeGetAsBinaryNode(nodeAsDecl->getChildNode(0), sh::EOpInitialize);
-      if (declInitialize && nodeIsConstantZero(declInitialize->getRight())) {
+      auto * declInitialize = nodeGetAsBinaryNode(nodeAsDecl->getChildNode(0));
+      if (declInitialize) {
         // float x=0.; => float x;
-        return new sh::TIntermDeclaration({declInitialize->getLeft()});
+        if (nodeIsConstantZero(declInitialize->getRight())) {
+          return new sh::TIntermDeclaration({declInitialize->getLeft()});
+        }
       }
 
       return nodeAsDecl;

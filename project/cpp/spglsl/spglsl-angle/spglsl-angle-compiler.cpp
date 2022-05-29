@@ -95,31 +95,35 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
     }
   }
 
-  if (!SeparateDeclarations(&this->tCompiler, root, &this->symbolTable)) {
-    return false;
-  }
+  if (this->compilerOptions.compileMode == SpglslCompileMode::Optimize) {
+    if (!SeparateDeclarations(&this->tCompiler, root, &this->symbolTable)) {
+      return false;
+    }
 
-  if (!SplitSequenceOperator(
-          &this->tCompiler, root, sh::IntermNodePatternMatcher::kArrayLengthMethod, &this->symbolTable)) {
-    return false;
-  }
+    if (!SplitSequenceOperator(
+            &this->tCompiler, root, sh::IntermNodePatternMatcher::kArrayLengthMethod, &this->symbolTable)) {
+      return false;
+    }
 
-  if (!RemoveArrayLengthMethod(&this->tCompiler, root)) {
-    return false;
-  }
+    if (!RemoveArrayLengthMethod(&this->tCompiler, root)) {
+      return false;
+    }
 
-  if (!spglsl_treeops_optimize(*this, root)) {
-    return false;
+    if (!spglsl_treeops_optimize(*this, root)) {
+      return false;
+    }
   }
 
   this->loadPrecisions(true);
 
-  if (this->compilerOptions.minify) {
-    spglsl_treeops_minify(*this, root);
-  }
+  if (this->compilerOptions.compileMode == SpglslCompileMode::Optimize) {
+    if (this->compilerOptions.minify) {
+      spglsl_treeops_minify(*this, root);
+    }
 
-  if (this->compilerOptions.mangle) {
-    this->_mangle(root);
+    if (this->compilerOptions.mangle) {
+      this->_mangle(root);
+    }
   }
 
   return true;

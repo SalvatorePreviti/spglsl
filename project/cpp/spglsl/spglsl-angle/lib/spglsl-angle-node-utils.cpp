@@ -1,8 +1,8 @@
 #include "spglsl-angle-node-utils.h"
-
 #include <angle/src/compiler/translator/Symbol.h>
-
 #include "../../core/math-utils.h"
+
+#include <iostream>
 
 bool opIsBuiltinUnaryFunction(sh::TOperator op) {
   switch (op) {
