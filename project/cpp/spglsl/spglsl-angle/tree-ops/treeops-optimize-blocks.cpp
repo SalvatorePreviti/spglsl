@@ -155,6 +155,22 @@ class SpglslOptimizeBlocksTraverser : public sh::TIntermTraverser {
           // for (;false,expression) can be removed
           return nullptr;
         }
+        auto * forInit = nodeAsLoop->getInit();
+        if (forInit) {
+          auto * forInitDecl = forInit->getAsDeclarationNode();
+          if (forInitDecl) {
+            for (size_t i = 0; i < forInitDecl->getChildCount(); ++i) {
+              auto * declInitialize = nodeGetAsBinaryNode(forInitDecl->getChildNode(i));
+              if (declInitialize) {
+                // float x=0.; => float x;
+                if (nodeIsConstantZero(declInitialize->getRight())) {
+                  (*forInitDecl->getSequence())[i] = declInitialize->getLeft();
+                  this->hasChanges = true;
+                }
+              }
+            }
+          }
+        }
         auto * newCondition = constantCondition == 1 ? nullptr : nodeAsLoop->getCondition();
         auto * newExpression = nodeAsLoop->getExpression();
         if (newExpression && !nodeHasSideEffects(newExpression)) {
