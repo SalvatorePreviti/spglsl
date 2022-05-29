@@ -190,9 +190,6 @@ bool SpglslScopedTraverser::visitBlock(sh::Visit visit, sh::TIntermBlock * node)
 bool SpglslScopedTraverser::visitLoop(sh::Visit visit, sh::TIntermLoop * node) {
   sh::TIntermBlock * body = node->getBody();
   sh::TLoopType loopType = node->getType();
-  if (loopType == sh::ELoopFor && !node->getInit() && !nodeHasSideEffects(node->getExpression())) {
-    loopType = sh::ELoopWhile;  // For without init and expression is just a while
-  }
   int boolValue = node->getCondition() ? nodeConstantBooleanValue(node->getCondition()) : 1;
   if (boolValue == 1) {
     loopType = sh::ELoopFor;  // A while loop or do-while loop with always a true condition is just a for (;;)

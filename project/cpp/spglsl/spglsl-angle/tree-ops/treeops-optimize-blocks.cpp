@@ -7,12 +7,18 @@
 
 typedef std::vector<sh::TIntermNode> OptimizeBlockNodeResult;
 
-class SpglslRemoveUnnecessaryBlocks : public sh::TIntermTraverser {
+class SpglslOptimizeBlocksTraverser : public sh::TIntermTraverser {
  public:
   AngleAstHasher & astHasher;
+  SpglslSymbols & symbols;
 
-  explicit SpglslRemoveUnnecessaryBlocks(AngleAstHasher & astHasher, sh::TDiagnostics * diagnostics) :
-      sh::TIntermTraverser(true, false, false), astHasher(astHasher), _diagnostics(diagnostics) {
+  explicit SpglslOptimizeBlocksTraverser(SpglslSymbols & symbols,
+      AngleAstHasher & astHasher,
+      sh::TDiagnostics * diagnostics) :
+      sh::TIntermTraverser(true, false, false, symbols.symbolTable),
+      symbols(symbols),
+      astHasher(astHasher),
+      _diagnostics(diagnostics) {
   }
 
   bool hasChanges = false;
@@ -72,6 +78,13 @@ class SpglslRemoveUnnecessaryBlocks : public sh::TIntermTraverser {
   sh::TDiagnostics * _diagnostics;
 
   sh::TIntermNode * _optimizeBlockChild(sh::TIntermNode * node, std::queue<sh::TIntermNode *> & queue) {
+    if (node->getAsBinaryNode() || node->getAsUnaryNode() || node->getAsSymbolNode() || node->getAsSwizzleNode() ||
+        node->getAsConstantUnion()) {
+      if (!nodeHasSideEffects(node)) {
+        return nullptr;  // Node has no effect at all
+      }
+    }
+
     auto * nodeAsTernary = node->getAsTernaryNode();
     if (nodeAsTernary) {
       // Replace ternary operator with an if then else.
@@ -109,10 +122,94 @@ class SpglslRemoveUnnecessaryBlocks : public sh::TIntermTraverser {
       }
     }
 
+    auto * nodeAsLoop = node->getAsLoopNode();
+    if (nodeAsLoop) {
+      sh::TLoopType loopType = nodeAsLoop->getType();
+
+      int constantCondition = nodeAsLoop->getCondition() ? nodeConstantBooleanValue(nodeAsLoop->getCondition()) : 1;
+
+      if (loopType == sh::ELoopWhile) {
+        if (constantCondition == 0) {
+          return nullptr;  // we can remove "while (false) { ... }"
+        }
+        if (constantCondition == 1) {
+          // This is an infinite while loop, use "for (;;) { ... }"
+          return new sh::TIntermLoop(sh::ELoopFor, nullptr, nullptr, nullptr, nodeAsLoop->getBody());
+        }
+        // Replace the while loop with a for loop.
+        return new sh::TIntermLoop(sh::ELoopFor, nullptr, nodeAsLoop->getCondition(), nullptr, nodeAsLoop->getBody());
+      }
+
+      if (loopType == sh::ELoopDoWhile) {
+        if (constantCondition == 1) {
+          // "do {...} while (true)" => for (;;) {...}
+          return new sh::TIntermLoop(sh::ELoopFor, nullptr, nullptr, nullptr, nodeAsLoop->getBody());
+        }
+        if (constantCondition == 0) {
+          return nodeAsLoop->getBody();  // "do { ... } while (false)" becomes just "{ ... }".
+        }
+      }
+
+      if (loopType == sh::ELoopFor) {
+        if (constantCondition == 0) {
+          if (nodeAsLoop->getInit()) {
+            // for (init;false,expression) => {init}
+            return new sh::TIntermBlock({nodeAsLoop->getInit()});
+          }
+          // for (;false,expression) can be removed
+          return nullptr;
+        }
+        auto * newCondition = constantCondition == 1 ? nullptr : nodeAsLoop->getCondition();
+        auto * newExpression = nodeAsLoop->getExpression();
+        if (newExpression && !nodeHasSideEffects(newExpression)) {
+          newExpression = nullptr;
+        }
+        if (nodeAsLoop->getExpression() != newExpression || nodeAsLoop->getCondition() != newCondition) {
+          // We can remove expression or/and condition
+          return new sh::TIntermLoop(
+              sh::ELoopFor, nodeAsLoop->getInit(), newCondition, newExpression, nodeAsLoop->getBody());
+        }
+      }
+      return nodeAsLoop;
+    }
+
+    auto * nodeAsDecl = node->getAsDeclarationNode();
+    if (nodeAsDecl != nullptr && nodeAsDecl->getChildCount() == 0) {
+      return nullptr;  // Empty declarations
+    }
+
     auto * nodeAsBlock = node->getAsBlock();
-    if (nodeAsBlock && !nodeBlockContainsSomeSortOfDeclaration(nodeAsBlock)) {
+    if (nodeAsBlock) {
+      for (auto * nodeAsBlockChild : *nodeAsBlock->getSequence()) {
+        if (nodeAsBlockChild->getAsGlobalQualifierDeclarationNode() || nodeAsBlockChild->getAsFunctionDefinition() ||
+            nodeAsBlockChild->getAsFunctionPrototypeNode()) {
+          return nodeAsBlock;
+        }
+      }
+
       // Remove unnecessary block, merge it with the current block.
       for (auto * nodeAsBlockChild : *nodeAsBlock->getSequence()) {
+        auto * decl = nodeAsBlockChild->getAsDeclarationNode();
+        if (decl) {
+          if (decl->getChildCount() == 0) {
+            continue;
+          }
+          for (auto * declChild : *decl->getSequence()) {
+            auto * declChildAsSymbol = declChild->getAsSymbolNode();
+            if (declChildAsSymbol) {
+              this->symbols.renameUnique(declChildAsSymbol);
+            } else {
+              auto * declBinary = declChild->getAsBinaryNode();
+              if (declBinary) {
+                auto * left = declBinary->getLeft();
+                if (left) {
+                  this->symbols.renameUnique(left->getAsSymbolNode());
+                }
+              }
+            }
+          }
+        }
+
         queue.push(nodeAsBlockChild);
       }
       return nullptr;
@@ -132,7 +229,7 @@ class SpglslRemoveUnnecessaryBlocks : public sh::TIntermTraverser {
 
 void spglsl_treeops_OptimizeBlocks(SpglslAngleCompiler & compiler, sh::TIntermNode * root) {
   AngleAstHasher hasher;
-  SpglslRemoveUnnecessaryBlocks traverser(hasher, &compiler.diagnostics);
+  SpglslOptimizeBlocksTraverser traverser(compiler.symbols, hasher, &compiler.diagnostics);
   for (;;) {
     root->traverse(&traverser);
     if (!traverser.hasChanges) {

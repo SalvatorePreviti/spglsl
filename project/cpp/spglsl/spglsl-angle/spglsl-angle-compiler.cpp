@@ -134,6 +134,7 @@ void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
   for (const auto & entry : usage.sorted) {
     if (entry->mangleId > 0) {
       entry->entry->renamed = symgen.getOrCreateMangledName(entry->mangleId);
+      entry->entry->mustBeRenamedUnique = false;
     }
   }
 }

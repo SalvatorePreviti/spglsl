@@ -33,6 +33,10 @@ inline const char * AngleNodeKind_name(const sh::TIntermNode * node) {
   return AngleNodeKind_name(nodeGetKind(node));
 }
 
+inline const char * AngleNodeKind_name(const sh::TIntermNode & node) {
+  return AngleNodeKind_name(nodeGetKind(&node));
+}
+
 bool opIsBuiltinUnaryFunction(sh::TOperator op);
 
 int nodeConstantBooleanValue(sh::TIntermNode * condition);

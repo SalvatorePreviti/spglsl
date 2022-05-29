@@ -144,6 +144,9 @@ sh::TIntermNode * nodeGetBlockSingleNode(sh::TIntermNode * node) {
         return block;
       }
       result = nodeGetBlockSingleNode(sequence[i]);
+      if (nodeBlockContainsSomeSortOfDeclaration(result)) {
+        return block;
+      }
     }
   }
   return result;
@@ -175,20 +178,22 @@ bool nodeIsSomeSortOfDeclaration(sh::TIntermNode * node) {
 }
 
 bool nodeBlockContainsSomeSortOfDeclaration(sh::TIntermNode * node) {
-  if (node) {
-    sh::TIntermBlock * block = node->getAsBlock();
-    if (block) {
-      const sh::TIntermSequence * sequence = block->getSequence();
-      for (sh::TIntermNode * child : *sequence) {
-        if (!nodeIsSomeSortOfDeclaration(child)) {
-          return false;
-        }
-      }
-    } else if (nodeIsSomeSortOfDeclaration(node)) {
-      return true;
-    }
+  if (!node) {
+    return false;
   }
-  return false;
+
+  sh::TIntermBlock * block = node->getAsBlock();
+  if (block) {
+    const sh::TIntermSequence * sequence = block->getSequence();
+    for (sh::TIntermNode * child : *sequence) {
+      if (nodeIsSomeSortOfDeclaration(child)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  return nodeIsSomeSortOfDeclaration(node);
 }
 
 const sh::TFunction * nodeGetAsFunction(sh::TIntermNode * node) {

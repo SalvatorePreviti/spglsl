@@ -2,8 +2,6 @@
 #include "../spglsl-angle-compiler.h"
 #include "tree-ops.h"
 
-#include <iostream>
-
 /** Returns an TIntermTyped* if the given node can be used as argument in a Comma operator */
 sh::TIntermTyped * _asCommaOpArg(sh::TIntermNode * node) {
   if (!node) {
@@ -150,8 +148,6 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
     return commaLeft;
   }
 };
-
-#include <iostream>
 
 void spglsl_treeops_minify(SpglslAngleCompiler & compiler, sh::TIntermNode * root) {
   for (SpglslPutCommaOperatorTraverser traverser;;) {

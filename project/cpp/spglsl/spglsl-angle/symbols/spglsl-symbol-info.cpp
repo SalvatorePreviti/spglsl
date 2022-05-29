@@ -35,6 +35,19 @@ void _loadSymbolName(SpglslSymbolInfo & entry) {
   entry.symbolName = std::string(n.data(), len);
 }
 
+void SpglslSymbols::renameUnique(const sh::TIntermSymbol * symbolNode) {
+  if (symbolNode) {
+    this->renameUnique(&symbolNode->variable());
+  }
+}
+
+void SpglslSymbols::renameUnique(const sh::TSymbol * symbol) {
+  auto & info = this->get(symbol);
+  if (info.renamed.empty() && !info.symbolName.empty()) {
+    info.mustBeRenamedUnique = true;
+  }
+}
+
 bool SpglslSymbols::has(const sh::TSymbol * symbol) const {
   auto found = this->_map.find(symbol);
   return found != this->_map.end() && found->second.symbol != nullptr;

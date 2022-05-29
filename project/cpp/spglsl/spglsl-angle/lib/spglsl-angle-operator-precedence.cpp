@@ -1,6 +1,8 @@
 #include "spglsl-angle-operator-precedence.h"
 #include "spglsl-angle-node-utils.h"
 
+#include <iostream>
+
 struct AngleOperatorPrecedenceMap {
   AngleOperatorPrecedence ByOp[256];
 
@@ -104,6 +106,10 @@ const AngleOperatorPrecedence & AngleOperatorPrecedence::get(sh::TIntermNode & n
   if (ternary) {
     return _precedenceMap.Ternary;
   }
+  sh::TIntermSwizzle * swizzle = node.getAsSwizzleNode();
+  if (swizzle) {
+    return _precedenceMap.ByOp[sh::EOpIndexDirect];
+  }
   return _precedenceMap.ByOp[0];
 }
 
@@ -135,8 +141,6 @@ bool nodesAreSameOpPriority(sh::TIntermNode & a, sh::TIntermNode & b) {
   return false;
 }
 
-#include <iostream>
-
 bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, size_t operandIndex) {
   const auto & nodePrec = AngleOperatorPrecedence::get(node);
   if (!nodePrec.exists) {
@@ -145,7 +149,12 @@ bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, 
 
   const auto & childPrec = AngleOperatorPrecedence::get(child);
 
-  int precedenceDiff = childPrec.precedence - nodePrec.precedence;
+  bool haveSamePriority = nodesAreSameOpPriority(node, child);
+
+  int precedenceDiff = haveSamePriority ? 0 : childPrec.precedence - nodePrec.precedence;
+  if (precedenceDiff == 0) {
+    haveSamePriority = true;
+  }
 
   if (precedenceDiff < 0) {
     return false;
@@ -170,9 +179,13 @@ bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, 
     if (nodePrec.associative) {
       return false;
     }
-    if (nodesAreSameOpPriority(child, node)) {
+    if (haveSamePriority) {
       return false;
     }
+  }
+
+  if (haveSamePriority && childPrec.order == AngleOperatorOrder::LTR && nodePrec.order == AngleOperatorOrder::LTR) {
+    return false;
   }
 
   return true;

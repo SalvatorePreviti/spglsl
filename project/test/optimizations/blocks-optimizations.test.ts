@@ -32,6 +32,27 @@ describe("blocks-optimizations", function () {
       expect(await compileMain("if (true ^^ false) { P.y+=1.; } else { P.y+=3.; }")).to.eq("P.y+=1.;");
     });
   });
+  describe("loop optimizations", () => {
+    it("converts while to for", async () => {
+      expect(await compileMain("while (P.x>0.){P.x+=1.;P.y+=2.;}")).to.eq("for(;P.x>0.;){P.x+=1.;P.y+=2.;}");
+    });
+    it("removes while (false)", async () => {
+      expect(await compileMain("while (false){P.x+=1.;P.y+=2.;}")).to.eq("");
+    });
+    it("removes for (;false;)", async () => {
+      expect(await compileMain("for (;false;++P.x){P.x+=1.;P.y+=2.;}")).to.eq("");
+    });
+    it("makes infinite for loops", async () => {
+      expect(await compileMain("for (P.x=1.;true;++P.x){P.x+=1.;}")).to.eq("for(P.x=1.;;++P.x)P.x+=1.;");
+      expect(await compileMain("for (P.x=1.;true;P.x){P.x+=1.;}")).to.eq("for(P.x=1.;;)P.x+=1.;");
+    });
+    it("keeps only init for (P.x=1.;false;)", async () => {
+      expect(await compileMain("for (P.x=1.;false;++P.x){P.x+=1.;P.y+=2.;}")).to.eq("P.x=1.;");
+    });
+    it("remove everything for for (float m=1.;false;)", async () => {
+      expect(await compileMain("for (float m=1.;false;++P.x){P.x+=1.;P.y+=2.;}")).to.eq("");
+    });
+  });
 });
 
 async function compileMain(code: string): Promise<string> {

@@ -22,6 +22,7 @@ class SpglslSymbolInfo : NonCopyable {
   const sh::TSymbol * symbol = nullptr;
   std::string symbolName;
   std::string renamed;
+  bool mustBeRenamedUnique = false;
 
   bool isReserved() const;
 
@@ -32,6 +33,9 @@ class SpglslSymbolInfo : NonCopyable {
 };
 
 class SpglslSymbols {
+ private:
+  uint32_t _uniqueCounter = 0;
+
  public:
   sh::TSymbolTable * symbolTable;
   std::unordered_map<const sh::TSymbol *, SpglslSymbolInfo> _map;
@@ -46,11 +50,26 @@ class SpglslSymbols {
   SpglslSymbolInfo & declareParameter(const sh::TVariable * variable);
 
   inline const std::string & getName(const sh::TSymbol * symbol) {
-    const auto & info = this->get(symbol);
-    return info.renamed.empty() ? info.symbolName : info.renamed;
+    auto & info = this->get(symbol);
+    if (!info.renamed.empty()) {
+      return info.renamed;
+    }
+    if (info.symbolName.empty()) {
+      return Strings::empty;
+    }
+    if (info.mustBeRenamedUnique) {
+      info.mustBeRenamedUnique = false;
+      std::stringstream ss;
+      ss << info.symbolName << "SP_" << std::hex << ++this->_uniqueCounter << "_";
+      return info.renamed = ss.str();
+    }
+    return info.symbolName;
   }
 
   bool isSymbolReserved(SpglslSymbolInfo & syminfo);
+
+  void renameUnique(const sh::TIntermSymbol * symbolNode);
+  void renameUnique(const sh::TSymbol * symbol);
 };
 
 #endif
