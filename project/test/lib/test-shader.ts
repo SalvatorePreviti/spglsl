@@ -20,6 +20,8 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
       compileMode: "Optimize",
       language: shader.shaderType,
       minify: true,
+      beautify: true,
+      mangle: false,
       ...options,
       mainFilePath: shader.name,
       mainSourceCode: shader.sourceCode,
@@ -31,9 +33,9 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
       colors: true,
     })}`;
 
-    if (shader.name.includes("island")) {
-      console.log(compiled.output);
-    }
+    // if (shader.name.includes("island")) {
+    console.log(compiled.output);
+    // }
 
     expect(compiled.valid).to.equal(true, info);
     expect(compiled.infoLog.getCounts().errors).to.equal(0, info);

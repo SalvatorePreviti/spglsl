@@ -1,6 +1,8 @@
 #ifndef _SPGLSL_ANGLE_NODE_UTILS_H_
 #define _SPGLSL_ANGLE_NODE_UTILS_H_
 
+#include <angle/src/compiler/translator/IntermNode.h>
+#include <angle/src/compiler/translator/Symbol.h>
 #include <angle/src/compiler/translator/tree_util/IntermTraverse.h>
 
 enum class AngleNodeKind {

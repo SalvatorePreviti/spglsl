@@ -2,6 +2,8 @@
 #include "../spglsl-angle-compiler.h"
 #include "tree-ops.h"
 
+#include <iostream>
+
 /** Returns an TIntermTyped* if the given node can be used as argument in a Comma operator */
 sh::TIntermTyped * _asCommaOpArg(sh::TIntermNode * node) {
   if (!node) {
@@ -87,13 +89,22 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
       if (flushedCommas) {
         auto * branchNode = node->getAsBranchNode();
         if (branchNode && branchNode->getFlowOp() == sh::EOpReturn && branchNode->getExpression()) {
-          node = new sh::TIntermBranch(
-              sh::EOpReturn, new sh::TIntermBinary(sh::EOpComma, flushedCommas, branchNode->getExpression()));
+          if (_asCommaOpArg(branchNode->getExpression())) {
+            node = new sh::TIntermBranch(
+                sh::EOpReturn, new sh::TIntermBinary(sh::EOpComma, flushedCommas, branchNode->getExpression()));
+          } else {
+            newSequence.push_back(flushedCommas);
+          }
         } else {
           auto * ifElseNode = node->getAsIfElseNode();
           if (ifElseNode) {
-            node = new sh::TIntermIfElse(new sh::TIntermBinary(sh::EOpComma, flushedCommas, ifElseNode->getCondition()),
-                ifElseNode->getTrueBlock(), ifElseNode->getFalseBlock());
+            if (_asCommaOpArg(ifElseNode->getCondition())) {
+              node =
+                  new sh::TIntermIfElse(new sh::TIntermBinary(sh::EOpComma, flushedCommas, ifElseNode->getCondition()),
+                      ifElseNode->getTrueBlock(), ifElseNode->getFalseBlock());
+            } else {
+              newSequence.push_back(flushedCommas);
+            }
           } else {
             newSequence.push_back(flushedCommas);
           }

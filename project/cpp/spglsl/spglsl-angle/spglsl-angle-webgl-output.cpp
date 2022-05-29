@@ -265,6 +265,9 @@ void SpglslAngleWebglOutput::declareStruct(const sh::TStructure & structure) {
     }
   }
   this->deindent().write('}');
+  if (!this->symbols.getName(&structure).empty()) {
+    this->declaredStructs.emplace(&structure);
+  }
 }
 
 bool SpglslAngleWebglOutput::needsToClearLastWrittenVarDecl() {
@@ -288,7 +291,10 @@ void SpglslAngleWebglOutput::clearLastWrittenVarDecl() {
       case '[':
       case '(':
       case ';': break;
-      default: this->writeStatementSemicolon(); break;
+      default: {
+        this->writeStatementSemicolon();
+        break;
+      }
     }
   }
 }
@@ -303,10 +309,16 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
   const sh::TType & type = variable.getType();
 
   bool needsToWriteType = true;
+  bool canForwardType = false;
 
   if (this->_isInsideForInit) {
+    canForwardType = true;
     needsToWriteType = this->_lastWrittenVarDecl == nullptr;
   } else {
+    if (type.getQualifier() == sh::EvqTemporary || type.getQualifier() == sh::EvqGlobal) {
+      canForwardType = true;
+    }
+
     if (this->_canForwardVarDecl && this->_lastWrittenVarDecl && type == *this->_lastWrittenVarDecl &&
         type.getQualifier() == this->_lastWrittenVarDecl->getQualifier() && !this->needsToClearLastWrittenVarDecl()) {
       needsToWriteType = false;
@@ -334,7 +346,7 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
   this->write(this->getSymbolName(&variable)).write(sh::ArrayString(type));
 
   this->_lastWrittenVarDecl = &type;
-  this->_canForwardVarDecl = true;
+  this->_canForwardVarDecl = canForwardType;
 }
 
 void SpglslAngleWebglOutput::visitSymbol(sh::TIntermSymbol * node) {
@@ -417,7 +429,9 @@ bool SpglslAngleWebglOutput::visitBinary(sh::Visit visit, sh::TIntermBinary * no
   } else {
     this->traverseWithParentheses(node, 0);
   }
-  this->beautySpace();
+  if (node->getOp() != sh::EOpComma) {
+    this->beautySpace();
+  }
   this->writeTOperatorNode(node);
   this->beautySpace();
   this->traverseWithParentheses(node, 1);
@@ -685,6 +699,9 @@ bool SpglslAngleWebglOutput::visitBranch(sh::Visit visit, sh::TIntermBranch * no
       default: ops = GetOperatorString(node->getFlowOp()); break;
     }
     this->write(ops);
+    if (node->getChildCount() > 0) {
+      this->beautySpace();
+    }
   }
   return true;
 }
