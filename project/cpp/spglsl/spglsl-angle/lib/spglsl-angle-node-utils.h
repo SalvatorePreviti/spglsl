@@ -43,6 +43,9 @@ bool opIsBuiltinUnaryFunction(sh::TOperator op);
 
 int nodeConstantBooleanValue(sh::TIntermNode * condition);
 
+/** Returns true if the given node is a constant default value, for example 0.0 for float; */
+bool nodeIsConstantZero(sh::TIntermNode * node);
+
 bool nodeBlockIsEmpty(sh::TIntermNode * node);
 
 bool nodeHasSideEffects(sh::TIntermNode * node);
@@ -69,6 +72,14 @@ inline sh::TIntermBinary * nodeGetAsBinaryNode(sh::TIntermNode * node) {
 
 inline sh::TIntermSymbol * nodeGetAsSymbolNode(sh::TIntermNode * node) {
   return node ? node->getAsSymbolNode() : nullptr;
+}
+
+inline sh::TIntermBinary * nodeGetAsBinaryNode(sh::TIntermNode * node, sh::TOperator op) {
+  if (!node) {
+    return nullptr;
+  }
+  auto * asBin = node->getAsBinaryNode();
+  return (asBin && asBin->getOp() == op) ? asBin : nullptr;
 }
 
 sh::TConstantUnion * CreateConstantUnionFillFromScalar(const sh::TType & type,

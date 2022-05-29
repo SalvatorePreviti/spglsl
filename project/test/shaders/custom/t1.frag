@@ -3,11 +3,11 @@
 precision mediump float;
 
 out vec4 color;
-int sideEffectCounter = 0;
+int a = 0;
 
-float[2] functionReturnArray() {
-  ++sideEffectCounter;
-  return float[2](float(sideEffectCounter), 1.);
+float[2] t() {
+  ++a;
+  return float[2](float(a), 1.);
 }
 
 struct MyStruct {
@@ -21,21 +21,26 @@ uniform UBOData {
   float UBOBlue;
 }
 
-,
+;
+uniform UBOD {
+  float UBOR;
+  float UBOG;
+  float UBOB;
+};
 
-    void main() {
-  float c = 0.;
-  for (int i = 1; bool(c = functionReturnArray()[0]); ++i) {
-    if (i >= 3) {
+void main() {
+  float l;
+  for (int a = 1; bool(l = t()[0]); ++a) {
+    if (a >= 3) {
       break;
     }
   }
 
-  MyStruct b;
-  b.a[0] = true, b.a[1] = false;
-  MyStruct d;
-  d.a[0] = true, d.a[1] = false, color = b == d ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1);
-  vec4 t = vec4(UBORed * UBOR, UBOGreen * UBOG, UBOBlue * UBOB, 1.);
-  color = t + (b == d ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1)) +
-      (abs(c - 3.) < .01 && sideEffectCounter == 3 ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1));
+  MyStruct o;
+  o.a[0] = true, o.a[1] = false;
+  MyStruct e;
+  e.a[0] = true, e.a[1] = false, color = o == e ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1);
+  vec4 B = vec4(UBORed * UBOR, UBOGreen * UBOG, UBOBlue * UBOB, 1.);
+  color = B + (o == e ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1)) +
+      (abs(l - 3.) < .01 && a == 3 ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1));
 }

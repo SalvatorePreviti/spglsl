@@ -309,18 +309,13 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
   const sh::TType & type = variable.getType();
 
   bool needsToWriteType = true;
-  bool canForwardType = false;
 
   if (this->_isInsideForInit) {
-    canForwardType = true;
     needsToWriteType = this->_lastWrittenVarDecl == nullptr;
   } else {
-    if (type.getQualifier() == sh::EvqTemporary || type.getQualifier() == sh::EvqGlobal) {
-      canForwardType = true;
-    }
-
+    auto q = type.getQualifier();
     if (this->_canForwardVarDecl && this->_lastWrittenVarDecl && type == *this->_lastWrittenVarDecl &&
-        type.getQualifier() == this->_lastWrittenVarDecl->getQualifier() && !this->needsToClearLastWrittenVarDecl()) {
+        q == this->_lastWrittenVarDecl->getQualifier() && !this->needsToClearLastWrittenVarDecl()) {
       needsToWriteType = false;
     }
     if (!needsToWriteType && type.getBasicType() == sh::EbtStruct && type.getStruct() &&
@@ -343,10 +338,11 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
     this->writeComma();
   }
 
-  this->write(this->getSymbolName(&variable)).write(sh::ArrayString(type));
+  const auto & name = this->getSymbolName(&variable);
+  this->write(name).write(sh::ArrayString(type));
 
   this->_lastWrittenVarDecl = &type;
-  this->_canForwardVarDecl = canForwardType;
+  this->_canForwardVarDecl = !name.empty();
 }
 
 void SpglslAngleWebglOutput::visitSymbol(sh::TIntermSymbol * node) {

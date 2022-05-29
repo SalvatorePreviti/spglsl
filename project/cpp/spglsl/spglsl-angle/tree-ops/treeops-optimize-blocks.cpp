@@ -174,8 +174,29 @@ class SpglslOptimizeBlocksTraverser : public sh::TIntermTraverser {
     }
 
     auto * nodeAsDecl = node->getAsDeclarationNode();
-    if (nodeAsDecl != nullptr && nodeAsDecl->getChildCount() == 0) {
-      return nullptr;  // Empty declarations
+    if (nodeAsDecl != nullptr) {
+      if (nodeAsDecl->getChildCount() == 0) {
+        return nullptr;  // Empty declarations
+      }
+
+      if (nodeAsDecl->getChildCount() > 1) {
+        // Split declarations into separate declarations.
+        for (size_t i = 0; i < nodeAsDecl->getChildCount(); ++i) {
+          auto * typed = nodeAsDecl->getChildNode(i)->getAsTyped();
+          if (typed) {
+            queue.push(new sh::TIntermDeclaration({typed}));
+          }
+        }
+        return nullptr;
+      }
+
+      auto * declInitialize = nodeGetAsBinaryNode(nodeAsDecl->getChildNode(0), sh::EOpInitialize);
+      if (declInitialize && nodeIsConstantZero(declInitialize->getRight())) {
+        // float x=0.; => float x;
+        return new sh::TIntermDeclaration({declInitialize->getLeft()});
+      }
+
+      return nodeAsDecl;
     }
 
     auto * nodeAsBlock = node->getAsBlock();

@@ -17,7 +17,7 @@ function _loadTestShaders(): TestShader[] {
   const allFiles = fastglob.sync(path.resolve(__dirname, "**/*.(frag|vert)"));
   const result: TestShader[] = [];
   for (const fpath of allFiles) {
-    if (!fpath.includes("complicated")) {
+    if (!fpath.includes("island")) {
       continue; // DEBUG XXX
     }
     const sourceCode = fs.readFileSync(fpath, "utf8");

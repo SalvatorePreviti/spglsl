@@ -19,6 +19,34 @@ bool opIsBuiltinUnaryFunction(sh::TOperator op) {
   }
 }
 
+bool nodeIsConstantZero(sh::TIntermNode * node) {
+  sh::TIntermTyped * typed = node->getAsTyped();
+  if (!typed) {
+    return false;
+  }
+
+  switch (typed->getType().getBasicType()) {
+    case sh::EbtFloat:
+    case sh::EbtDouble:
+    case sh::EbtInt:
+    case sh::EbtUInt:
+    case sh::EbtBool: break;
+    default: return false;
+  }
+
+  const sh::TConstantUnion * value = typed->getConstantValue();
+  if (!value) {
+    return false;
+  }
+  int size = typed->getNominalSize() * typed->getSecondarySize();
+  for (int i = 0; i < size; ++i) {
+    if (!value[i].isZero()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 int nodeConstantBooleanValue(sh::TIntermNode * node) {
   if (!node) {
     return -1;
@@ -35,13 +63,10 @@ int nodeConstantBooleanValue(sh::TIntermNode * node) {
   const sh::TConstantUnion * asConstanUnion = typed->getConstantValue();
   if (asConstanUnion) {
     int size = typed->getNominalSize() * typed->getSecondarySize();
-    bool first = asConstanUnion[0].isZero();
-    for (int i = 1; i < size; ++i) {
-      if (first != asConstanUnion[i].isZero()) {
-        return -1;
-      }
+    if (size != 1) {
+      return -1;
     }
-    return first ? 0 : 1;
+    return asConstanUnion[0].isZero() ? 0 : 1;
   }
 
   auto * asBinary = typed->getAsBinaryNode();

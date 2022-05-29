@@ -19,9 +19,9 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
     const compiled = await spglslAngleCompile({
       compileMode: "Optimize",
       language: shader.shaderType,
+      beautify: false,
       minify: true,
-      beautify: true,
-      mangle: false,
+      mangle: true,
       ...options,
       mainFilePath: shader.name,
       mainSourceCode: shader.sourceCode,
@@ -69,9 +69,10 @@ export const makeTestShader = (shader: TestShader, options?: SpglslAngleCompileO
     console.log("output:", chalk.cyanBright(`${out.length} bytes (gzipped ${outZlibSize} bytes)`));
 
     if (shader.name.includes("island")) {
+      const referZlibSize = zlib.gzipSync(fragmentShaderCode, { level: 9 }).length;
       console.log(
         "refern:",
-        `${fragmentShaderCode.length} bytes (gzipped ${zlib.gzipSync(fragmentShaderCode, { level: 9 }).length} bytes)`,
+        `${fragmentShaderCode.length} bytes (gzipped ${referZlibSize} bytes) ${outZlibSize - referZlibSize} bytes`,
       );
     }
     // console.log(fragmentShaderCode)

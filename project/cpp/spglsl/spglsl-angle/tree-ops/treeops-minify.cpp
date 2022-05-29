@@ -1,3 +1,4 @@
+#include "../lib/spglsl-angle-ast-hasher.h"
 #include "../lib/spglsl-angle-node-utils.h"
 #include "../spglsl-angle-compiler.h"
 #include "tree-ops.h"
@@ -34,8 +35,10 @@ sh::TIntermTyped * _asCommaOpArg(sh::TIntermNode * node) {
 class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
  public:
   bool hasChanges = false;
+  AngleAstHasher & astHasher;
 
-  SpglslPutCommaOperatorTraverser() : sh::TIntermTraverser(false, false, true) {
+  SpglslPutCommaOperatorTraverser(AngleAstHasher & hasher) :
+      sh::TIntermTraverser(false, false, true), astHasher(hasher) {
   }
 
   void reset() {
@@ -90,8 +93,22 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
         auto * branchNode = node->getAsBranchNode();
         if (branchNode && branchNode->getFlowOp() == sh::EOpReturn && branchNode->getExpression()) {
           if (_asCommaOpArg(branchNode->getExpression())) {
-            node = new sh::TIntermBranch(
-                sh::EOpReturn, new sh::TIntermBinary(sh::EOpComma, flushedCommas, branchNode->getExpression()));
+            auto * flushedCommasAsComma = nodeGetAsBinaryNode(flushedCommas, sh::EOpComma);
+            bool nodeMade = false;
+            if (flushedCommasAsComma) {
+              auto * asBin = flushedCommasAsComma->getLeft()->getAsBinaryNode();
+              if (asBin && sh::IsAssignment(asBin->getOp())) {
+                if (this->astHasher.nodesAreTheSame(asBin->getLeft(), branchNode->getExpression())) {
+                  // return xxx,yyy,a+=n,a => return xxx,yyy,a+=n
+                  node = new sh::TIntermBranch(sh::EOpReturn, flushedCommas);
+                  nodeMade = true;
+                }
+              }
+            }
+            if (!nodeMade) {
+              node = new sh::TIntermBranch(
+                  sh::EOpReturn, new sh::TIntermBinary(sh::EOpComma, flushedCommas, branchNode->getExpression()));
+            }
           } else {
             newSequence.push_back(flushedCommas);
           }
@@ -161,7 +178,8 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
 };
 
 void spglsl_treeops_minify(SpglslAngleCompiler & compiler, sh::TIntermNode * root) {
-  for (SpglslPutCommaOperatorTraverser traverser;;) {
+  AngleAstHasher hasher;
+  for (SpglslPutCommaOperatorTraverser traverser(hasher);;) {
     root->traverse(&traverser);
     if (!traverser.hasChanges) {
       break;
