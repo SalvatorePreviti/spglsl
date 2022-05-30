@@ -1,5 +1,6 @@
 #include "./spglsl-symbol-info.h"
 #include <string>
+#include "../lib/spglsl-angle-node-utils.h"
 #include "../spglsl-scoped-traverser.h"
 
 void _loadSymbolName(SpglslSymbolInfo & entry) {

@@ -4,7 +4,7 @@ import { spglslAngleCompile, SpglslAngleCompileError } from "spglsl";
 const SHADER_PREFIX =
   "#version 300 es\nprecision mediump float;layout(location=1)out vec4 V;layout(location=2)out vec4 P;";
 
-describe("blocks-optimizations", function () {
+describe("minify-optimizations", function () {
   this.timeout(7000);
 
   describe("minifications", async () => {

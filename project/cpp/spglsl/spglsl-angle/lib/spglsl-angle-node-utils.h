@@ -7,23 +7,23 @@
 
 enum class AngleNodeKind {
   TNull,
-  TIntermAggregate,
-  TIntermBlock,
-  TIntermGlobalQualifierDeclaration,
-  TIntermDeclaration,
-  TIntermFunctionPrototype,
-  TIntermFunctionDefinition,
-  TIntermSwizzle,
+  TIntermTernary,
   TIntermBinary,
   TIntermUnary,
+  TIntermAggregate,
+  TIntermSymbol,
+  TIntermSwizzle,
   TIntermConstantUnion,
-  TIntermTernary,
+  TIntermBranch,
+  TIntermDeclaration,
+  TIntermFunctionDefinition,
+  TIntermFunctionPrototype,
+  TIntermBlock,
   TIntermIfElse,
+  TIntermLoop,
   TIntermSwitch,
   TIntermCase,
-  TIntermSymbol,
-  TIntermLoop,
-  TIntermBranch,
+  TIntermGlobalQualifierDeclaration,
   TIntermPreprocessorDirective
 };
 
@@ -66,12 +66,12 @@ inline sh::TIntermConstantUnion * nodeGetAsConstantUnion(sh::TIntermNode * node)
   return node ? node->getAsConstantUnion() : nullptr;
 }
 
-inline sh::TIntermBinary * nodeGetAsBinaryNode(sh::TIntermNode * node) {
-  return node ? node->getAsBinaryNode() : nullptr;
-}
-
 inline sh::TIntermSymbol * nodeGetAsSymbolNode(sh::TIntermNode * node) {
   return node ? node->getAsSymbolNode() : nullptr;
+}
+
+inline sh::TIntermBinary * nodeGetAsBinaryNode(sh::TIntermNode * node) {
+  return node ? node->getAsBinaryNode() : nullptr;
 }
 
 inline sh::TIntermBinary * nodeGetAsBinaryNode(sh::TIntermNode * node, sh::TOperator op) {
@@ -79,6 +79,38 @@ inline sh::TIntermBinary * nodeGetAsBinaryNode(sh::TIntermNode * node, sh::TOper
     return nullptr;
   }
   auto * asBin = node->getAsBinaryNode();
+  return (asBin && asBin->getOp() == op) ? asBin : nullptr;
+}
+
+inline sh::TIntermAggregate * nodeGetAsAggregate(sh::TIntermNode * node) {
+  return node ? node->getAsAggregate() : nullptr;
+}
+
+inline sh::TIntermAggregate * nodeGetAsAggregate(sh::TIntermNode * node, sh::TOperator op) {
+  if (!node) {
+    return nullptr;
+  }
+  auto * asBin = node->getAsAggregate();
+  return (asBin && asBin->getOp() == op) ? asBin : nullptr;
+}
+
+inline sh::TIntermAggregate * nodeGetAsAggregate(sh::TIntermNode * node, sh::TOperator op, int childCount) {
+  if (!node) {
+    return nullptr;
+  }
+  auto * asBin = node->getAsAggregate();
+  return (asBin && asBin->getOp() == op && asBin->getChildCount() == childCount) ? asBin : nullptr;
+}
+
+inline sh::TIntermUnary * nodeGetAsUnaryNode(sh::TIntermNode * node) {
+  return node ? node->getAsUnaryNode() : nullptr;
+}
+
+inline sh::TIntermUnary * nodeGetAsUnaryNode(sh::TIntermNode * node, sh::TOperator op) {
+  if (!node) {
+    return nullptr;
+  }
+  auto * asBin = node->getAsUnaryNode();
   return (asBin && asBin->getOp() == op) ? asBin : nullptr;
 }
 

@@ -3,7 +3,7 @@ import { makeTestShader } from "./lib/test-shader";
 
 import { getTestShaders } from "./shaders/test-shaders";
 
-describe.only("angle-regression", function () {
+describe("angle-regression", function () {
   this.timeout(7000);
 
   before(async () => {
@@ -15,7 +15,7 @@ describe.only("angle-regression", function () {
       continue;
     }
 
-    it(`ANGLE regression ./${testShader.name}`, async () => {
+    it.only(`ANGLE regression ./${testShader.name}`, async () => {
       return makeTestShader(testShader)();
     });
   }
