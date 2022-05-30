@@ -2,7 +2,7 @@ import { inspect } from "util";
 
 const _symIndices = Symbol("indices");
 
-const { defineProperty, getOwnPropertyNames, getOwnPropertyDescriptor } = Object;
+const { defineProperty } = Object;
 
 export type StringEnum<T extends string> = {
   readonly [P in T]: P;
@@ -93,52 +93,4 @@ function _loadStringEnumIndices(stringEnum: any) {
   }
   defineProperty(stringEnum, _symIndices, { value: indices });
   return indices;
-}
-
-export function makeObjectReadonly<TInstance extends object>(instance: TInstance): TInstance {
-  for (const key of getOwnPropertyNames(instance)) {
-    if (typeof key === "string") {
-      const prop = getOwnPropertyDescriptor(instance, key);
-      if (prop && prop.configurable && prop.writable) {
-        defineProperty(instance, key, { ...prop, writable: false });
-      }
-    }
-  }
-  return instance;
-}
-
-export function inspectClassProperties(instance: object) {
-  const nset = new Set<string>();
-  nset.add("constructor");
-
-  const proto = Object.getPrototypeOf(instance);
-  const className = proto && proto.constructor && proto.constructor.name;
-
-  let result: any;
-  if (className) {
-    class FakeClass {}
-
-    defineProperty(FakeClass, "name", { value: Object.getPrototypeOf(instance).constructor.name });
-    result = new FakeClass();
-  } else {
-    result = {};
-  }
-
-  for (let p = instance; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) {
-    const names = Object.getOwnPropertyNames(instance);
-    for (const name of names) {
-      if (typeof name === "string" && !nset.has(name) && !name.startsWith("_") && !name.startsWith("#")) {
-        const prop = Object.getOwnPropertyDescriptor(p, name);
-        if (prop) {
-          nset.add(name);
-          if (prop.get) {
-            result[name] = (instance as Readonly<Record<string, any>>)[name];
-          } else if (!prop.set) {
-            result[name] = prop.value;
-          }
-        }
-      }
-    }
-  }
-  return result;
 }

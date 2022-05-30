@@ -1,5 +1,7 @@
 #version 300 es
 
+// #expected-size: 12080 4978
+
 // MIT license
 // CopyRight (c) 2020 - Salvatore Previti and Ben Clark
 // Shader for JS13K 2020 - https://js13kgames.com/entries/island-not-found -

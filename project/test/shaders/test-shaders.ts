@@ -23,10 +23,25 @@ function _loadTestShaders(): TestShader[] {
     const sourceCode = fs.readFileSync(fpath, "utf8");
     const extension = path.extname(fpath);
     const shaderType = extension.slice(1) as "vert" | "frag";
+
+    let expectedSize: number | undefined;
+    let expectedGzipSize: number | undefined;
+    for (const line of sourceCode.split("\n")) {
+      if (line.startsWith("// #expected-size:")) {
+        [expectedSize, expectedGzipSize] = line
+          .slice("// #expected-size:".length)
+          .split(" ")
+          .filter(Boolean)
+          .map((x) => Number.parseInt(x));
+      }
+    }
+
     result.push({
       name: path.relative(rootFolder, fpath),
       shaderType,
       sourceCode,
+      expectedSize,
+      expectedGzipSize,
       hasIncludes: sourceCode.indexOf("#include") >= 0,
     });
   }
