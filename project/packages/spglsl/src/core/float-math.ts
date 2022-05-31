@@ -1,6 +1,10 @@
 const { isFinite: numberIsFinite, isNaN: numberIsNan, parseFloat: numberParseFloat } = Number;
 const { min, max, abs, fround, round } = Math;
 import floatConsts from "./float-consts.min.json";
+const floatConstsReverse = Object.fromEntries(Object.entries(floatConsts).map(([a, b]) => [b, a])) as Record<
+  string,
+  string
+>;
 
 export const FLOAT_MIN = 1.17549435082228750797e-38;
 
@@ -23,6 +27,13 @@ export function glslToUInt32(value: string | number | boolean | null | undefined
 }
 
 export function glslToFloat(value: string | number | boolean | null | undefined): number {
+  if (typeof value === "string") {
+    const found = floatConstsReverse[value];
+    if (typeof found === "string") {
+      value = found;
+    }
+  }
+
   if (typeof value === "number") {
     if (!numberIsFinite(value)) {
       return value;
@@ -147,8 +158,7 @@ function _floatToStr(absValue: number): string {
   absValue = Math.fround(absValue);
   let best = absValue.toLocaleString("en", {
     useGrouping: false,
-    notation: "compact",
-    maximumFractionDigits: 7,
+    maximumFractionDigits: 8,
   });
 
   const tostr = absValue.toString();

@@ -218,9 +218,25 @@ bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, 
   }
 
   if (precedenceDiff > 0) {
-    return !(node.getAsTernaryNode() &&
-        (child.getAsBinaryNode() || child.getAsUnaryNode() || child.getAsSwizzleNode() || child.getAsConstantUnion() ||
-            child.getAsSwizzleNode() || child.getAsAggregate() || child.getAsSymbolNode() || child.getAsTernaryNode()));
+    if (node.getAsTernaryNode()) {
+      if (operandIndex == 1) {
+        return !((child.getAsBinaryNode() || child.getAsUnaryNode() || child.getAsSwizzleNode() ||
+            child.getAsConstantUnion() || child.getAsSwizzleNode() || child.getAsAggregate() ||
+            child.getAsSymbolNode() || child.getAsTernaryNode()));
+      }
+      if (operandIndex == 2) {
+        auto * asBin = child.getAsBinaryNode();
+        if (asBin) {
+          switch (asBin->getOp()) {
+            case sh::EOpComma: return true;
+            default: return false;
+          }
+        }
+        return !((child.getAsSwizzleNode() || child.getAsConstantUnion() || child.getAsSwizzleNode() ||
+            child.getAsAggregate() || child.getAsSymbolNode() || child.getAsTernaryNode()));
+      }
+    }
+    return true;
   }
 
   if ((nodePrec.order == AngleOperatorOrder::LTR && operandIndex == 0) ||
