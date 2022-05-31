@@ -1,5 +1,6 @@
 const { isFinite: numberIsFinite, isNaN: numberIsNan, parseFloat: numberParseFloat } = Number;
-const { min, max, abs, floor, fround, round } = Math;
+const { min, max, abs, fround, round } = Math;
+import floatConsts from "./float-consts.min.json";
 
 export const FLOAT_MIN = 1.17549435082228750797e-38;
 
@@ -12,7 +13,6 @@ const _expTrailingZeroesRegex = /(?:(\.[1-9]+)|\.)0*e/gi;
 const _trailingZeroesRegex = /0+$/;
 
 const _floatToStrCache = new Map<number, string>();
-const _floatToFractionCache = new Map<number, string>();
 
 export function glslToInt32(value: string | number | boolean | null | undefined): number {
   return glslToFloat(value) | 0;
@@ -84,6 +84,16 @@ export function floatToGlsl(
   value: string | number | boolean | null | undefined,
   needsParentheses: boolean = false,
   needsFloat: boolean = true,
+) {
+  const r = floatToGlslRaw(value, needsParentheses, needsFloat);
+  const found = (floatConsts as Record<string, string>)[r];
+  return typeof found === "string" ? found : r;
+}
+
+export function floatToGlslRaw(
+  value: string | number | boolean | null | undefined,
+  needsParentheses: boolean = false,
+  needsFloat: boolean = true,
 ): string {
   if (typeof value !== "number") {
     value = glslToFloat(value);
@@ -108,37 +118,18 @@ export function floatToGlsl(
   }
 
   let decimal = _floatToStrCache.get(absValue);
-  let fraction: string | false;
-  if (decimal !== undefined) {
-    fraction = _floatToFractionCache.get(absValue) || false;
-  } else {
+  if (decimal === undefined) {
     decimal = _floatToStr(absValue);
-    fraction = _floatToFraction(absValue);
-    if (_floatToStrCache.size > 9000) {
-      _gcCache(_floatToStrCache, 7000);
+    if (_floatToStrCache.size > 10000) {
+      _gcCache(_floatToStrCache, 8000);
     }
     _floatToStrCache.set(absValue, decimal);
-    if (!fraction || fraction.length >= decimal.length) {
-      fraction = "";
-    } else {
-      if (_floatToFractionCache.size > 5000) {
-        _gcCache(_floatToStrCache, 4000);
-      }
-      _floatToFractionCache.set(absValue, fraction);
-    }
   }
 
   let best: string;
-  if (fraction && fraction.length + (needsParentheses ? 2 : 0) < decimal.length) {
-    if (value < 0) {
-      fraction += "-";
-    }
-    best = needsParentheses ? `(${fraction})` : fraction;
-  } else {
-    best = value < 0 ? `-${decimal}` : decimal;
-    if (!needsFloat && best.endsWith(".")) {
-      best = best.slice(0, best.length - 1);
-    }
+  best = value < 0 ? `-${decimal}` : decimal;
+  if (!needsFloat && best.endsWith(".")) {
+    best = best.slice(0, best.length - 1);
   }
 
   return best;
@@ -153,7 +144,18 @@ function _gcCache(map: Map<unknown, unknown>, maxSize: number) {
 }
 
 function _floatToStr(absValue: number): string {
-  let best = absValue.toString();
+  absValue = Math.fround(absValue);
+  let best = absValue.toLocaleString("en", {
+    useGrouping: false,
+    notation: "compact",
+    maximumFractionDigits: 8,
+  });
+
+  const tostr = absValue.toString();
+  if (tostr.length < best.length) {
+    best = tostr;
+  }
+
   let digits = 9;
   if (best.indexOf("e") < 0) {
     const indexOfDot = best.indexOf(".");
@@ -197,35 +199,4 @@ function _floatToStr(absValue: number): string {
   } while (digits > 0);
   bestExp = bestExp.replace(_zeroRegex, "").replace(_expTrailingZeroesRegex, "$1e");
   return bestExp.length < best.length ? bestExp : best;
-}
-
-function _floatToFraction(absValue: number): string {
-  let numerator = 1;
-  let denominator = 0;
-  let h2 = 0;
-  let k2 = 1;
-  let b = absValue;
-  for (let repeat = 0; ; repeat++) {
-    const a = floor(b);
-    let aux = numerator;
-    numerator = a * numerator + h2;
-    h2 = aux;
-    aux = denominator;
-    denominator = a * denominator + k2;
-    k2 = aux;
-    b = 1 / (b - a);
-    const f = fround(numerator / denominator);
-    if (f === absValue) {
-      break;
-    }
-    if (!f || repeat > 32) {
-      return "";
-    }
-  }
-
-  if (!numerator || denominator <= 0) {
-    return "";
-  }
-
-  return `${numerator}./${denominator}.`;
 }

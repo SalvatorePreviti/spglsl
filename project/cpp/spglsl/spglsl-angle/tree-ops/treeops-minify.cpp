@@ -37,7 +37,7 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
   bool hasChanges = false;
   AngleAstHasher & astHasher;
 
-  SpglslPutCommaOperatorTraverser(AngleAstHasher & hasher) :
+  explicit SpglslPutCommaOperatorTraverser(AngleAstHasher & hasher) :
       sh::TIntermTraverser(false, false, true), astHasher(hasher) {
   }
 
