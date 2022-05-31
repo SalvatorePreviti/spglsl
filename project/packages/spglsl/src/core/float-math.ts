@@ -148,11 +148,11 @@ function _floatToStr(absValue: number): string {
   let best = absValue.toLocaleString("en", {
     useGrouping: false,
     notation: "compact",
-    maximumFractionDigits: 8,
+    maximumFractionDigits: 7,
   });
 
   const tostr = absValue.toString();
-  if (tostr.length < best.length) {
+  if (!best || tostr.length < best.length) {
     best = tostr;
   }
 
@@ -164,6 +164,11 @@ function _floatToStr(absValue: number): string {
     }
     best = best.replace(_zeroRegex, "").replace(_expTrailingZeroesRegex, "$1e");
   }
+
+  if (!best) {
+    return "0.";
+  }
+
   let prevLen = 0;
   do {
     let s = absValue.toFixed(digits);
@@ -188,6 +193,10 @@ function _floatToStr(absValue: number): string {
   } while (digits > 0);
   best = best.replace(_zeroRegex, "");
 
+  if (!best) {
+    return "0.";
+  }
+
   let bestExp = absValue.toExponential();
   digits = 9;
   do {
@@ -198,5 +207,5 @@ function _floatToStr(absValue: number): string {
     bestExp = s;
   } while (digits > 0);
   bestExp = bestExp.replace(_zeroRegex, "").replace(_expTrailingZeroesRegex, "$1e");
-  return bestExp.length < best.length ? bestExp : best;
+  return (bestExp.length < best.length ? bestExp : best) || "0";
 }
