@@ -3,8 +3,6 @@
 #include "../spglsl-angle-compiler.h"
 #include "tree-ops.h"
 
-#include <iostream>
-
 typedef std::vector<sh::TIntermNode> OptimizeBlockNodeResult;
 
 class SpglslOptimizeBlocksTraverser : public sh::TIntermTraverser {

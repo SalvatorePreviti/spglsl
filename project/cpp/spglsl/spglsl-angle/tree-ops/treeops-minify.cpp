@@ -3,8 +3,6 @@
 #include "../spglsl-angle-compiler.h"
 #include "tree-ops.h"
 
-#include <iostream>
-
 /** Returns an TIntermTyped* if the given node can be used as argument in a Comma operator */
 sh::TIntermTyped * _asCommaOpArg(sh::TIntermNode * node) {
   if (!node) {

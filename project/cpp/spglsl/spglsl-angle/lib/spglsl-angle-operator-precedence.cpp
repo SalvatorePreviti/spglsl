@@ -1,8 +1,6 @@
 #include "spglsl-angle-operator-precedence.h"
 #include "spglsl-angle-node-utils.h"
 
-#include <iostream>
-
 struct AngleOperatorPrecedenceMap {
   AngleOperatorPrecedence ByOp[256];
 

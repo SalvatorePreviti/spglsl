@@ -15,8 +15,6 @@
 #include "../spglsl-angle-compiler.h"
 #include "../spglsl-angle-webgl-output.h"
 
-#include <iostream>
-
 class XRebuilder : public sh::TIntermRebuild {
  public:
   explicit XRebuilder(SpglslAngleCompiler & compiler) : sh::TIntermRebuild(compiler.tCompiler, true, false) {
@@ -174,8 +172,6 @@ bool spglsl_treeops_optimize(SpglslAngleCompiler & compiler, sh::TIntermBlock * 
   AngleAstHasher astHasher(&compiler.symbolTable);
   int repeat = -1;
 
-  // std::cout << std::endl << std::endl;
-
   do {
     ++repeat;
 
@@ -204,11 +200,9 @@ bool spglsl_treeops_optimize(SpglslAngleCompiler & compiler, sh::TIntermBlock * 
     spglsl_treeops_OptimizeBlocks(compiler, root);
 
     XRebuilder rebuilder(compiler);
-    // std::cout << "rebuildRoot begin" << std::endl;
     if (!rebuilder.rebuildRoot(*root)) {
       return false;
     }
-    // std::cout << "rebuildRoot end" << std::endl;
 
   } while (repeat < 50 && astHasher.computeNodeHashChanged(root, oldAstHash));
 
