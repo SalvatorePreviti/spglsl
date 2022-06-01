@@ -46,6 +46,8 @@ int nodeConstantBooleanValue(sh::TIntermNode * condition);
 /** Returns true if the given node is a constant default value, for example 0.0 for float; */
 bool nodeIsConstantZero(sh::TIntermNode * node);
 
+bool nodeIsConstantOne(sh::TIntermNode * node);
+
 bool nodeBlockIsEmpty(sh::TIntermNode * node);
 
 bool nodeHasSideEffects(sh::TIntermNode * node);

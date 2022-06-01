@@ -45,6 +45,45 @@ bool nodeIsConstantZero(sh::TIntermNode * node) {
   return true;
 }
 
+bool nodeIsConstantOne(sh::TIntermNode * node) {
+  sh::TIntermTyped * typed = node->getAsTyped();
+  if (!typed) {
+    return false;
+  }
+
+  switch (typed->getType().getBasicType()) {
+    case sh::EbtFloat:
+    case sh::EbtDouble:
+    case sh::EbtInt:
+    case sh::EbtUInt:
+    case sh::EbtBool: break;
+    default: return false;
+  }
+
+  const sh::TConstantUnion * value = typed->getConstantValue();
+  if (!value) {
+    return false;
+  }
+  int size = typed->getNominalSize() * typed->getSecondarySize();
+  if (size <= 0) {
+    return false;
+  }
+  for (int i = 0; i < size; ++i) {
+    bool isOne;
+    switch (value[i].getType()) {
+      case sh::EbtInt: isOne = value[i].getIConst() == 1.; break;
+      case sh::EbtUInt: isOne = value[i].getUConst() == 1.; break;
+      case sh::EbtFloat: isOne = value[i].getFConst() == 1.0f; break;
+      case sh::EbtBool: isOne = value[i].getBConst(); break;
+      default: isOne = false; break;
+    }
+    if (!isOne) {
+      return false;
+    }
+  }
+  return true;
+}
+
 int nodeConstantBooleanValue(sh::TIntermNode * node) {
   if (!node) {
     return -1;

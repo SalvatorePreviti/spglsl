@@ -45,6 +45,42 @@ describe("operators-optimizations", function () {
   it("Optimizes ternary negation", async () => {
     expect(await compileMain("P.x=!(vA.x>vB.x)?vA.z:vA.w;")).to.eq("P.x=vA.x>vB.x?vA.w:vA.z;");
   });
+
+  it("Optimizes addition and substractions with 0", async () => {
+    expect(await compileMain("P.x=vA.x+0.;")).to.eq("P.x=vA.x;");
+    expect(await compileMain("P.x=0.+vA.x;")).to.eq("P.x=vA.x;");
+
+    expect(await compileMain("P=vA+0.;")).to.eq("P=vA;");
+    expect(await compileMain("P=0.+vA;")).to.eq("P=vA;");
+    expect(await compileMain("P=vA+vec4(0);")).to.eq("P=vA;");
+    expect(await compileMain("P=vec4(0)+vA;")).to.eq("P=vA;");
+
+    expect(await compileMain("P.x=vA.x-0.;")).to.eq("P.x=vA.x;");
+    expect(await compileMain("P.x=0.-vA.x;")).to.eq("P.x=-vA.x;");
+
+    expect(await compileMain("P.x+=0.;")).to.eq("");
+    expect(await compileMain("P.x-=0.;")).to.eq("");
+  });
+
+  it("Optimizes multiplication with 1", async () => {
+    expect(await compileMain("P.x=vA.x*1.;")).to.eq("P.x=vA.x;");
+    expect(await compileMain("P.x=1.*vA.x;")).to.eq("P.x=vA.x;");
+
+    expect(await compileMain("P=vA*1.;")).to.eq("P=vA;");
+    expect(await compileMain("P=1.*vA;")).to.eq("P=vA;");
+    expect(await compileMain("P=vA*vec4(1);")).to.eq("P=vA;");
+    expect(await compileMain("P=vec4(1)*vA;")).to.eq("P=vA;");
+
+    expect(await compileMain("P.x*=1.;")).to.eq("");
+    expect(await compileMain("P.x/=1.;")).to.eq("");
+  });
+
+  it("Optimizes division by 1", async () => {
+    expect(await compileMain("P.x=vA.x/1.;")).to.eq("P.x=vA.x;");
+    expect(await compileMain("P=vA/1.;")).to.eq("P=vA;");
+    expect(await compileMain("P=vA/vec4(1);")).to.eq("P=vA;");
+    expect(await compileMain("P.x/=1.;")).to.eq("");
+  });
 });
 
 async function compileMain(code: string): Promise<string> {

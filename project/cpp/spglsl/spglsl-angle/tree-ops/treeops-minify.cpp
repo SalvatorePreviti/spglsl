@@ -39,16 +39,6 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
       sh::TIntermTraverser(false, false, true), astHasher(hasher) {
   }
 
-  void reset() {
-    this->hasChanges = false;
-  }
-
-  inline void traverseNode(sh::TIntermNode * node) {
-    if (node) {
-      node->traverse(this);
-    }
-  }
-
   bool visitBlock(sh::Visit visit, sh::TIntermBlock * block) override {
     sh::TIntermSequence newSequence;
     auto count = block->getChildCount();
@@ -113,6 +103,8 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
 
           if (a0Assignment && a1Assignment && a0Assignment->getOp() == a1Assignment->getOp() &&
               this->astHasher.nodesAreTheSame(a0Assignment->getLeft(), a1Assignment->getLeft())) {
+            // optimizes ternary assignments with or without commas
+
             sh::TIntermTyped * a0new;
             if (a0bin->getOp() == sh::EOpComma) {
               a0new = new sh::TIntermBinary(sh::EOpComma, a0bin->getLeft(), a0Assignment->getRight());

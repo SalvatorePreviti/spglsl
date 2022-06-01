@@ -28,7 +28,7 @@ describe("minify-optimizations", function () {
       ).to.eq("bool boolFunc(){return P.x=1.,P.y>1.;}void main(){P.x==1.&&boolFunc();}");
     });
 
-    it("optimizes ternary assignments", async () => {
+    it("optimizes ternary assignments with or without commas", async () => {
       expect(await compileMain("if(V.x>0.){P.x=1.;P.y=2.;}else{P.x=2.;P.y=7.;}")).to.eq(
         "P.y=V.x>0.?P.x=1.,2.:(P.x=2.,7.);",
       );

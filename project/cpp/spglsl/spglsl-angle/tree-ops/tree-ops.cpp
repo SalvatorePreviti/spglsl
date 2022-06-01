@@ -28,9 +28,14 @@ class XRebuilder : public sh::TIntermRebuild {
       if (unary) {
         next = _optimizeUnary(*unary);
       } else {
-        auto * ternary = current->getAsTernaryNode();
-        if (ternary) {
-          next = _optimizeTernary(*ternary);
+        auto * binary = current->getAsBinaryNode();
+        if (binary) {
+          next = _optimizeBinary(*binary);
+        } else {
+          auto * ternary = current->getAsTernaryNode();
+          if (ternary) {
+            next = _optimizeTernary(*ternary);
+          }
         }
       }
       if (current == next) {
@@ -39,6 +44,48 @@ class XRebuilder : public sh::TIntermRebuild {
       current = next;
     }
     return current;
+  }
+
+  static sh::TIntermNode * _optimizeBinary(sh::TIntermBinary & node) {
+    auto op = node.getOp();
+    auto * left = node.getLeft();
+    auto * right = node.getRight();
+
+    if (op == sh::EOpAdd || op == sh::EOpAddAssign || op == sh::EOpSubAssign) {
+      if (nodeIsConstantZero(left)) {
+        return right;
+      }
+      if (nodeIsConstantZero(right)) {
+        return left;
+      }
+    }
+
+    if (op == sh::EOpSub) {
+      if (nodeIsConstantZero(right)) {
+        return left;
+      }
+      if (nodeIsConstantZero(left)) {
+        return new sh::TIntermUnary(sh::EOpNegative, right, nullptr);
+      }
+    }
+
+    if (op == sh::EOpMul || op == sh::EOpMulAssign || op == sh::EOpVectorTimesScalar ||
+        op == sh::EOpVectorTimesScalarAssign) {
+      if (nodeIsConstantOne(right)) {
+        return left;
+      }
+      if (nodeIsConstantOne(left)) {
+        return right;
+      }
+    }
+
+    if (op == sh::EOpDiv || op == sh::EOpDivAssign) {
+      if (nodeIsConstantOne(right)) {
+        return left;
+      }
+    }
+
+    return &node;
   }
 
   static sh::TIntermNode * _optimizeUnary(sh::TIntermUnary & node) {
