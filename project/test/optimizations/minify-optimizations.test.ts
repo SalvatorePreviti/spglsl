@@ -27,6 +27,18 @@ describe("minify-optimizations", function () {
         await compile("bool boolFunc(){P.x=1.;return P.y>1.;} void main() { if (P.x==1.) {{boolFunc();}} }"),
       ).to.eq("bool boolFunc(){return P.x=1.,P.y>1.;}void main(){P.x==1.&&boolFunc();}");
     });
+
+    it("optimizes ternary assignments", async () => {
+      expect(await compileMain("if(V.x>0.){P.x=1.;P.y=2.;}else{P.x=2.;P.y=7.;}")).to.eq(
+        "P.y=V.x>0.?P.x=1.,2.:(P.x=2.,7.);",
+      );
+
+      expect(await compileMain("if(V.x>0.){P.y=2.;}else{P.x=2.;P.y=7.;}")).to.eq("P.y=V.x>0.?2.:(P.x=2.,7.);");
+
+      expect(await compileMain("if(V.x>0.){P.x=1.;P.y=2.;}else{P.y=7.;}")).to.eq("P.y=V.x>0.?P.x=1.,2.:7.;");
+
+      expect(await compileMain("if(V.x>0.){P.y=2.;}else{P.y=7.;}")).to.eq("P.y=V.x>0.?2.:7.;");
+    });
   });
 });
 

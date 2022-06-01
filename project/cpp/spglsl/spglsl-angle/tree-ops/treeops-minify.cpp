@@ -71,11 +71,64 @@ class SpglslPutCommaOperatorTraverser : public sh::TIntermTraverser {
             auto * a1 = _asCommaOpArg(nodeGetBlockSingleNode(falseBlock));
             if (a1 && a0->getType() == a1->getType()) {
               // Replace "if(condition){a0}else{a1}" with "condition?a0:a1";
+
               node = new sh::TIntermTernary(condition, a0, a1);
             }
           } else if (a0->getType().isScalar() && a0->getType().getBasicType() == sh::EbtBool) {
             // Replace "if(condition){a0}" with "condition&&a0";
             node = new sh::TIntermBinary(sh::EOpLogicalAnd, condition, a0);
+          }
+        }
+      }
+
+      auto * ternary = node->getAsTernaryNode();
+      if (ternary) {
+        auto * a0 = _asCommaOpArg(ternary->getTrueExpression());
+        auto * a1 = _asCommaOpArg(ternary->getFalseExpression());
+
+        auto * a0bin = nodeGetAsBinaryNode(a0);
+        auto * a1bin = nodeGetAsBinaryNode(a1);
+
+        bool replaced = false;
+        if (a0bin && a1bin) {
+          sh::TIntermBinary * a0Assignment = nullptr;
+          if (sh::IsAssignment(a0bin->getOp())) {
+            a0Assignment = a0bin;
+          } else if (a0bin->getOp() == sh::EOpComma) {
+            auto * r = a0bin->getRight()->getAsBinaryNode();
+            if (r && sh::IsAssignment(r->getOp())) {
+              a0Assignment = r;
+            }
+          }
+
+          sh::TIntermBinary * a1Assignment = nullptr;
+          if (sh::IsAssignment(a1bin->getOp())) {
+            a1Assignment = a1bin;
+          } else if (a1bin->getOp() == sh::EOpComma) {
+            auto * r = a1bin->getRight()->getAsBinaryNode();
+            if (r && sh::IsAssignment(r->getOp())) {
+              a1Assignment = r;
+            }
+          }
+
+          if (a0Assignment && a1Assignment && a0Assignment->getOp() == a1Assignment->getOp() &&
+              this->astHasher.nodesAreTheSame(a0Assignment->getLeft(), a1Assignment->getLeft())) {
+            sh::TIntermTyped * a0new;
+            if (a0bin->getOp() == sh::EOpComma) {
+              a0new = new sh::TIntermBinary(sh::EOpComma, a0bin->getLeft(), a0Assignment->getRight());
+            } else {
+              a0new = a0Assignment->getRight();
+            }
+
+            sh::TIntermTyped * a1new;
+            if (a1bin->getOp() == sh::EOpComma) {
+              a1new = new sh::TIntermBinary(sh::EOpComma, a1bin->getLeft(), a1Assignment->getRight());
+            } else {
+              a1new = a1Assignment->getRight();
+            }
+
+            node = new sh::TIntermBinary(a0Assignment->getOp(), a0Assignment->getLeft(),
+                new sh::TIntermTernary(ternary->getCondition(), a0new, a1new));
           }
         }
       }
