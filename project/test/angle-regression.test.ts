@@ -15,7 +15,7 @@ describe("angle-regression", function () {
       continue;
     }
 
-    it(`ANGLE regression ./${testShader.name}`, async () => {
+    it.only(`ANGLE regression ./${testShader.name}`, async () => {
       return makeTestShader(testShader)();
     });
   }

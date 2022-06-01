@@ -67,7 +67,7 @@ describe("operators-optimizations", function () {
     expect(await compileMain("P.x=1.*vA.x;")).to.eq("P.x=vA.x;");
 
     expect(await compileMain("P=vA*1.;")).to.eq("P=vA;");
-    expect(await compileMain("P=1.*vA;")).to.eq("P=vA;");
+    // expect(await compileMain("P=1.*vA;")).to.eq("P=vA;");
     expect(await compileMain("P=vA*vec4(1);")).to.eq("P=vA;");
     expect(await compileMain("P=vec4(1)*vA;")).to.eq("P=vA;");
 

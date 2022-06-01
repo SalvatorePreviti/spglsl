@@ -29,12 +29,9 @@ void SpglslScopedTraverser::afterVisitFunctionPrototype(sh::TIntermFunctionProto
 }
 
 void SpglslScopedTraverser::onVisitBlock(sh::TIntermBlock * node) {
-  sh::TIntermSequence * sequence = node->getSequence();
-  if (sequence) {
-    for (sh::TIntermNode * child : *sequence) {
-      if (!nodeBlockIsEmpty(child)) {
-        this->traverseNode(child);
-      }
+  for (sh::TIntermNode * child : *node->getSequence()) {
+    if (!nodeBlockIsEmpty(child)) {
+      this->traverseNode(child);
     }
   }
 }

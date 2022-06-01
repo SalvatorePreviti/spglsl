@@ -15,9 +15,6 @@ bool spglsl_treeops_optimize(SpglslAngleCompiler & compiler, sh::TIntermBlock * 
 /** Removes unnecessary or empty blocks, replace comma operators with statements */
 void spglsl_treeops_OptimizeBlocks(SpglslAngleCompiler & compiler, sh::TIntermNode * root);
 
-/** Inlines variables */
-bool spglsl_treeops_ReduceVars(SpglslAngleCompiler & compiler, sh::TIntermBlock * root);
-
 /** Minification - replace statements with comma operator where possible */
 void spglsl_treeops_minify(SpglslAngleCompiler & compiler, sh::TIntermNode * root);
 

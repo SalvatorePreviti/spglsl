@@ -20,7 +20,7 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
 
   explicit SpglslScopedTraverser(SpglslSymbols & symbols);
 
-  bool visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) final;
+  bool visitFunctionDefinition(sh::Visit visit, sh::TIntermFunctionDefinition * node) override;
   void visitFunctionPrototype(sh::TIntermFunctionPrototype * node) final;
   bool visitBlock(sh::Visit visit, sh::TIntermBlock * node) final;
   bool visitLoop(sh::Visit visit, sh::TIntermLoop * node) final;
@@ -35,7 +35,12 @@ class SpglslScopedTraverser : public sh::TIntermTraverser {
 
   inline sh::TIntermNode * getCurrentScope() const {
     auto size = this->scopesStack.size();
-    return size ? this->scopesStack[size - 1] : nullptr;
+    return size > 0 ? this->scopesStack[size - 1] : nullptr;
+  }
+
+  inline sh::TIntermNode * getParentScope() const {
+    auto size = this->scopesStack.size();
+    return size > 1 ? this->scopesStack[size - 2] : nullptr;
   }
 
   inline sh::TIntermFunctionDefinition * getCurrentFunctionDefinition() const {
