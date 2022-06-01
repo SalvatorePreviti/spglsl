@@ -8,9 +8,17 @@
 
 struct Strings {
   const static std::string empty;
-  const static std::string trueString;
-  const static std::string falseString;
 };
+
+inline bool stringReplaceOne(std::string & str, const std::string & from, const std::string & to) {
+  size_t start_pos = str.find(from);
+  if (start_pos == std::string::npos)
+    return false;
+  str.replace(start_pos, from.length(), to);
+  return true;
+}
+
+std::vector<std::string> stringSplit(const std::string & s, const std::string & delimiter);
 
 // trim from start (in place)
 void ltrim(std::string & s);

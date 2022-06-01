@@ -1,4 +1,3 @@
-import { floatToGlsl } from "../core/float-math";
 import type { SpglslAngleCompileResult } from "../spglsl-compile";
 import type { SpglslResourceLimits } from "../spglsl-resource-limits";
 
@@ -44,11 +43,7 @@ async function _spglslInit() {
     const dynamicImport = "../../wasm/spglsl.js";
     const imported = await import(dynamicImport);
     result = await (imported.default || imported)();
-    if (
-      !result.spglsl_init({
-        floatToGlsl,
-      })
-    ) {
+    if (!result.spglsl_init({})) {
       throw new Error("spglsl initialization failed");
     }
     _wasmSpglsl = result;
