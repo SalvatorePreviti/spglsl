@@ -25,8 +25,9 @@ AngleOperatorPrecedenceMap::AngleOperatorPrecedenceMap() {
   byOp[sh::EOpIndexIndirect] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
   byOp[sh::EOpIndexDirectStruct] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
   byOp[sh::EOpIndexDirectInterfaceBlock] = AngleOperatorPrecedence(0, AngleOperatorOrder::NA, false, true);
-  byOp[sh::EOpPostIncrement] = AngleOperatorPrecedence(0, AngleOperatorOrder::LTR, false);
-  byOp[sh::EOpPostDecrement] = AngleOperatorPrecedence(0, AngleOperatorOrder::LTR, false);
+
+  byOp[sh::EOpPostIncrement] = AngleOperatorPrecedence(10, AngleOperatorOrder::LTR, false);
+  byOp[sh::EOpPostDecrement] = AngleOperatorPrecedence(10, AngleOperatorOrder::LTR, false);
 
   // prefix increment and decrement
   // unary
@@ -205,9 +206,6 @@ bool childNodeNeedsParentheses(sh::TIntermNode & node, sh::TIntermNode & child, 
   bool haveSamePriority = nodesAreSameOpPriority(node, child);
 
   int precedenceDiff = haveSamePriority ? 0 : childPrec.precedence - nodePrec.precedence;
-  if (precedenceDiff == 0) {
-    haveSamePriority = true;
-  }
 
   if (precedenceDiff < 0) {
     return false;

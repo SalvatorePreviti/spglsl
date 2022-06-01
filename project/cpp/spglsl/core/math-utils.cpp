@@ -21,8 +21,6 @@ static const std::string ParentesizedNegativeInfinity = "(-1./0.)";
 static const std::string NaN = "0./0.";
 static const std::string ParentesizedNaN = "(0./0.)";
 
-const float FLOAT_MAX = 3.40282346638528859812e38f;
-
 std::string uint32ToHex(uint32_t value) {
   std::ostringstream ss;
   ss << "0x" << std::hex << value;
@@ -147,12 +145,6 @@ std::string floatToGlsl(float value, bool needsParentheses, bool needsFloat) {
 
   if (floatIsNaN(absValue) || absValue < FLT_MIN) {
     return needsFloat ? "0." : "0";
-  }
-
-  if (value > FLOAT_MAX) {
-    value = FLOAT_MAX;
-  } else if (value < -FLOAT_MAX) {
-    value = -FLOAT_MAX;
   }
 
   // return SpglslImports::floatToGlsl(value, needsParentheses, needsFloat);
