@@ -69,13 +69,18 @@ class XRebuilder : public sh::TIntermRebuild {
       }
     }
 
-    if (op == sh::EOpMul || op == sh::EOpMulAssign || op == sh::EOpVectorTimesScalar ||
-        op == sh::EOpVectorTimesScalarAssign) {
+    if (op == sh::EOpMul || op == sh::EOpMulAssign) {
       if (nodeIsConstantOne(right)) {
         return left;
       }
       if (nodeIsConstantOne(left)) {
         return right;
+      }
+    }
+
+    if (op == sh::EOpVectorTimesScalar || op == sh::EOpVectorTimesScalarAssign) {
+      if (nodeIsConstantOne(right)) {
+        return left;
       }
     }
 
