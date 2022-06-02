@@ -107,15 +107,17 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
 
     const r = JSON.stringify(spglslResult.compileMode === "Validate" ? spglslResult.source : spglslResult.output);
 
+    let js: string;
     if (!options.export || options.export === "default") {
-      return `export default ${r}`;
+      js = `export default ${r}`;
+    } else {
+      js = `export let code=${r};\nexport let setCode=(v)=>{code=v;};\n`;
+      if (options.export === "default-and-named") {
+        js += "export default code;\n";
+      }
     }
 
-    let js = `export let code=${r};\nexport let setCode=(v)=>{code=v;};\n`;
-    if (options.export === "default-and-named") {
-      js += "export default code;\n";
-    }
-    return js;
+    return { code: js, map: null };
   }
 
   return {
