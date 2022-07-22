@@ -10,6 +10,8 @@ export interface WasmSpglsl {
     infoLog?: string | undefined;
     valid?: boolean | undefined;
     output?: string | undefined;
+    uniforms?: Record<string, string> | undefined;
+    globals?: Record<string, string> | undefined;
   };
 }
 

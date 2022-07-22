@@ -10,6 +10,7 @@
 
 #include "../core/hash-stream.h"
 #include "../core/non-copyable.h"
+#include "../spglsl-compiled-info.h"
 #include "lib/spglsl-glsl-precisions.h"
 #include "lib/spglsl-t-compiler.h"
 #include "spglsl-angle-call-dag.h"
@@ -28,8 +29,14 @@ class SpglslAngleCompiler : public SpglslTCompilerHolder {
   sh::TIntermBlock * body;
   SpglslAngleCallDag callDag;
   SpglslGlslPrecisions precisions;
+  SpglslCompiledInfo compiledInfo;
 
-  explicit SpglslAngleCompiler(sh::GLenum shaderType, const SpglslCompileOptions & compilerOptions);
+  /** After compiling, will contain all the uniforms */
+  std::map<std::string, std::string> uniformsMap;
+  /** After compiling, will contain all the shader inputs and outputs, excluding uniforms */
+  std::map<std::string, std::string> globalsMap;
+
+  explicit SpglslAngleCompiler(sh::GLenum shaderType, SpglslCompileOptions & compilerOptions);
 
   bool compile(const char * sourceCode);
 
@@ -40,6 +47,7 @@ class SpglslAngleCompiler : public SpglslTCompilerHolder {
  private:
   bool _checkAndSimplifyAST(sh::TIntermBlock * root, const sh::TParseContext & parseContext);
   void _mangle(sh::TIntermBlock * root);
+  void _collectVariables(sh::TIntermBlock * root);
 
   std::vector<SpglslAngleFunctionMetadata> _functionMetadata;
 };

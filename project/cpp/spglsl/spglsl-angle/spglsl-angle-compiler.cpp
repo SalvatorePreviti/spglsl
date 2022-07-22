@@ -12,17 +12,18 @@
 #include <angle/src/compiler/translator/tree_ops/SeparateDeclarations.h>
 #include <angle/src/compiler/translator/tree_ops/SplitSequenceOperator.h>
 #include <angle/src/compiler/translator/tree_util/IntermNodePatternMatcher.h>
+#include <angle/src/compiler/translator/util.h>
 
 #include "spglsl-angle-compiler-handle.h"
 #include "spglsl-angle-webgl-output.h"
 #include "symbols/spglsl-symbol-usage.h"
 #include "tree-ops/tree-ops.h"
 
-SpglslAngleCompiler::SpglslAngleCompiler(sh::GLenum shaderType, const SpglslCompileOptions & compilerOptions) :
+SpglslAngleCompiler::SpglslAngleCompiler(sh::GLenum shaderType, SpglslCompileOptions & compilerOptions) :
     SpglslTCompilerHolder(shaderType, compilerOptions.outputShaderVersion),
     compilerOptions(compilerOptions),
     body(nullptr),
-    symbols(&this->symbolTable) {
+    symbols(&this->symbolTable, compilerOptions) {
   this->metadata.shaderSpec = this->tCompiler.getShaderSpec();
   this->metadata.shaderType = shaderType;
   this->metadata.shaderVersion = compilerOptions.outputShaderVersion;
@@ -61,6 +62,8 @@ bool SpglslAngleCompiler::compile(const char * sourceCode) {
     if (this->_checkAndSimplifyAST(root, parseContext)) {
       valid = this->diagnostics.numErrors() == 0;
     }
+
+    this->_collectVariables(root);
   }
 
   return valid;
@@ -141,6 +144,20 @@ void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
       entry->entry->mustBeRenamedUnique = false;
     }
   }
+
+  if (!this->symbols.compileOptions.mangle_global_map.isUndefined()) {
+    for (auto & kv : this->symbols._map) {
+      auto & sym = kv.second;
+      if (sym.symbol && sym.renamed.empty() && !sym.symbolName.empty()) {
+        auto * s = sym.symbolName.c_str();
+        auto globalRename = this->symbols.compileOptions.mangle_global_map[s];
+        if (globalRename.isString()) {
+          sym.renamed = globalRename.as<std::string>();
+          sym.mustBeRenamedUnique = false;
+        }
+      }
+    }
+  }
 }
 
 void SpglslAngleCompiler::loadPrecisions(bool reload) {
@@ -183,4 +200,70 @@ std::string SpglslAngleCompiler::decompileOutput() {
   this->body->traverse(&outputTraverser);
 
   return out.str();
+}
+
+class CollectVariablesTraverser : public sh::TIntermTraverser {
+ public:
+  SpglslAngleCompiler & compiler;
+
+  explicit CollectVariablesTraverser(SpglslAngleCompiler & compiler) :
+      sh::TIntermTraverser(true, false, false, &compiler.symbolTable), compiler(compiler) {
+  }
+
+  bool visitDeclaration(sh::Visit, sh::TIntermDeclaration * node) override {
+    const sh::TIntermSequence & sequence = *(node->getSequence());
+    if (sequence.empty()) {
+      return false;
+    }
+
+    const sh::TIntermTyped & typedNode = *(sequence.front()->getAsTyped());
+    sh::TQualifier qualifier = typedNode.getQualifier();
+
+    bool isShaderVariable = qualifier == sh::EvqAttribute || qualifier == sh::EvqVertexIn ||
+        qualifier == sh::EvqFragmentOut || qualifier == sh::EvqFragmentInOut || qualifier == sh::EvqUniform ||
+        sh::IsVarying(qualifier);
+
+    if (typedNode.getBasicType() != sh::EbtInterfaceBlock && !isShaderVariable) {
+      return false;
+    }
+
+    for (sh::TIntermNode * variableNode : sequence) {
+      const sh::TIntermSymbol & variable = *variableNode->getAsSymbolNode();
+      if (variable.variable().symbolType() == sh::SymbolType::AngleInternal) {
+        continue;  // Internal variables are not collected.
+      }
+
+      switch (qualifier) {
+        case sh::EvqAttribute:
+        case sh::EvqVertexIn:
+        case sh::EvqBuffer:
+        case sh::EvqFragmentIn:
+        case sh::EvqFragmentOut:
+        case sh::EvqFragmentInOut: {
+          auto & v = this->compiler.symbols.get(&variable.variable());
+          const auto & name = this->compiler.symbols.getName(&variable.variable(), false);
+          const auto & renamed = this->compiler.symbols.getName(&variable.variable(), true);
+          this->compiler.globalsMap.emplace(name, renamed);
+          break;
+        }
+
+        case sh::EvqUniform: {
+          auto & v = this->compiler.symbols.get(&variable.variable());
+          const auto & name = this->compiler.symbols.getName(&variable.variable(), false);
+          const auto & renamed = this->compiler.symbols.getName(&variable.variable(), true);
+          this->compiler.uniformsMap.emplace(name, renamed);
+          break;
+        }
+
+        default: break;
+      }
+    }
+
+    return false;
+  }
+};
+
+void SpglslAngleCompiler::_collectVariables(sh::TIntermBlock * root) {
+  CollectVariablesTraverser collectVariablesTraverser(*this);
+  root->traverse(&collectVariablesTraverser);
 }

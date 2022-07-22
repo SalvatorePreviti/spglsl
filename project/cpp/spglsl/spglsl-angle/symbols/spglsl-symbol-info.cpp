@@ -63,8 +63,52 @@ SpglslSymbolInfo & SpglslSymbols::get(const sh::TSymbol * symbol) {
   return result;
 }
 
-SpglslSymbols::SpglslSymbols(sh::TSymbolTable * symbolTable) : symbolTable(symbolTable) {
+SpglslSymbols::SpglslSymbols(sh::TSymbolTable * symbolTable, SpglslCompileOptions & compileOptions) :
+    symbolTable(symbolTable), compileOptions(compileOptions) {
   auto & n = this->_map[nullptr];
+}
+
+bool SpglslSymbols::isReserved(const SpglslSymbolInfo & info) const {
+  const auto * symbol = info.symbol;
+
+  if (!symbol || info.symbolName.empty()) {
+    return true;
+  }
+
+  auto st = symbol->symbolType();
+  if (st != sh::SymbolType::UserDefined && st != sh::SymbolType::AngleInternal) {
+    return true;
+  }
+
+  if (symbol->isFunction()) {
+    const auto * func = static_cast<const sh::TFunction *>(symbol);
+    return (func->isMain() || func->name().beginsWith("main"));
+  }
+
+  if (symbol->isVariable()) {
+    const auto * var = static_cast<const sh::TVariable *>(symbol);
+    if (var->isInterfaceBlock()) {
+      return true;
+    }
+
+    const sh::TType & type = var->getType();
+
+    switch (type.getQualifier()) {
+      case sh::EvqParamIn:
+      case sh::EvqParamOut:
+      case sh::EvqParamInOut:
+      case sh::EvqParamConst:
+      case sh::EvqTemporary:
+      case sh::EvqGlobal:
+      case sh::EvqConst: return false;
+
+      default: return true;
+    }
+  }
+
+  // Note: interfaces are considered always reserved.
+
+  return !symbol->isStruct();
 }
 
 static std::unordered_set<std::string> spglslReservedWordSet({"main", "and", "or", "xor", "not", "EmitVertex",
@@ -157,47 +201,4 @@ bool spglslIsWordReserved(const std::string & word) {
     return true;
   }
   return spglslReservedWordSet.count(word) != 0;
-}
-
-bool SpglslSymbolInfo::isReserved() const {
-  const auto * symbol = this->symbol;
-
-  if (!symbol || this->symbolName.empty()) {
-    return true;
-  }
-
-  auto st = symbol->symbolType();
-  if (st != sh::SymbolType::UserDefined && st != sh::SymbolType::AngleInternal) {
-    return true;
-  }
-
-  if (symbol->isFunction()) {
-    const auto * func = static_cast<const sh::TFunction *>(symbol);
-    return (func->isMain() || func->name().beginsWith("main"));
-  }
-
-  if (symbol->isVariable()) {
-    const auto * var = static_cast<const sh::TVariable *>(symbol);
-    if (var->isInterfaceBlock()) {
-      return true;
-    }
-
-    const sh::TType & type = var->getType();
-
-    switch (type.getQualifier()) {
-      case sh::EvqParamIn:
-      case sh::EvqParamOut:
-      case sh::EvqParamInOut:
-      case sh::EvqParamConst:
-      case sh::EvqTemporary:
-      case sh::EvqGlobal:
-      case sh::EvqConst: return false;
-
-      default: return true;
-    }
-  }
-
-  // Note: interfaces are considered always reserved.
-
-  return !symbol->isStruct();
 }

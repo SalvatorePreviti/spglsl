@@ -27,6 +27,26 @@ emscripten::val spglsl_angle_compile(emscripten::val cinput,
     if (angleValid) {
       wresult.set("output", angleCompiler.decompileOutput());
     }
+    const auto * uniformsMap = angleCompiler.getUniforms();
+    const auto * globalsMap = angleCompiler.getGlobals();
+
+    emscripten::val uniforms = emscripten::val::object();
+    emscripten::val globals = emscripten::val::object();
+
+    if (uniformsMap) {
+      for (const auto & item : *uniformsMap) {
+        uniforms.set(item.first, item.second);
+      }
+    }
+
+    if (globalsMap) {
+      for (const auto & item : *globalsMap) {
+        globals.set(item.first, item.second);
+      }
+    }
+
+    wresult.set("uniforms", uniforms);
+    wresult.set("globals", globals);
   }
   return wresult;
 }

@@ -16,7 +16,16 @@ export interface SpglslAngleCompileOptions {
   floatPrecision?: SpglslPrecision;
   intPrecision?: SpglslPrecision;
   minify?: boolean;
+
+  /** If true, mangle all variables and functions, except uniforms and the function that starts with "main" */
   mangle?: boolean;
+
+  /** If not undefined, and mangle is true, this field will be used to mange uniforms and shared between compilation steps. */
+  mangle_global_map?: Record<string, string> | undefined;
+
+  /** List of reserved words. Will be filled up with mangle_global_map too. */
+  mangle_reserved?: string[];
+
   beautify?: boolean;
   recordConstantPrecision?: boolean;
 }
@@ -44,11 +53,20 @@ export class SpglslAngleCompileResult {
   /** The output or null if there is no output */
   public output: string | null;
 
+  /** The map of uniform names defined in the shader */
+  public uniforms: Record<string, string>;
+  /** The map of globals defined in the shader (attributes, shared variables, outputs ...), excluding uniforms */
+  public globals: Record<string, string>;
+
   public infoLog: GlslInfoLogArray;
   public floatPrecision: SpglslPrecision;
   public intPrecision: SpglslPrecision;
   public minify: boolean;
+
   public mangle: boolean;
+  public mangle_global_map: Record<string, string> | undefined;
+  public mangle_reserved: string[];
+
   public beautify: boolean;
   public recordConstantPrecision: boolean;
   public cwd: string | undefined;
@@ -62,11 +80,15 @@ export class SpglslAngleCompileResult {
     this.valid = false;
     this.customData = undefined;
     this.output = null;
+    this.uniforms = {};
+    this.globals = {};
     this.infoLog = new GlslInfoLogArray();
     this.floatPrecision = "";
     this.intPrecision = "";
     this.minify = false;
     this.mangle = false;
+    this.mangle_global_map = undefined;
+    this.mangle_reserved = [];
     this.beautify = false;
     this.recordConstantPrecision = DEFAULT_RECORD_CONSTANT_PRECISION;
     this.duration = 0;
@@ -86,7 +108,21 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.floatPrecision = (StringEnum.has(SpglslPrecision, input.floatPrecision) && input.floatPrecision) || "";
   result.intPrecision = (StringEnum.has(SpglslPrecision, input.intPrecision) && input.intPrecision) || "";
   result.minify = !!input.minify;
+
   result.mangle = input.mangle === undefined ? result.minify : !!input.mangle;
+
+  result.mangle_reserved = Array.isArray(input.mangle_reserved) ? input.mangle_reserved.slice() : [];
+
+  result.mangle_global_map = input.mangle_global_map || undefined;
+  if (result.mangle_global_map) {
+    for (const [k, v] of Object.entries(result.mangle_global_map)) {
+      if (k && typeof v === "string") {
+        result.mangle_reserved.push(k, v);
+      }
+    }
+  }
+  result.mangle_reserved = Array.from(new Set(result.mangle_reserved));
+
   result.beautify = input.beautify === undefined ? !result.minify : !!input.beautify;
   result.recordConstantPrecision = input.recordConstantPrecision || DEFAULT_RECORD_CONSTANT_PRECISION;
   result.cwd = input.cwd;
@@ -131,6 +167,8 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
 
   result.valid = !result.infoLog.hasErrors();
   result.output = typeof wresult.output === "string" ? wresult.output : null;
+  result.uniforms = wresult.uniforms || {};
+  result.globals = wresult.globals || {};
 
   return result;
 }

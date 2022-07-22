@@ -15,7 +15,7 @@ sh::GLenum EShLanguageToGLenum(EShLanguage language) {
 SpglslAngleCompilerHandle::SpglslAngleCompilerHandle(SpglslAngleCompiler * compiler) : compiler(compiler) {
 }
 
-SpglslAngleCompilerHandle::SpglslAngleCompilerHandle(const SpglslCompileOptions & compilerOptions) :
+SpglslAngleCompilerHandle::SpglslAngleCompilerHandle(SpglslCompileOptions & compilerOptions) :
     SpglslAngleCompilerHandle(new SpglslAngleCompiler(EShLanguageToGLenum(compilerOptions.language), compilerOptions)) {
 }
 
@@ -39,6 +39,14 @@ std::string SpglslAngleCompilerHandle::getInfoLog() const {
 
 std::string SpglslAngleCompilerHandle::decompileOutput() const {
   return this->compiler ? this->compiler->decompileOutput() : Strings::empty;
+}
+
+const std::map<std::string, std::string> * SpglslAngleCompilerHandle::getUniforms() const {
+  return this->compiler ? &this->compiler->uniformsMap : nullptr;
+}
+
+const std::map<std::string, std::string> * SpglslAngleCompilerHandle::getGlobals() const {
+  return this->compiler ? &this->compiler->globalsMap : nullptr;
 }
 
 ///////// spglslConvertLineDirectivesForAngle /////////

@@ -336,10 +336,20 @@ inline bool charLess(char a, char b) {
 
 SpglslSymbolGenerator::SpglslSymbolGenerator(SpglslSymbolUsage & usage) : usage(usage) {
   this->_additionalReservedWords.emplace(Strings::empty);
+
+  for (const auto & reservedWord : usage.symbols.compileOptions.mangle_reserved) {
+    this->addReservedWord(reservedWord);
+  }
 }
 
 bool SpglslSymbolGenerator::isReservedWord(const std::string & word) const {
-  return this->_additionalReservedWords.count(word) > 0 || spglslIsWordReserved(word);
+  if (this->_additionalReservedWords.count(word) > 0) {
+    return true;
+  }
+  if (spglslIsWordReserved(word)) {
+    return true;
+  }
+  return false;
 }
 
 void SpglslSymbolGenerator::addReservedWord(const std::string & word) {

@@ -35,7 +35,7 @@ class SpglslSymbolUsage {
     if (!found.entry) {
       auto & info = this->symbols.get(symbol);
       found.entry = &info;
-      found.isReserved = info.isReserved();
+      found.isReserved = symbols.isReserved(info);
     }
     return found;
   }

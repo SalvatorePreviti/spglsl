@@ -12,8 +12,6 @@ export interface RollupPluginSpglslOptions extends SpglslAngleCompileOptions {
   logging?: boolean;
   cwd?: string;
 
-  export?: "default" | "named" | "default-and-named";
-
   onSpglslDone?: (spglslResult: SpglslAngleCompileResult) => void | string | Promise<void> | Promise<string>;
 }
 
@@ -105,16 +103,34 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
       );
     }
 
+    if (spglslResult.mangle && spglslResult.mangle_global_map) {
+      for (const type of ["uniforms", "globals"] as const) {
+        for (const [key, value] of Object.entries(spglslResult[type])) {
+          if (key === value && !spglslResult.mangle_global_map[key] && value.length > 2) {
+            console.warn(
+              chalk.yellow(`WARN: ${type.endsWith("s") ? type.slice(0, type.length - 1) : type} ${key} is not mangled`),
+            );
+          }
+        }
+      }
+    }
+
     const r = JSON.stringify(spglslResult.compileMode === "Validate" ? spglslResult.source : spglslResult.output);
 
     let js: string;
-    if (!options.export || options.export === "default") {
-      js = `export default ${r}`;
-    } else {
-      js = `export let code=${r};\nexport let setCode=(v)=>{code=v;};\n`;
-      if (options.export === "default-and-named") {
-        js += "export default code;\n";
-      }
+
+    js = `export let code=${r};\n`;
+    js += "export function setCode(value) { code=value };\n";
+    js += "export default code;\n";
+
+    js += `export const uniformNames = ${JSON.stringify(spglslResult.uniforms)};\n`;
+    for (const [key, value] of Object.entries(spglslResult.uniforms)) {
+      js += `export let uniformName_${key}=${JSON.stringify(value)};\n`;
+    }
+
+    js += `export const globalNames = ${JSON.stringify(spglslResult.globals)};\n`;
+    for (const [key, value] of Object.entries(spglslResult.globals)) {
+      js += `export let globalName_${key}=${JSON.stringify(value)};\n`;
     }
 
     return { code: js, map: null };

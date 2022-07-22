@@ -11,6 +11,7 @@ SpglslCompileOptions::SpglslCompileOptions() :
     intPrecision(SpglslDefaultPrecision::undefined),
     recordConstantPrecision(false),
     minify(false),
+    mangle(false),
     beautify(false) {
   sh::InitBuiltInResources(&this->angle);
 }
@@ -31,6 +32,8 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
 
   this->minify = this->compileMode >= SpglslCompileMode::Optimize && input["minify"].as<bool>();
   this->mangle = this->compileMode >= SpglslCompileMode::Optimize && input["mangle"].as<bool>();
+
+  this->mangle_global_map = input["mangle_global_map"];
   this->beautify = this->compileMode >= SpglslCompileMode::Optimize && input["beautify"].as<bool>();
   this->recordConstantPrecision = input["recordConstantPrecision"].as<bool>();
 

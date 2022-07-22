@@ -1,6 +1,7 @@
 #ifndef _SPGLSL_SYMBOL_INFO_
 #define _SPGLSL_SYMBOL_INFO_
 
+#include <emscripten/bind.h>
 #include <unordered_map>
 
 #include <angle/src/compiler/translator/BaseTypes.h>
@@ -13,6 +14,7 @@
 
 #include "../../core/non-copyable.h"
 #include "../../core/string-utils.h"
+#include "../../spglsl-compile-options.h"
 
 bool spglslIsValidIdentifier(const std::string & str);
 bool spglslIsWordReserved(const std::string & word);
@@ -23,8 +25,6 @@ class SpglslSymbolInfo : NonCopyable {
   std::string symbolName;
   std::string renamed;
   bool mustBeRenamedUnique = false;
-
-  bool isReserved() const;
 
   inline int uniqueId() const {
     const auto * symbol = this->symbol;
@@ -39,8 +39,9 @@ class SpglslSymbols {
  public:
   sh::TSymbolTable * symbolTable;
   std::unordered_map<const sh::TSymbol *, SpglslSymbolInfo> _map;
+  SpglslCompileOptions & compileOptions;
 
-  explicit SpglslSymbols(sh::TSymbolTable * symbolTable);
+  SpglslSymbols(sh::TSymbolTable * symbolTable, SpglslCompileOptions & compileOptions);
 
   SpglslSymbolInfo & get(const sh::TSymbol * symbol);
 
@@ -49,9 +50,9 @@ class SpglslSymbols {
   /** Mark a variable as function parameter */
   SpglslSymbolInfo & declareParameter(const sh::TVariable * variable);
 
-  inline const std::string & getName(const sh::TSymbol * symbol) {
+  inline const std::string & getName(const sh::TSymbol * symbol, bool renamed = true) {
     auto & info = this->get(symbol);
-    if (!info.renamed.empty()) {
+    if (renamed && !info.renamed.empty()) {
       return info.renamed;
     }
     if (info.symbolName.empty()) {
@@ -66,7 +67,7 @@ class SpglslSymbols {
     return info.symbolName;
   }
 
-  bool isSymbolReserved(SpglslSymbolInfo & syminfo);
+  bool isReserved(const SpglslSymbolInfo & info) const;
 
   void renameUnique(const sh::TIntermSymbol * symbolNode);
   void renameUnique(const sh::TSymbol * symbol);
