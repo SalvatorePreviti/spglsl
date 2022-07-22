@@ -36,8 +36,6 @@ describe("rename-globals", function () {
     })}`;
     expect(compiled.infoLog.getCounts().errors).to.equal(0, info);
 
-    console.log(compiled.output);
-
     expect(compiled.valid).to.equal(true);
     expect(compiled.output).to.not.be.null;
 

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { spglslAngleCompile, SpglslAngleCompileError } from "spglsl";
 
-describe.only("do-not-write-precision-if-no-variables", function () {
+describe("do-not-write-precision-if-no-variables", function () {
   this.timeout(7000);
 
   it("does not write precision specifiers if there are no variables used", async () => {
