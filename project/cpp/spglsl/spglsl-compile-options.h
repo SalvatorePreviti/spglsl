@@ -22,7 +22,6 @@ class SpglslCompileOptions : NonCopyable {
   bool minify;
   bool mangle;
   emscripten::val mangle_global_map;
-  std::vector<std::string> mangle_reserved;
   bool beautify;
   bool recordConstantPrecision;
 

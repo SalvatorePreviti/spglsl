@@ -336,10 +336,6 @@ inline bool charLess(char a, char b) {
 
 SpglslSymbolGenerator::SpglslSymbolGenerator(SpglslSymbolUsage & usage) : usage(usage) {
   this->_additionalReservedWords.emplace(Strings::empty);
-
-  for (const auto & reservedWord : usage.symbols.compileOptions.mangle_reserved) {
-    this->addReservedWord(reservedWord);
-  }
 }
 
 bool SpglslSymbolGenerator::isReservedWord(const std::string & word) const {
@@ -360,6 +356,17 @@ void SpglslSymbolGenerator::load(const std::string & text) {
   std::unordered_map<char, uint32_t> asciiAndNums;
   std::unordered_map<char, uint32_t> ascii;
   std::unordered_map<std::string, uint32_t> words;
+
+  if (!usage.symbols.compileOptions.mangle_global_map.isUndefined()) {
+    for (const auto & kv : usage.symbols._map) {
+      if (!kv.second.symbolName.empty()) {
+        auto found = usage.symbols.compileOptions.mangle_global_map[kv.second.symbolName];
+        if (found.isString()) {
+          this->addReservedWord(found.as<std::string>());
+        }
+      }
+    }
+  }
 
   std::string one;
   one.resize(1);

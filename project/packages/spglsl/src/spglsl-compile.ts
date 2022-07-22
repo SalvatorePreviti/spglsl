@@ -23,9 +23,6 @@ export interface SpglslAngleCompileOptions {
   /** If not undefined, and mangle is true, this field will be used to mange uniforms and shared between compilation steps. */
   mangle_global_map?: Record<string, string> | undefined;
 
-  /** List of reserved words. Will be filled up with mangle_global_map too. */
-  mangle_reserved?: string[];
-
   beautify?: boolean;
   recordConstantPrecision?: boolean;
 }
@@ -65,7 +62,6 @@ export class SpglslAngleCompileResult {
 
   public mangle: boolean;
   public mangle_global_map: Record<string, string> | undefined;
-  public mangle_reserved: string[];
 
   public beautify: boolean;
   public recordConstantPrecision: boolean;
@@ -88,7 +84,6 @@ export class SpglslAngleCompileResult {
     this.minify = false;
     this.mangle = false;
     this.mangle_global_map = undefined;
-    this.mangle_reserved = [];
     this.beautify = false;
     this.recordConstantPrecision = DEFAULT_RECORD_CONSTANT_PRECISION;
     this.duration = 0;
@@ -110,18 +105,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.minify = !!input.minify;
 
   result.mangle = input.mangle === undefined ? result.minify : !!input.mangle;
-
-  result.mangle_reserved = Array.isArray(input.mangle_reserved) ? input.mangle_reserved.slice() : [];
-
   result.mangle_global_map = input.mangle_global_map || undefined;
-  if (result.mangle_global_map) {
-    for (const [k, v] of Object.entries(result.mangle_global_map)) {
-      if (k && typeof v === "string") {
-        result.mangle_reserved.push(k, v);
-      }
-    }
-  }
-  result.mangle_reserved = Array.from(new Set(result.mangle_reserved));
 
   result.beautify = input.beautify === undefined ? !result.minify : !!input.beautify;
   result.recordConstantPrecision = input.recordConstantPrecision || DEFAULT_RECORD_CONSTANT_PRECISION;

@@ -26,9 +26,6 @@ async function compileFile() {
     // Mangle everything, except uniforms and globals, "main" and function starting with "main"
     mangle: true,
 
-    // "reserved_word" will not be mangled
-    mangle_reserved: ["reserved_word"],
-
     // Map of global variables to rename
     mangle_global_map: {
       my_uniform_to_rename: "x",
