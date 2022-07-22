@@ -748,22 +748,32 @@ void SpglslAngleWebglOutput::writeHeader(int shaderVersion,
   }
   this->beautyDoubleNewLine();
 
-  if (this->precisions.floatPrecision != sh::EbpUndefined &&
-      this->precisions.floatPrecision != this->precisions.defaultFloatPrecision) {
-    this->write("precision")
-        .write(sh::getPrecisionString(this->precisions.floatPrecision))
-        .write("float")
-        .write(';')
-        .beautyNewLine();
+  bool hasVariables = false;
+  for (const auto & iter : this->symbols._map) {
+    if (!iter.second.symbolName.empty()) {
+      hasVariables = true;
+      break;
+    }
   }
 
-  if (this->precisions.intPrecision != sh::EbpUndefined &&
-      this->precisions.intPrecision != this->precisions.defaultIntPrecision) {
-    this->write("precision")
-        .write(sh::getPrecisionString(this->precisions.intPrecision))
-        .write("int")
-        .write(';')
-        .beautyNewLine();
+  if (hasVariables) {
+    if (this->precisions.floatPrecision != sh::EbpUndefined &&
+        this->precisions.floatPrecision != this->precisions.defaultFloatPrecision) {
+      this->write("precision")
+          .write(sh::getPrecisionString(this->precisions.floatPrecision))
+          .write("float")
+          .write(';')
+          .beautyNewLine();
+    }
+
+    if (this->precisions.intPrecision != sh::EbpUndefined &&
+        this->precisions.intPrecision != this->precisions.defaultIntPrecision) {
+      this->write("precision")
+          .write(sh::getPrecisionString(this->precisions.intPrecision))
+          .write("int")
+          .write(';')
+          .beautyNewLine();
+    }
   }
 
   this->beautyDoubleNewLine();

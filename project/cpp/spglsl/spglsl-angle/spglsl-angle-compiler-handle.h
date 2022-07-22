@@ -26,6 +26,4 @@ class SpglslAngleCompilerHandle : public NonCopyable {
   ~SpglslAngleCompilerHandle();
 };
 
-std::string spglslConvertLineDirectivesForAngle(const std::string & source);
-
 #endif
