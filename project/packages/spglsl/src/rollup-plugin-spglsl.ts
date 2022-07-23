@@ -133,6 +133,11 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
       js += `export let globalName_${key}=${JSON.stringify(value)};\n`;
     }
 
+    js += `export const constDefs = ${JSON.stringify(spglslResult.constDefs)};\n`;
+    for (const [key, value] of Object.entries(spglslResult.constDefs)) {
+      js += `export let constDef_${key}=${JSON.stringify(value)};\n`;
+    }
+
     return { code: js, map: null };
   }
 
