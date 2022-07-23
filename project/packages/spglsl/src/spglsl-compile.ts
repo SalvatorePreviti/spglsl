@@ -55,6 +55,9 @@ export class SpglslAngleCompileResult {
   /** The map of globals defined in the shader (attributes, shared variables, outputs ...), excluding uniforms */
   public globals: Record<string, string>;
 
+  /** Simple parsed #define constants. Only plain numbers and booleans are supported. */
+  public constDefs: Record<string, number | boolean>;
+
   public infoLog: GlslInfoLogArray;
   public floatPrecision: SpglslPrecision;
   public intPrecision: SpglslPrecision;
@@ -78,6 +81,7 @@ export class SpglslAngleCompileResult {
     this.output = null;
     this.uniforms = {};
     this.globals = {};
+    this.constDefs = {};
     this.infoLog = new GlslInfoLogArray();
     this.floatPrecision = "";
     this.intPrecision = "";
@@ -129,8 +133,12 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
     result.source = input.mainSourceCode;
   }
 
+  const sourceCode = input.mainSourceCode || "";
+
+  const constDefs = _parseConstDefs(sourceCode);
+
   const wasm = await _wasmSpglslGet();
-  const wresult = wasm.spglsl.spglsl_angle_compile(result, resourceLimits, input.mainSourceCode || "") || {};
+  const wresult = wasm.spglsl.spglsl_angle_compile(result, resourceLimits, sourceCode) || {};
 
   result.infoLog.parseAdd(wresult.infoLog, mainFilePath, undefined, result.cwd);
 
@@ -153,6 +161,7 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
   result.output = typeof wresult.output === "string" ? wresult.output : null;
   result.uniforms = wresult.uniforms || {};
   result.globals = wresult.globals || {};
+  result.constDefs = constDefs;
 
   return result;
 }
@@ -232,4 +241,26 @@ export function inspectSpglslAngleCompileResult(result: SpglslAngleCompileResult
   }
 
   return text;
+}
+
+function _parseConstDefs(source: string): Record<string, number | boolean> {
+  const defines = source.matchAll(/^\s*#\s*define\s*(\w+)\s+(.+)$/gm);
+  const result: Record<string, number | boolean> = {};
+  for (const def of defines) {
+    if (def[1]) {
+      const name = def[1];
+      const value = def[2];
+      if (value === "true") {
+        result[name] = true;
+      } else if (value === "false") {
+        result[name] = false;
+      } else if (value !== undefined) {
+        const parsed = parseFloat(value);
+        if (!isNaN(parsed)) {
+          result[name] = parsed;
+        }
+      }
+    }
+  }
+  return result;
 }
