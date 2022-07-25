@@ -97,10 +97,26 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
           `\n${chalk.blue(`spglsl:${spglslResult.compileMode}`)} ${inspectSpglslAngleCompileResult(spglslResult)}`,
         );
       }
-    } else if (options.logging) {
-      console.info(
-        `\n${chalk.blue(`spglsl:${spglslResult.compileMode}`)} ${inspectSpglslAngleCompileResult(spglslResult)}`,
-      );
+    } else {
+      if (options.logging) {
+        console.info(
+          `\n${chalk.blue(`spglsl:${spglslResult.compileMode}`)} ${inspectSpglslAngleCompileResult(spglslResult)}`,
+        );
+      }
+      if (options.isProduction) {
+        const validateResult = await spglslAngleCompile({
+          ...options,
+          compileMode: "Validate",
+          minify: false,
+          mangle: false,
+          mangle_global_map: undefined,
+          mainSourceCode: spglslResult.output,
+          mainFilePath: id,
+        });
+        if (!validateResult.valid) {
+          throw new SpglslAngleCompileError(validateResult, "post validation failed");
+        }
+      }
     }
 
     if (spglslResult.mangle && spglslResult.mangle_global_map) {

@@ -361,7 +361,15 @@ void SpglslAngleWebglOutput::visitPreprocessorDirective(sh::TIntermPreprocessorD
 }
 
 bool SpglslAngleWebglOutput::visitSwizzle(sh::Visit visit, sh::TIntermSwizzle * node) {
+  if (visit == sh::PreVisit) {
+    if (node->getOperand() && childNodeNeedsParentheses(*node, *node->getOperand(), 0)) {
+      this->write("(");
+    }
+  }
   if (visit == sh::PostVisit) {
+    if (node->getOperand() && childNodeNeedsParentheses(*node, *node->getOperand(), 0)) {
+      this->write(")");
+    }
     this->writeSwizzle(node);
   }
   return true;
@@ -708,7 +716,7 @@ void SpglslAngleWebglOutput::traverseWithParentheses(sh::TIntermNode * node, int
     if (child) {
       if (childNodeNeedsParentheses(*node, *child, operandIndex)) {
         this->write('(');
-        this->traverseNode(child);
+        this->traverse(child);
         this->write(')');
       } else {
         this->traverse(child);

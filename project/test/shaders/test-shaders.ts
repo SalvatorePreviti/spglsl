@@ -17,9 +17,9 @@ function _loadTestShaders(): TestShader[] {
   const allFiles = fastglob.sync(path.resolve(__dirname, "**/*.(frag|vert)"));
   const result: TestShader[] = [];
   for (const fpath of allFiles) {
-    // if (!fpath.includes("island")) {
-    //  continue; // DEBUG XXX
-    // }
+    if (!fpath.includes("csm-test")) {
+      continue; // DEBUG XXX
+    }
     const sourceCode = fs.readFileSync(fpath, "utf8");
     const extension = path.extname(fpath);
     const shaderType = extension.slice(1) as "vert" | "frag";
