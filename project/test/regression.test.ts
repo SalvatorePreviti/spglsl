@@ -15,7 +15,7 @@ describe("regression", function () {
       continue;
     }
 
-    it.only(`Regression ./${testShader.name}`, async () => {
+    it(`Regression ./${testShader.name}`, async () => {
       return makeTestShader(testShader)();
     });
   }
