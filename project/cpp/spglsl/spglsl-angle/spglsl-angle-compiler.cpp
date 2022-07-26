@@ -62,9 +62,9 @@ bool SpglslAngleCompiler::compile(const char * sourceCode) {
     if (this->_checkAndSimplifyAST(root, parseContext)) {
       valid = this->diagnostics.numErrors() == 0;
     }
-
-    this->_collectVariables(root);
   }
+
+  this->_collectVariables(root);
 
   return valid;
 }

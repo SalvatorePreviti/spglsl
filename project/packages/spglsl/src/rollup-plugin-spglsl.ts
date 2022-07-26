@@ -91,7 +91,14 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
 
     if (!spglslResult.valid) {
       if (spglslResult.throwOnError) {
-        throw new SpglslAngleCompileError(spglslResult);
+        throw new SpglslAngleCompileError(
+          spglslResult,
+          options.isProduction
+            ? undefined
+            : `spglsl ${spglslResult.compileMode} ${id}:${spglslResult.infoLog.toString({
+                colors: false,
+              })}`,
+        );
       } else if (options.logging) {
         console.error(
           `\n${chalk.blue(`spglsl:${spglslResult.compileMode}`)} ${inspectSpglslAngleCompileResult(spglslResult)}`,
