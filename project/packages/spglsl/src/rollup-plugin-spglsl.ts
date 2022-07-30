@@ -142,23 +142,22 @@ export function rollupPluginSpglsl(options: RollupPluginSpglslOptions) {
 
     let js: string;
 
-    js = `export let code=${r};\n`;
-    js += "export function setCode(value) { code=value };\n";
+    js = `export const code=${r};\n`;
     js += "export default code;\n";
 
     js += `\nexport const uniformNames = ${JSON.stringify(spglslResult.uniforms)};\n`;
     for (const [key, value] of Object.entries(spglslResult.uniforms)) {
-      js += `export let uniformName_${key}=${JSON.stringify(value)};\n`;
+      js += `export const uniformName_${key}=${JSON.stringify(value)};\n`;
     }
 
     js += `\nexport const globalNames = ${JSON.stringify(spglslResult.globals)};\n`;
     for (const [key, value] of Object.entries(spglslResult.globals)) {
-      js += `export let globalName_${key}=${JSON.stringify(value)};\n`;
+      js += `export const globalName_${key}=${JSON.stringify(value)};\n`;
     }
 
     js += `\nexport const constDefs = ${JSON.stringify(spglslResult.constDefs)};\n`;
     for (const [key, value] of Object.entries(spglslResult.constDefs)) {
-      js += `export let constDef_${key}=${JSON.stringify(value)};\n`;
+      js += `export const constDef_${key}=${JSON.stringify(value)};\n`;
     }
 
     return { code: js, map: null };
