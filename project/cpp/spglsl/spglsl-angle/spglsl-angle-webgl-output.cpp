@@ -299,6 +299,12 @@ void SpglslAngleWebglOutput::clearLastWrittenVarDecl() {
   }
 }
 
+bool _equalTypesExcludingArraySize(const sh::TType & a, const sh::TType & b) {
+  return a.getBasicType() == b.getBasicType() && a.getNominalSize() == b.getNominalSize() &&
+      a.getSecondarySize() == b.getSecondarySize() && a.getStruct() == b.getStruct();
+  return true;
+}
+
 void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
   sh::TIntermSymbol * childSym = child.getAsSymbolNode();
   if (!childSym) {
@@ -314,7 +320,8 @@ void SpglslAngleWebglOutput::writeVariableDeclaration(sh::TIntermNode & child) {
     needsToWriteType = this->_lastWrittenVarDecl == nullptr;
   } else {
     auto q = type.getQualifier();
-    if (this->_canForwardVarDecl && this->_lastWrittenVarDecl && type == *this->_lastWrittenVarDecl &&
+    if (this->_canForwardVarDecl && this->_lastWrittenVarDecl &&
+        _equalTypesExcludingArraySize(type, *this->_lastWrittenVarDecl) &&
         q == this->_lastWrittenVarDecl->getQualifier() && !this->needsToClearLastWrittenVarDecl()) {
       needsToWriteType = false;
     }
