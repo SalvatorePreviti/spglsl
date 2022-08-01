@@ -2,11 +2,6 @@ import type { StringEnumValue } from "./core/string-enums";
 import { StringEnum } from "./core/string-enums";
 import { extname as pathExtname, basename as pathBasename } from "path";
 
-export const SpglslPrecision = StringEnum("", "lowp", "mediump", "highp");
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type SpglslPrecision = StringEnumValue<typeof SpglslPrecision>;
-
 export const SpglslCompileMode = StringEnum("Validate", "Compile", "Optimize");
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare

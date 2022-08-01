@@ -10,8 +10,6 @@ enum EShLanguage { EShLangFragment, EShLangVertex };
 
 enum class SpglslCompileMode { Validate, Compile, Optimize };
 
-enum class SpglslDefaultPrecision { undefined, lowp, mediump, highp };
-
 class SpglslCompileOptions : NonCopyable {
  public:
   EShLanguage language;
@@ -24,9 +22,6 @@ class SpglslCompileOptions : NonCopyable {
   emscripten::val mangle_global_map;
   bool beautify;
   bool recordConstantPrecision;
-
-  SpglslDefaultPrecision floatPrecision;
-  SpglslDefaultPrecision intPrecision;
 
   explicit SpglslCompileOptions();
   ~SpglslCompileOptions();

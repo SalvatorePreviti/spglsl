@@ -117,7 +117,7 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
     }
   }
 
-  this->loadPrecisions(true);
+  this->loadPrecisions();
 
   if (this->compilerOptions.compileMode == SpglslCompileMode::Optimize) {
     if (this->compilerOptions.minify) {
@@ -160,32 +160,22 @@ void SpglslAngleCompiler::_mangle(sh::TIntermBlock * root) {
   }
 }
 
-void SpglslAngleCompiler::loadPrecisions(bool reload) {
-  if (reload) {
-    this->precisions = SpglslGlslPrecisions();
-  }
+void SpglslAngleCompiler::loadPrecisions() {
+  this->precisions = SpglslGlslPrecisions();
   if (this->compilerOptions.language == EShLangVertex) {
     this->precisions.defaultIntPrecision = sh::TPrecision::EbpHigh;
     this->precisions.defaultFloatPrecision = sh::TPrecision::EbpHigh;
   } else {
     this->precisions.defaultIntPrecision = sh::TPrecision::EbpMedium;
+    this->precisions.defaultFloatPrecision = sh::TPrecision::EbpUndefined;
   }
 
-  this->precisions.floatPrecision = (sh::TPrecision)this->compilerOptions.floatPrecision;
-  this->precisions.intPrecision = (sh::TPrecision)this->compilerOptions.intPrecision;
+  SpglslGetPrecisionsTraverser precisionsTraverser;
+  precisionsTraverser.traverseNode(this->body);
+  precisionsTraverser.count();
 
-  if (this->precisions.floatPrecision == sh::TPrecision::EbpUndefined ||
-      this->precisions.intPrecision == sh::TPrecision::EbpUndefined) {
-    SpglslGetPrecisionsTraverser precisionsTraverser;
-    precisionsTraverser.traverseNode(this->body);
-    precisionsTraverser.count();
-    if (this->precisions.floatPrecision == sh::TPrecision::EbpUndefined) {
-      this->precisions.floatPrecision = precisionsTraverser.floatPrecision;
-    }
-    if (this->precisions.intPrecision == sh::TPrecision::EbpUndefined) {
-      this->precisions.intPrecision = precisionsTraverser.intPrecision;
-    }
-  }
+  this->precisions.floatPrecision = precisionsTraverser.floatPrecision;
+  this->precisions.intPrecision = precisionsTraverser.intPrecision;
 }
 
 std::string SpglslAngleCompiler::decompileOutput() {

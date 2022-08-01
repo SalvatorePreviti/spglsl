@@ -274,7 +274,7 @@ SpglslGlslWriter & SpglslGlslWriter::writeTypePrecision(const sh::TType & type) 
       break;
 
     case sh::EbtFloat:
-      if (this->precisions.intPrecision != sh::EbpUndefined) {
+      if (this->precisions.floatPrecision != sh::EbpUndefined) {
         if (precision == this->precisions.floatPrecision) {
           return *this;
         }

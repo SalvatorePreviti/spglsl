@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { GlslInfoLogArray, GlslInfoLogRow } from "./glsl-info-log";
 import { _wasmSpglslGet } from "./lib/_wasm";
-import { SpglslLanguage, spglslLanguageFromString, SpglslCompileMode, SpglslPrecision } from "./spglsl-enums";
+import { SpglslLanguage, spglslLanguageFromString, SpglslCompileMode } from "./spglsl-enums";
 import { StringEnum } from "./core/string-enums";
 import { SpglslResourceLimits } from "./spglsl-resource-limits";
 import { makePathRelative, prettySize } from "./core/utils";
@@ -13,8 +13,6 @@ export interface SpglslAngleCompileOptions {
   language?: string;
   customData?: unknown;
   resourceLimits?: Partial<SpglslResourceLimits>;
-  floatPrecision?: SpglslPrecision;
-  intPrecision?: SpglslPrecision;
   minify?: boolean;
 
   /** If true, mangle all variables and functions, except uniforms and the function that starts with "main" */
@@ -59,8 +57,6 @@ export class SpglslAngleCompileResult {
   public constDefs: Record<string, number | boolean>;
 
   public infoLog: GlslInfoLogArray;
-  public floatPrecision: SpglslPrecision;
-  public intPrecision: SpglslPrecision;
   public minify: boolean;
 
   public mangle: boolean;
@@ -83,8 +79,6 @@ export class SpglslAngleCompileResult {
     this.globals = {};
     this.constDefs = {};
     this.infoLog = new GlslInfoLogArray();
-    this.floatPrecision = "";
-    this.intPrecision = "";
     this.minify = false;
     this.mangle = false;
     this.mangle_global_map = undefined;
@@ -104,8 +98,6 @@ export async function spglslAngleCompile(input: Readonly<SpglslAngleCompileInput
     throw new TypeError(`Invalid compile mode "${input.compileMode}"`);
   }
   result.customData = input.customData;
-  result.floatPrecision = (StringEnum.has(SpglslPrecision, input.floatPrecision) && input.floatPrecision) || "";
-  result.intPrecision = (StringEnum.has(SpglslPrecision, input.intPrecision) && input.intPrecision) || "";
   result.minify = !!input.minify;
 
   result.mangle = input.mangle === undefined ? result.minify : !!input.mangle;

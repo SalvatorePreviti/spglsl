@@ -40,7 +40,7 @@ class SpglslAngleCompiler : public SpglslTCompilerHolder {
 
   bool compile(const char * sourceCode);
 
-  void loadPrecisions(bool reload);
+  void loadPrecisions();
 
   std::string decompileOutput();
 

@@ -7,8 +7,6 @@ SpglslCompileOptions::SpglslCompileOptions() :
     language(EShLangFragment),
     parseShaderVersion(460),
     outputShaderVersion(300),
-    floatPrecision(SpglslDefaultPrecision::undefined),
-    intPrecision(SpglslDefaultPrecision::undefined),
     recordConstantPrecision(false),
     minify(false),
     mangle(false),
@@ -36,35 +34,6 @@ void SpglslCompileOptions::loadFromVal(emscripten::val input, emscripten::val re
   this->mangle_global_map = input["mangle_global_map"];
   this->beautify = this->compileMode >= SpglslCompileMode::Optimize && input["beautify"].as<bool>();
   this->recordConstantPrecision = input["recordConstantPrecision"].as<bool>();
-
-  SpglslDefaultPrecision floatPrecision = SpglslDefaultPrecision::undefined;
-  emscripten::val floatPrecisionVal = input["floatPrecision"];
-  if (floatPrecisionVal.isString()) {
-    std::string precision = floatPrecisionVal.as<std::string>();
-    if (!precision.empty()) {
-      if (precision == "lowp") {
-        floatPrecision = SpglslDefaultPrecision::lowp;
-      } else if (precision == "mediump") {
-        floatPrecision = SpglslDefaultPrecision::mediump;
-      } else if (precision == "highp") {
-        floatPrecision = SpglslDefaultPrecision::highp;
-      }
-    }
-  }
-  SpglslDefaultPrecision intPrecision = SpglslDefaultPrecision::undefined;
-  emscripten::val intPrecisionVal = input["intPrecision"];
-  if (intPrecisionVal.isString()) {
-    std::string precision = intPrecisionVal.as<std::string>();
-    if (!precision.empty()) {
-      if (precision == "lowp") {
-        intPrecision = SpglslDefaultPrecision::lowp;
-      } else if (precision == "mediump") {
-        intPrecision = SpglslDefaultPrecision::mediump;
-      } else if (precision == "highp") {
-        intPrecision = SpglslDefaultPrecision::highp;
-      }
-    }
-  }
 
   ShBuiltInResources & a = this->angle;
 

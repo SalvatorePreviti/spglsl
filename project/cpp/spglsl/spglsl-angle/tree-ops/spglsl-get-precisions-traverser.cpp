@@ -137,7 +137,7 @@ bool SpglslGetPrecisionsTraverser::visitAggregate(sh::Visit visit, sh::TIntermAg
 
 void SpglslGetPrecisionsTraverser::count() {
   int fc = this->_floatPrecisionMediump;
-  this->floatPrecision = sh::EbpMedium;
+  this->floatPrecision = fc > 0 ? sh::EbpMedium : sh::EbpUndefined;
   if (this->_floatPrecisionHighp > fc) {
     fc = this->_floatPrecisionHighp;
     this->floatPrecision = sh::EbpHigh;
@@ -147,7 +147,7 @@ void SpglslGetPrecisionsTraverser::count() {
   }
 
   fc = this->_intPrecisionMediump;
-  this->intPrecision = sh::EbpMedium;
+  this->intPrecision = fc > 0 ? sh::EbpMedium : sh::EbpUndefined;
   if (this->_intPrecisionHighp > fc) {
     fc = this->_intPrecisionHighp;
     this->intPrecision = sh::EbpHigh;
