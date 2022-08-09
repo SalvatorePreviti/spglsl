@@ -7,6 +7,10 @@ Used in https://github.com/SalvatorePreviti/js13k-2020
 
 Package is precompiled at https://www.npmjs.com/package/spglsl
 
+It includes a rollup plugin.
+
+For an esbuild plugin, see https://github.com/rottencandy/esbuild-plugin-spglsl
+
 ```sh
 npm i spglsl --save
 ```
