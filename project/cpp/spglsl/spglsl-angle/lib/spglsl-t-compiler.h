@@ -25,8 +25,8 @@ class SpglslTCompiler : public sh::TCompiler {
 
  protected:
   bool shouldFlattenPragmaStdglInvariantAll() override;
-  bool translate(sh::TIntermBlock * root,
-      ShCompileOptions compileOptions,
+  virtual bool translate(sh::TIntermBlock * root,
+      const ShCompileOptions & compileOptions,
       sh::PerformanceDiagnostics * perfDiagnostics) override;
 };
 

@@ -9,7 +9,7 @@ bool SpglslTCompiler::shouldFlattenPragmaStdglInvariantAll() {
 }
 
 bool SpglslTCompiler::translate(sh::TIntermBlock * root,
-    ShCompileOptions compileOptions,
+    const ShCompileOptions & compileOptions,
     sh::PerformanceDiagnostics * perfDiagnostics) {
   return false;
 }

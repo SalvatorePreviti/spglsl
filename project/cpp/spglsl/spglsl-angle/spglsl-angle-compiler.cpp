@@ -36,9 +36,13 @@ bool SpglslAngleCompiler::compile(const char * sourceCode) {
       this->metadata.shaderType, this->tCompiler.getShaderSpec(), this->compilerOptions.angle);
   sh::InitExtensionBehavior(this->compilerOptions.angle, this->extensionBehavior);
 
+  ShCompileOptions compileOptions;
+  compileOptions.objectCode = 1;
+  compileOptions.flattenPragmaSTDGLInvariantAll = 1;
+
   sh::TParseContext parseContext(this->symbolTable, this->extensionBehavior, (GLenum)this->metadata.shaderType,
-      this->tCompiler.getShaderSpec(), SH_OBJECT_CODE | SH_FLATTEN_PRAGMA_STDGL_INVARIANT_ALL, true, &this->diagnostics,
-      this->compilerOptions.angle, SH_ESSL_OUTPUT);
+      this->tCompiler.getShaderSpec(), compileOptions, true, &this->diagnostics, this->compilerOptions.angle,
+      SH_ESSL_OUTPUT);
 
   parseContext.setFragmentPrecisionHighOnESSL1(this->compilerOptions.angle.FragmentPrecisionHigh == 1);
 
