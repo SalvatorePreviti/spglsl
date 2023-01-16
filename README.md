@@ -1,11 +1,15 @@
-# spglsl - a webgl glsl minifier based on Google Angle
+# spglsl - a webgl glsl minifier based on Google Angle, written for JS13K
 
-Execuce preprocessor directives, removes whitespaces, applies constant folding, mangle non exported functions and variable names.
-Used in https://github.com/SalvatorePreviti/js13k-2020
+Executes preprocessor directives, removes whitespaces, applies constant folding, mangle non exported functions and variable names.
+Used in "Island Not Found" https://github.com/SalvatorePreviti/js13k-2020 and "Dante" https://github.com/SalvatorePreviti/js13k-2022 (first place on JS13K 2022)
 
 ## Installation
 
 Package is precompiled at https://www.npmjs.com/package/spglsl
+
+It includes a rollup plugin.
+
+For an esbuild plugin, see https://github.com/rottencandy/esbuild-plugin-spglsl
 
 ```sh
 npm i spglsl --save
