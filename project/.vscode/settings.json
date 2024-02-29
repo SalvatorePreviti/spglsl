@@ -47,8 +47,8 @@
     "editor.formatOnSave": true
   },
   "editor.codeActionsOnSave": {
-    "source.fixAll": true,
-    "source.fixAll.eslint": true
+    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit"
   },
   "editor.detectIndentation": false,
   "editor.formatOnSave": true,
