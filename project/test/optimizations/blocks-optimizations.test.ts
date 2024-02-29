@@ -7,7 +7,7 @@ const SHADER_PREFIX =
 describe("blocks-optimizations", function () {
   this.timeout(7000);
 
-  describe("blocks optimizations", async () => {
+  describe("blocks optimizations", () => {
     it("removes extra blocks", async () => {
       expect(await compileMain("{{P.x=2.;}{{V.y=1.;}}}")).to.eq("P.x=2.;V.y=1.;");
     });

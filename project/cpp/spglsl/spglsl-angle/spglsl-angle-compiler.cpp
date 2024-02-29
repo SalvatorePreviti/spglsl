@@ -1,7 +1,5 @@
 #include "spglsl-angle-compiler.h"
 
-#include <ostream>
-
 #include <angle/src/compiler/translator/Initialize.h>
 #include <angle/src/compiler/translator/ValidateOutputs.h>
 #include <angle/src/compiler/translator/ValidateVaryingLocations.h>
@@ -13,9 +11,23 @@
 #include <angle/src/compiler/translator/tree_ops/SplitSequenceOperator.h>
 #include <angle/src/compiler/translator/tree_util/IntermNodePatternMatcher.h>
 #include <angle/src/compiler/translator/util.h>
+#include <sstream>
+#include <string>
 
+#include "GLES/gl.h"
+#include "GLSLANG/ShaderLang.h"
+#include "GLSLANG/ShaderVars.h"
+#include "compiler/translator/BaseTypes.h"
+#include "compiler/translator/IntermNode.h"
+#include "compiler/translator/ParseContext.h"
+#include "compiler/translator/tree_util/IntermTraverse.h"
+#include "compiler/translator/tree_util/Visit.h"
 #include "spglsl-angle-compiler-handle.h"
 #include "spglsl-angle-webgl-output.h"
+#include "spglsl/spglsl-angle/lib/spglsl-glsl-precisions.h"
+#include "spglsl/spglsl-angle/lib/spglsl-t-compiler.h"
+#include "spglsl/spglsl-angle/tree-ops/spglsl-get-precisions-traverser.h"
+#include "spglsl/spglsl-compile-options.h"
 #include "symbols/spglsl-symbol-usage.h"
 #include "tree-ops/tree-ops.h"
 
@@ -49,7 +61,7 @@ bool SpglslAngleCompiler::compile(const char * sourceCode) {
   TScopedSymbolTableLevel globalLevel(&this->symbolTable);
 
   const char * sourceCodes[1] = {sourceCode};
-  bool parsed = PaParseStrings(1, &sourceCodes[0], nullptr, &parseContext) == 0;
+  const bool parsed = PaParseStrings(1, &sourceCodes[0], nullptr, &parseContext) == 0;
 
   this->symbolTable.setGlobalInvariant(
       this->metadata.pragma.stdgl.invariantAll || parseContext.pragma().stdgl.invariantAll);
@@ -92,7 +104,7 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
   }
 
   if (this->metadata.shaderVersion >= 300 && this->metadata.shaderType == GL_FRAGMENT_SHADER &&
-      !ValidateOutputs(root, this->extensionBehavior, this->compilerOptions.angle.MaxDrawBuffers, &this->diagnostics)) {
+      !ValidateOutputs(root, this->extensionBehavior, this->compilerOptions.angle, true, true, &this->diagnostics)) {
     return false;
   }
 
@@ -213,7 +225,7 @@ class CollectVariablesTraverser : public sh::TIntermTraverser {
     const sh::TIntermTyped & typedNode = *(sequence.front()->getAsTyped());
     sh::TQualifier qualifier = typedNode.getQualifier();
 
-    bool isShaderVariable = qualifier == sh::EvqAttribute || qualifier == sh::EvqVertexIn ||
+    const bool isShaderVariable = qualifier == sh::EvqAttribute || qualifier == sh::EvqVertexIn ||
         qualifier == sh::EvqFragmentOut || qualifier == sh::EvqFragmentInOut || qualifier == sh::EvqUniform ||
         sh::IsVarying(qualifier);
 

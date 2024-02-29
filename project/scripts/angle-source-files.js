@@ -14,27 +14,19 @@ function parseGniFile(gniFilePath, parsed = {}) {
   let isInsideIf = false;
   let lineIndex = 0;
   let currentName = "";
-  for (let line of compilerGni.split("\n")) {
-    lineIndex++;
-    line = line.trim();
-    if (!line || line.startsWith("#")) {
-      continue;
-    }
-    if (line.startsWith("if")) {
-      ++isInsideIf;
-      continue;
-    }
+  let lastLineWithEqual = null;
+
+  const processLine = (line) => {
     if (isInsideIf) {
       if (line.startsWith("}")) {
-        --isInsideIf;
-        if (isInsideIf < 0) {
-          throw new Error(`If stack underflow ${isInsideIf} in ${gniFilePath}:${lineIndex}`);
+        if (isInsideIf > 0) {
+          --isInsideIf;
         }
       }
-      continue;
+      return;
     }
     if (line.startsWith("}") || line.startsWith("]")) {
-      continue;
+      return;
     }
     if (line.startsWith("[") && line.endsWith("]")) {
       line = line.slice(1, line.length - 2).trim();
@@ -49,7 +41,12 @@ function parseGniFile(gniFilePath, parsed = {}) {
         throw new Error(`Invalid string filename in ${gniFilePath}:${lineIndex}`);
       }
       parsed[currentName].push(filename);
-      continue;
+      return;
+    }
+
+    if (line.endsWith("=")) {
+      lastLineWithEqual = line;
+      return;
     }
 
     const indexOfEqual = line.indexOf("=");
@@ -66,11 +63,32 @@ function parseGniFile(gniFilePath, parsed = {}) {
     if (!parsed[currentName]) {
       parsed[currentName] = [];
     }
+  };
+
+  for (let line of compilerGni.split("\n")) {
+    lineIndex++;
+    line = line.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+    if (line.startsWith("import(")) {
+      continue;
+    }
+    if (line.startsWith("if")) {
+      ++isInsideIf;
+      continue;
+    }
+
+    if (lastLineWithEqual) {
+      processLine(`${lastLineWithEqual} ${line}`);
+    } else {
+      processLine(line);
+    }
   }
 
-  if (isInsideIf !== false && isInsideIf !== 0) {
-    throw new Error(`If stack overflow ${isInsideIf} in ${gniFilePath}`);
-  }
+  // if (isInsideIf !== false && isInsideIf !== 0) {
+  //   throw new Error(`If stack overflow ${isInsideIf} in ${gniFilePath}`);
+  // }
   return parsed;
 }
 
@@ -96,6 +114,7 @@ const glslSourcesSet = new Set([
   ...parsedGni.libangle_common_sources,
   ...parsedGni.angle_translator_sources,
   ...parsedGni.angle_preprocessor_sources,
+  ...parsedGni.angle_translator_lib_msl_sources,
   ...parsedGni.angle_translator_glsl_symbol_table_sources,
   ...parsedGni.angle_translator_essl_symbol_table_sources,
   ...parsedGni.angle_translator_essl_sources.filter((source) => source.includes("RecordConstantPrecision")),

@@ -18,15 +18,12 @@ IF(EMSCRIPTEN)
     -fno-rtti \
     -flto \
     -Wno-unused-command-line-argument \
-    -ffast-math \
     -s STRICT=1 \
-    -s STRICT_JS=1 \
     -s SAFE_HEAP=0 \
     -s EVAL_CTORS=1 \
     -s FILESYSTEM=0 \
     -s EXIT_RUNTIME=0 \
     -s NO_EXIT_RUNTIME=1 \
-    -s SUPPORT_ERRNO=0 \
     -s SAFE_HEAP_LOG=0 \
     -s ABORTING_MALLOC=0 \
     -s ALLOW_MEMORY_GROWTH=1 \
@@ -35,7 +32,7 @@ IF(EMSCRIPTEN)
     --bind \
     -s MODULARIZE=1 -fno-exceptions -s DISABLE_EXCEPTION_CATCHING=1")
   set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/packages/spglsl/wasm CACHE PATH "WASM Build directory" FORCE)
- 
+
 ELSE()
   include_directories(${PROJECT_SOURCE_DIR}/../emsdk/upstream/emscripten/system CACHE PATH)
   include_directories(${PROJECT_SOURCE_DIR}/../emsdk/upstream/emscripten/system/include CACHE PATH)
@@ -45,20 +42,19 @@ ELSE()
   include_directories(${PROJECT_SOURCE_DIR}/../emsdk/upstream/emscripten/system/include/compat CACHE PATH)
 ENDIF()
 
-
 include_directories(${PROJECT_SOURCE_DIR}/.. CACHE PATH)
 include_directories(${PROJECT_SOURCE_DIR}/../angle/src CACHE PATH)
 include_directories(${PROJECT_SOURCE_DIR}/../angle/include CACHE PATH)
 include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common CACHE PATH)
-include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common/third_party/base CACHE PATH)
+include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common/base CACHE PATH)
+include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common/third_party CACHE PATH)
+include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common/third_party/xxhash CACHE PATH)
 include_directories(${PROJECT_SOURCE_DIR}/cpp CACHE PATH)
 
-########## angle library ##########
-
+# ######### angle library ##########
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../angle-make ${CMAKE_CURRENT_SOURCE_DIR}/../angle/build)
 
-########## spglsl wasm ##########
-
+# ######### spglsl wasm ##########
 file(GLOB_RECURSE SPGLSL_SRC_FILES CONFIGURE_DEPENDS cpp/spglsl/*.cpp cpp/spglsl-common/*.cpp)
 add_executable(spglsl ${SPGLSL_SRC_FILES})
 

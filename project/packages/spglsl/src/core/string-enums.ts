@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { inspect } from "util";
 
 const _symIndices = Symbol("indices");

@@ -1,8 +1,21 @@
 #include <ctype.h>
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <list>
+#include <ostream>
+#include <sstream>
+#include <string>
 
 #include "../spglsl-angle-webgl-output.h"
+#include "compiler/translator/IntermNode.h"
+#include "compiler/translator/Symbol.h"
+#include "compiler/translator/Types.h"
 #include "spglsl-symbol-usage.h"
+#include "spglsl/core/string-utils.h"
+#include "spglsl/spglsl-angle/lib/spglsl-glsl-precisions.h"
+#include "spglsl/spglsl-angle/spglsl-scoped-traverser.h"
+#include "spglsl/spglsl-angle/symbols/spglsl-symbol-info.h"
 
 static auto _cmp_SpglslSymbolUsageInfo(const SpglslSymbolUsageInfo * a, const SpglslSymbolUsageInfo * b) {
   auto af = a->frequency;
@@ -37,15 +50,7 @@ class ScopeSymbols {
   }
 
   bool isSymbolUsed(SpglslSymbolUsageInfo * symbol) const {
-    if (this->usedSymbols.count(symbol) != 0) {
-      return true;
-    }
-    for (const auto * child : this->children) {
-      if (child->isSymbolUsed(symbol)) {
-        return true;
-      }
-    }
-    return false;
+    return static_cast<bool>(this->usedSymbols.count(symbol) != 0);
   }
 
   bool isMangleIdUsed(int mangleId) const {
@@ -72,14 +77,13 @@ class ScopeSymbols {
 
 class ScopeSymbolsManager {
  public:
-  SpglslSymbolUsage & usage;
-  ScopeSymbols * rootScope;
-  ScopeSymbols * currentScope = nullptr;
   int declarationsCount = 0;
   std::list<ScopeSymbols> allScopes;
+  ScopeSymbols * rootScope;
+  ScopeSymbols * currentScope = nullptr;
+  SpglslSymbolUsage & usage;
 
-  explicit ScopeSymbolsManager(SpglslSymbolUsage & usage) : usage(usage) {
-    this->rootScope = &this->allScopes.emplace_back();
+  explicit ScopeSymbolsManager(SpglslSymbolUsage & usage) : usage(usage), rootScope(&this->allScopes.emplace_back()) {
   }
 
   void beginScope(sh::TIntermFunctionDefinition * node) {
@@ -201,9 +205,7 @@ void generateMangledOverloads(ScopeSymbols & scope,
     }
     auto & list = functionsByArgs[id - 1];
     list.push_back(entry);
-    if (list.size() > maxGroupSize) {
-      maxGroupSize = list.size();
-    }
+    maxGroupSize = std::max(maxGroupSize, list.size());
   }
   if (!functionsByArgs.empty()) {
     std::vector<SpglslSymbolUsageInfo *> tmpOverloads;
@@ -326,8 +328,8 @@ void SpglslSymbolUsage::load(sh::TIntermBlock * root,
 ////////////////////////////////////////
 
 inline bool charLess(char a, char b) {
-  bool alow = islower(a) != 0;
-  bool blow = islower(b) != 0;
+  const bool alow = islower(a) != 0;
+  const bool blow = islower(b) != 0;
   if (alow != blow) {
     return alow;
   }

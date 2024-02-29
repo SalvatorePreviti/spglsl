@@ -1,0 +1,5 @@
+#!/bin/sh
+
+[[ "$1" == "--timed" ]] && { export TSN_TIMED=1; shift; }
+
+exec node --enable-source-maps -r @balsamic/tsn --loader @balsamic/tsn "$@"

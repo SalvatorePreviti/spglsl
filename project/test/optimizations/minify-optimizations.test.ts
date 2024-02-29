@@ -7,7 +7,7 @@ const SHADER_PREFIX =
 describe("minify-optimizations", function () {
   this.timeout(7000);
 
-  describe("minifications", async () => {
+  describe("minifications", () => {
     it("convert statements into commas", async () => {
       expect(await compileMain("{{P.x=2.;}{{V.y=1.;}}}")).to.eq("P.x=2.,V.y=1.;");
     });

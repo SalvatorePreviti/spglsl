@@ -87,6 +87,7 @@ async function _serveTestFile(test: ConformanceTest): Promise<string> {
 }
 
 function _makeHtmlHandler(handler: () => Promise<string> | string): express.RequestHandler {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   return async (req, res) => {
     if (LOG_REQUESTS) {
       console.log(chalk.gray(req.url));
@@ -133,6 +134,7 @@ async function _setupServer() {
     }
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   app.post("/spglsl/glsl", async (req, res) => {
     const { __sp_test_file, sourceCode, shaderType } = req.body;
     if (LOG_REQUESTS) {
