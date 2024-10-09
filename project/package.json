@@ -1,6 +1,6 @@
 {
   "name": "spglsl-project",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "spglsl",
   "keywords": [
@@ -20,15 +20,15 @@
     "conformance-test-server": "node -r @swc-node/register ./conformance/conformance-test-server-start.ts",
     "conformance-tests": "node -r @swc-node/register ./conformance/conformance-test-runner.ts",
     "precommit": "lint-staged && ./scripts/build-ts.sh",
-    "lint": "eslint --no-error-on-unmatched-pattern --fix . && prettier --write --loglevel=warn"
+    "lint": "eslint --no-error-on-unmatched-pattern --fix . && prettier --write . --log-level=warn"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mts,cts,cjs,mjs,json}": [
       "eslint --no-error-on-unmatched-pattern --fix",
-      "prettier --write --loglevel=warn"
+      "prettier --write . --log-level=warn"
     ],
     "*.{yml,yaml,md,htm,html,css,scss,less}": [
-      "prettier --write --loglevel=warn"
+      "prettier --write . --log-level=warn"
     ]
   },
   "devDependencies": {
@@ -44,8 +44,8 @@
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "chai": "^4.4.1",
-    "cheerio": "1.0.0-rc.12",
-    "eslint": "^8.57.0",
+    "cheerio": "1.0.0",
+    "eslint": "^8.57.1",
     "eslint-plugin-chai-expect": "^3.0.0",
     "eslint-plugin-json": "^3.1.0",
     "eslint-plugin-mocha": "^10.3.0",

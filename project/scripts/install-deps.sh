@@ -55,5 +55,8 @@ then
   git config pull.rebase false
   git reset --hard
   git pull
+
+  # update specific submodules, zlib
+  git submodule update --init third_party/zlib
 fi
 cd $SPGLSL_PROJECT_DIR

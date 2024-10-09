@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_MACOSX_RPATH 1)
 
 IF(EMSCRIPTEN)
-  ADD_DEFINITIONS(-DEMSCRIPTEN)
+  ADD_DEFINITIONS(-DEMSCRIPTEN -DANGLE_WITH_TSAN -DANGLE_ENABLE_NULL)
   add_definitions(-DSPIRV_EMSCRIPTEN)
 
   set(CMAKE_SYSTEM_NAME "Emscripten" CACHE STRING "CMAKE_SYSTEM_NAME" FORCE)
@@ -49,6 +49,8 @@ include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common CACHE PATH)
 include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common/base CACHE PATH)
 include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common/third_party CACHE PATH)
 include_directories(${PROJECT_SOURCE_DIR}/../angle/src/common/third_party/xxhash CACHE PATH)
+include_directories(${PROJECT_SOURCE_DIR}/../angle/third_party/zlib CACHE PATH)
+include_directories(${PROJECT_SOURCE_DIR}/../angle/third_party/zlib/google CACHE PATH)
 include_directories(${PROJECT_SOURCE_DIR}/cpp CACHE PATH)
 
 # ######### angle library ##########

@@ -44,12 +44,16 @@ function parseGniFile(gniFilePath, parsed = {}) {
       return;
     }
 
+    const indexOfEqual = line.indexOf("=");
+    if (indexOfEqual > 0) {
+      lastLineWithEqual = "";
+    }
+
     if (line.endsWith("=")) {
       lastLineWithEqual = line;
       return;
     }
 
-    const indexOfEqual = line.indexOf("=");
     if (indexOfEqual <= 0) {
       throw new Error(`Equal operator not found in ${gniFilePath}:${lineIndex} ${line}`);
     }
@@ -93,6 +97,7 @@ function parseGniFile(gniFilePath, parsed = {}) {
 }
 
 const parsedGni = {
+  libangle_sources: [],
   libangle_common_sources: [],
 
   angle_translator_exported_headers: [],
@@ -108,14 +113,13 @@ const parsedGni = {
 parseGniFile("./../angle/src/libGLESv2.gni", parsedGni);
 parseGniFile("./../angle/src/compiler.gni", parsedGni);
 
-// console.log(parsed)
-
 const glslSourcesSet = new Set([
+  ...parsedGni.libangle_sources,
   ...parsedGni.libangle_common_sources,
   ...parsedGni.angle_translator_sources,
   ...parsedGni.angle_preprocessor_sources,
   ...parsedGni.angle_translator_lib_msl_sources,
-  ...parsedGni.angle_translator_glsl_symbol_table_sources,
+  ...parsedGni.angle_translator_glsl_base_sources,
   ...parsedGni.angle_translator_essl_symbol_table_sources,
   ...parsedGni.angle_translator_essl_sources.filter((source) => source.includes("RecordConstantPrecision")),
 

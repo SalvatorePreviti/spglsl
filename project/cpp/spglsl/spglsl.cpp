@@ -57,3 +57,12 @@ EMSCRIPTEN_BINDINGS(spglsl) {
   function("spglsl_init", &spglsl_init);
   function("spglsl_angle_compile", &spglsl_angle_compile);
 }
+
+namespace angle {
+  bool IsDebuggerAttached() {
+    return false;
+  }
+
+  void BreakDebugger() {
+  }
+};

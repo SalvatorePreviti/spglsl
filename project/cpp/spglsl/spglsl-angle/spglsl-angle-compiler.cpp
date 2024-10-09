@@ -53,7 +53,7 @@ bool SpglslAngleCompiler::compile(const char * sourceCode) {
   compileOptions.flattenPragmaSTDGLInvariantAll = 1;
 
   sh::TParseContext parseContext(this->symbolTable, this->extensionBehavior, (GLenum)this->metadata.shaderType,
-      this->tCompiler.getShaderSpec(), compileOptions, true, &this->diagnostics, this->compilerOptions.angle,
+      this->tCompiler.getShaderSpec(), compileOptions, &this->diagnostics, this->compilerOptions.angle,
       SH_ESSL_OUTPUT);
 
   parseContext.setFragmentPrecisionHighOnESSL1(this->compilerOptions.angle.FragmentPrecisionHigh == 1);
@@ -115,7 +115,7 @@ bool SpglslAngleCompiler::_checkAndSimplifyAST(sh::TIntermBlock * root, const sh
   }
 
   if (this->compilerOptions.compileMode == SpglslCompileMode::Optimize) {
-    if (!SeparateDeclarations(&this->tCompiler, root, &this->symbolTable)) {
+    if (!SeparateDeclarations(this->tCompiler, *root)) {
       return false;
     }
 

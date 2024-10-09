@@ -1,6 +1,6 @@
 #include "tree-ops.h"
 
-#include <angle/src/compiler/translator/msl/IntermRebuild.h>
+#include <angle/src/compiler/translator/IntermRebuild.h>
 #include <angle/src/compiler/translator/tree_ops/FoldExpressions.h>
 #include <angle/src/compiler/translator/tree_ops/PruneEmptyCases.h>
 #include <angle/src/compiler/translator/tree_ops/PruneNoOps.h>
@@ -230,7 +230,7 @@ bool spglsl_treeops_optimize(SpglslAngleCompiler & compiler, sh::TIntermBlock * 
     if (!sh::RemoveUnreferencedVariables(&compiler.tCompiler, root, &compiler.symbolTable)) {
       return false;
     }
-    if (!sh::SeparateDeclarations(&compiler.tCompiler, root, &compiler.symbolTable)) {
+    if (!sh::SeparateDeclarations(compiler.tCompiler, *root)) {
       return false;
     }
     if (!sh::PruneEmptyCases(&compiler.tCompiler, root)) {

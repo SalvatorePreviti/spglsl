@@ -1,9 +1,9 @@
 Strong (well-distributed and unpredictable) hashes:
 
-*   Portable implementation of
-    [SipHash](https://www.131002.net/siphash/siphash.pdf)
-*   HighwayHash, a 5x faster SIMD hash with [security
-    claims](https://arxiv.org/abs/1612.06257)
+- Portable implementation of
+  [SipHash](https://www.131002.net/siphash/siphash.pdf)
+- HighwayHash, a 5x faster SIMD hash with [security
+  claims](https://arxiv.org/abs/1612.06257)
 
 ## Quick Start
 
@@ -164,14 +164,14 @@ We compile the 64-bit C++ implementations with a patched GCC 4.9 and run on a
 single idle core of a Xeon E5-2690 v3 clocked at 2.6 GHz. CPU cost is measured
 as cycles per byte for various input sizes:
 
-Algorithm        | 8     | 31   | 32   | 63   | 64   | 1024
----------------- | ----- | ---- | ---- | ---- | ---- | ----
-HighwayHashAVX2  | 7.34  | 1.81 | 1.71 | 1.04 | 0.95 | 0.24
-HighwayHashSSE41 | 8.00  | 2.11 | 1.75 | 1.13 | 0.96 | 0.30
-SipTreeHash      | 16.51 | 4.57 | 4.09 | 2.22 | 2.29 | 0.57
-SipTreeHash13    | 12.33 | 3.47 | 3.06 | 1.68 | 1.63 | 0.33
-SipHash          | 8.13  | 2.58 | 2.73 | 1.87 | 1.93 | 1.26
-SipHash13        | 6.96  | 2.09 | 2.12 | 1.32 | 1.33 | 0.68
+| Algorithm        | 8     | 31   | 32   | 63   | 64   | 1024 |
+| ---------------- | ----- | ---- | ---- | ---- | ---- | ---- |
+| HighwayHashAVX2  | 7.34  | 1.81 | 1.71 | 1.04 | 0.95 | 0.24 |
+| HighwayHashSSE41 | 8.00  | 2.11 | 1.75 | 1.13 | 0.96 | 0.30 |
+| SipTreeHash      | 16.51 | 4.57 | 4.09 | 2.22 | 2.29 | 0.57 |
+| SipTreeHash13    | 12.33 | 3.47 | 3.06 | 1.68 | 1.63 | 0.33 |
+| SipHash          | 8.13  | 2.58 | 2.73 | 1.87 | 1.93 | 1.26 |
+| SipHash13        | 6.96  | 2.09 | 2.12 | 1.32 | 1.33 | 0.68 |
 
 SipTreeHash is slower than SipHash for small inputs because it processes blocks
 of 32 bytes. AVX2 and SSE4.1 HighwayHash are faster than SipHash for all input
@@ -184,7 +184,7 @@ which dramatically increased timings especially for small inputs.
 
 SipTreeHash(13) requires an AVX2-capable CPU (e.g. Haswell). HighwayHash
 includes a dispatcher that chooses the implementation (AVX2, SSE4.1, VSX or
-portable)  at runtime, as well as a directly callable function template that can
+portable) at runtime, as well as a directly callable function template that can
 only run on the CPU for which it was built. SipHash(13) and
 ScalarSipTreeHash(13) have no particular CPU requirements.
 
@@ -301,6 +301,7 @@ case where bins are sparsely populated. What kind of tree should be used?
 Given SipHash and HighwayHash provide high quality randomness, depending on
 expecting attack surface simple non-balancing binary search tree could perform
 reasonably well. [Wikipedia says](https://en.wikipedia.org/wiki/Binary_search_tree#Definition)
+
 > After a long intermixed sequence of random insertion and deletion, the expected
 > height of the tree approaches square root of the number of keys, √n, which grows
 > much faster than log n.
@@ -351,40 +352,40 @@ Thanks to Damian Gryski and Frank Wessels for making us aware of these
 third-party implementations or bindings. Please feel free to get in touch or
 raise an issue and we'll add yours as well.
 
-By | Language | URL
---- | --- | ---
-Damian Gryski | Go and x64 assembly | https://github.com/dgryski/go-highway/
-Lovell Fuller | node.js bindings | https://github.com/lovell/highwayhash
-Vinzent Steinberg | Rust bindings | https://github.com/vks/highwayhash-rs
-Frank Wessels & Andreas Auernhammer | Go and ARM assembly | https://github.com/minio/highwayhash
-Phil Demetriou | Python 3 bindings | https://github.com/kpdemetriou/highwayhash-cffi
+| By                                  | Language            | URL                                             |
+| ----------------------------------- | ------------------- | ----------------------------------------------- |
+| Damian Gryski                       | Go and x64 assembly | https://github.com/dgryski/go-highway/          |
+| Lovell Fuller                       | node.js bindings    | https://github.com/lovell/highwayhash           |
+| Vinzent Steinberg                   | Rust bindings       | https://github.com/vks/highwayhash-rs           |
+| Frank Wessels & Andreas Auernhammer | Go and ARM assembly | https://github.com/minio/highwayhash            |
+| Phil Demetriou                      | Python 3 bindings   | https://github.com/kpdemetriou/highwayhash-cffi |
 
 ## Modules
 
 ### Hashes
 
-*   c_bindings.h declares C-callable versions of SipHash/HighwayHash.
-*   sip_hash.cc is the compatible implementation of SipHash, and also provides
-    the final reduction for sip_tree_hash.
-*   sip_tree_hash.cc is the faster but incompatible SIMD j-lanes tree hash.
-*   scalar_sip_tree_hash.cc is a non-SIMD version.
-*   state_helpers.h simplifies the implementation of the SipHash variants.
-*   highwayhash.h is our new, fast hash function.
-*   hh_{avx2,sse41,vsx,portable}.h are its various implementations.
-*   highwayhash_target.h chooses the best available implementation at runtime.
+- c_bindings.h declares C-callable versions of SipHash/HighwayHash.
+- sip_hash.cc is the compatible implementation of SipHash, and also provides
+  the final reduction for sip_tree_hash.
+- sip_tree_hash.cc is the faster but incompatible SIMD j-lanes tree hash.
+- scalar_sip_tree_hash.cc is a non-SIMD version.
+- state_helpers.h simplifies the implementation of the SipHash variants.
+- highwayhash.h is our new, fast hash function.
+- hh\_{avx2,sse41,vsx,portable}.h are its various implementations.
+- highwayhash_target.h chooses the best available implementation at runtime.
 
 ### Infrastructure
 
-*   arch_specific.h offers byte swapping and CPUID detection.
-*   compiler_specific.h defines some compiler-dependent language extensions.
-*   data_parallel.h provides a C++11 ThreadPool and PerThread (similar to
-    OpenMP).
-*   instruction_sets.h and targets.h enable efficient CPU-specific dispatching.
-*   nanobenchmark.h measures elapsed times with < 1 cycle variability.
-*   os_specific.h sets thread affinity and priority for benchmarking.
-*   profiler.h is a low-overhead, deterministic hierarchical profiler.
-*   tsc_timer.h obtains high-resolution timestamps without CPU reordering.
-*   vector256.h and vector128.h contain wrapper classes for AVX2 and SSE4.1.
+- arch_specific.h offers byte swapping and CPUID detection.
+- compiler_specific.h defines some compiler-dependent language extensions.
+- data_parallel.h provides a C++11 ThreadPool and PerThread (similar to
+  OpenMP).
+- instruction_sets.h and targets.h enable efficient CPU-specific dispatching.
+- nanobenchmark.h measures elapsed times with < 1 cycle variability.
+- os_specific.h sets thread affinity and priority for benchmarking.
+- profiler.h is a low-overhead, deterministic hierarchical profiler.
+- tsc_timer.h obtains high-resolution timestamps without CPU reordering.
+- vector256.h and vector128.h contain wrapper classes for AVX2 and SSE4.1.
 
 By Jan Wassenberg <jan.wassenberg@gmail.com> and Jyrki Alakuijala
 <jyrki.alakuijala@gmail.com>, updated 2018-10-02

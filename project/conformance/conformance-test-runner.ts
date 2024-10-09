@@ -41,7 +41,7 @@ export async function runConformanceTests({ headless = true, testTimeout = 12000
           const timeoutTimer = setTimeout(() => {
             reject(new Error("Test timed out"));
           }, testTimeout || 12000);
-          wm!.testEnded = () => {
+          wm.testEnded = () => {
             clearTimeout(timeoutTimer);
             resolve();
           };
