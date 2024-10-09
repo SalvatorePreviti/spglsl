@@ -1,6 +1,6 @@
 {
   "name": "spglsl",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "description": "spglsl compiler",
   "keywords": [
     "glsl",
